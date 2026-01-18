@@ -206,6 +206,39 @@ async def get_my_schedule(current_user: UserModel = Depends(get_current_user)):
     slots = await db.timeslots.find(query).sort("start_time", 1).to_list(length=100)
     return [TimeSlot(**slot) for slot in slots]
 
+@router.delete("/all")
+async def delete_all_schedules(
+    current_user: UserModel = Depends(require_teacher_or_admin)
+):
+    """Delete all schedule slots for the current teacher"""
+    db = await get_db()
+    
+    try:
+        query = {}
+        if current_user.role == "teacher":
+            query["teacher_id"] = str(current_user.id)
+            
+        # Delete related content first (optional but cleaner)
+        # Find IDs to be deleted
+        slots = await db.timeslots.find(query, {"_id": 1}).to_list(None)
+        slot_ids = [str(s["_id"]) for s in slots]
+        
+        if slot_ids:
+             await db.live_content.delete_many({"timeslot_id": {"$in": slot_ids}})
+        
+        # Delete slots
+        result = await db.timeslots.delete_many(query)
+        
+        return {
+            "success": True, 
+            "message": f"Deleted all {result.deleted_count} sessions",
+            "count": result.deleted_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Error clearing schedule: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to clear schedule: {e}")
+
 @router.delete("/{schedule_id}")
 async def delete_schedule(
     schedule_id: str,
@@ -256,36 +289,27 @@ async def generate_schedule_from_handout(
     db = await get_db()
     
     try:
-        # 1. Extract text from handout
+        # 1. Read file content
         content = await handout_file.read()
         filename = handout_file.filename.lower()
-        extracted_text = ""
+        content_type = handout_file.content_type
         
+        # Determine mime type
+        mime_type = "text/plain" # Default
         if filename.endswith(".pdf"):
-            try:
-                import pypdf
-                pdf_file = io.BytesIO(content)
-                reader = pypdf.PdfReader(pdf_file)
-                for page in reader.pages:
-                    extracted_text += page.extract_text() + "\n"
-            except ImportError:
-                 logger.warning("pypdf not installed, cannot parse PDF. Falling back to empty text.")
-                 pass
-            except Exception as e:
-                logger.error(f"Error parsing PDF: {e}")
-        if not extracted_text:
-            # Try to decode as text if PDF failed or wasn't PDF
-            try:
-                extracted_text = content.decode('utf-8', errors='ignore')
-            except:
-                extracted_text = "Standard Course Syllabus"
-
-        if len(extracted_text) < 10: # If text is too short or empty
-             extracted_text = f"Subject: {subject}. Create a standard syllabus with 10 sessions."
+            mime_type = "application/pdf"
+        elif filename.endswith(".jpg") or filename.endswith(".jpeg"):
+            mime_type = "image/jpeg"
+        elif filename.endswith(".png"):
+            mime_type = "image/png"
+        elif content_type:
+            mime_type = content_type
+            
+        print(f"📄 Processing handout: {filename} ({mime_type})")
 
         # 2. Call AI to parse sessions
         try:
-            sessions_data = await gemini_service.parse_course_handout(extracted_text, subject)
+            sessions_data = await gemini_service.parse_course_handout(content, mime_type, subject)
         except Exception as e:
             logger.error(f"Gemini service failed: {e}")
             sessions_data = []

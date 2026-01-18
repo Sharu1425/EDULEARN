@@ -166,6 +166,19 @@ const TeacherDashboard: React.FC = () => {
     }
   }
 
+  // Clear All Schedule
+  const handleClearAllSchedule = async () => {
+    if (!window.confirm("Are you sure you want to delete ALL upcoming classes? This cannot be undone.")) return
+    try {
+      await api.delete("/api/schedule/all")
+      showSuccess("Success", "All classes deleted successfully")
+      fetchDashboardData()
+    } catch (err) {
+      console.error("Failed to clear schedule", err)
+      showError("Error", "Failed to clear schedule")
+    }
+  }
+
   // Start Live Session
 
   const handleStartLiveSession = async (batchId: string, timeslotId: string) => {
@@ -387,7 +400,19 @@ const TeacherDashboard: React.FC = () => {
 
             {/* Live Class Schedule Section */}
             <motion.div variants={ANIMATION_VARIANTS.slideUp} className="mb-6">
-              <h2 className="text-xl font-bold text-foreground mb-4">Upcoming Classes</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-foreground">Upcoming Classes</h2>
+                {schedule.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearAllSchedule}
+                    className="text-red-400 hover:text-red-500 hover:bg-red-500/10"
+                  >
+                    Clear All
+                  </Button>
+                )}
+              </div>
               <div className="grid grid-cols-1 gap-4">
                 {schedule.length > 0 ? (
                   schedule.map((slot) => {

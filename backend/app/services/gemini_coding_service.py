@@ -60,50 +60,65 @@ class GeminiCodingService:
         self.cache[cache_key] = data
         print(f"[CACHE] [GEMINI_CODING] Cached {cache_key}")
 
-    async def parse_course_handout(self, handout_text: str, subject: str) -> List[Dict[str, Any]]:
-        """Parse course handout text to extract session topics"""
+    async def parse_course_handout(self, file_content: bytes, mime_type: str, subject: str) -> List[Dict[str, Any]]:
+        """Parse course handout (PDF/Image/Text) to extract session topics"""
         try:
-            print(f"🧠 [GEMINI_CODING] Parsing handout for {subject}")
+            print(f"🧠 [GEMINI_CODING] Parsing handout for {subject} (Type: {mime_type})")
             
             if not self.available:
-                # Fallback implementation
                 return [
                     {"topic": "Introduction to " + subject, "description": "Basic concepts"},
                     {"topic": subject + " Fundamentals", "description": "Core principles"},
                     {"topic": "Advanced " + subject, "description": "Complex topics"}
                 ]
-                
-            prompt = f"""
-            Analyze the following Course Handout/Syllabus for the subject "{subject}" and extract a list of teaching sessions.
-            The handout likely contains units, modules, or a day-by-day plan.
-            Break down the content into individual sessions (1 hour each).
             
-            Handout Text:
-            {handout_text[:10000]}  # Limit text length to avoid token limits
+            prompt_text = f"""
+            Analyze the attached Course Handout/Syllabus file for the subject "{subject}" and extract a definitive list of teaching sessions.
+            The file likely contains units, modules, or a day-by-day plan.
+            
+            CRITICAL INSTRUCTION:
+            - **GROUP TOPICS**: The syllabus lists many small topics. You MUST group 3-4 adjacent, related topics into a SINGLE session (approx 1 hour).
+            - **CONSOLIDATE**: Do NOT create a separate session for every single line item. Example: Instead of 3 sessions for "Intro", "Definition", "Scope", create 1 session "Introduction: Definition & Scope".
+            - **COVERAGE**: Ensure the entire syllabus is covered, but in fewer, chunkier sessions.
             
             Return ONLY a valid JSON array of objects with this structure:
             [
                 {{
-                    "topic": "Session Topic Title",
-                    "description": "Brief description of what will be covered",
-                    "unit": "Unit 1" (optional, inferred from context)
+                    "topic": "Session Title (Consolidated)",
+                    "description": "Comma-separated list of sub-topics covered in this session",
+                    "unit": "Unit 1" (optional)
                 }}
             ]
             
             Detailed Instructions:
-            - If the text explicitly lists "Session 1", "Session 2", use those.
-            - If it lists "Unit 1" with subtopics, break subtopics into rational session chunks.
-            - Ensure topics are concise and actionable as class titles.
+            - Use the visual layout and text to infer sections.
+            - Ignore administrative details (policies, grading).
             """
+            
+            contents = [prompt_text]
+            
+            # Add file content as a part based on mime type
+            if mime_type.startswith("image/") or mime_type == "application/pdf":
+                contents.append({
+                    "mime_type": mime_type,
+                    "data": file_content
+                })
+            else:
+                # Treat as text
+                try:
+                    text_data = file_content.decode('utf-8', errors='ignore')
+                    contents.append(f"\n\nHandout Content:\n{text_data[:20000]}")
+                except Exception as e:
+                    print(f"Error decoding text file: {e}")
             
             import asyncio
             try:
                 response = await asyncio.wait_for(
-                    self.model.generate_content_async(prompt),
-                    timeout=40.0
+                    self.model.generate_content_async(contents),
+                    timeout=60.0 # Increased timeout for file processing
                 )
             except asyncio.TimeoutError:
-                print("[TIMEOUT] [GEMINI_CODING] Handout parsing timed out")
+                print("[TIMEOUT] [GEMINI_CODING] Handout processing timed out")
                 return []
                 
             if not response.text:
@@ -303,6 +318,7 @@ class GeminiCodingService:
             if not self.available:
                 # Return basic fallback structure
                 return {
+                    "summary": "Session summary unavailable.",
                     "quizzes": [],
                     "polls": [],
                     "flashcards": ["Fallback Flashcard 1", "Fallback Flashcard 2"]
@@ -319,9 +335,12 @@ class GeminiCodingService:
                - format: {{ "text": "...", "type": "POLL", "options": ["Yes", "No", "Somewhat"] }}
             3. 5 Key Definition Flashcards
                - format: simple string "Term: Definition"
+            4. A short summary of the topic (approx 50 words)
+               - format: string "summary": "..."
             
             Return ONLY a valid JSON object with this EXACT structure:
             {{
+                "summary": "This session covers...",
                 "quizzes": [
                     {{
                         "title": "Quick Quiz",

@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 import logging
 
 from ..db import get_db
-from ..models.live_models import LiveSession, SessionState, LiveContent
+from ..models.live_models import LiveSession, SessionState, LiveContent, Attendance
 from ..models.models import UserModel
 from bson import ObjectId
 from ..dependencies import get_current_user, require_teacher_or_admin
@@ -101,8 +101,17 @@ async def start_session(
                 await db.notifications.insert_many(notifications)
                 logger.info(f"Sent live class notifications to {len(notifications)} students")
                 
+        # 4. Broadcast via Socket
+        await socket_manager.broadcast_to_batch(request.batch_id, {
+            "type": "LIVE_CLASS_STARTED",
+            "batch_id": request.batch_id,
+            "session_id": str(result.inserted_id),
+            "topic": topic_name,
+            "session_code": session_code
+        })
+                
     except Exception as e:
-        logger.error(f"Failed to send notifications: {e}")
+        logger.error(f"Failed to send notifications/broadcast: {e}")
     
     logger.info(f"Session started for batch {request.batch_id} by {current_user.email}")
     return {"message": "Session started", "session_id": str(result.inserted_id)}
@@ -134,9 +143,21 @@ async def end_session(
     )
     
     # 3. Calculate Attendance
-    # In a real app, we might save this to an 'Attendance' collection.
-    # For now, we'll just log it or update the session document.
     active_students = session.get("active_students", [])
+    
+    # Save to Attendance Collection
+    try:
+        attendance_record = Attendance(
+            session_id=str(session["_id"]),
+            batch_id=request.batch_id,
+            date=datetime.utcnow(),
+            present_students=active_students
+        )
+        await db.attendance.insert_one(attendance_record.model_dump(by_alias=True, exclude={"id"}))
+        logger.info(f"Attendance saved for batch {request.batch_id}: {len(active_students)} students")
+    except Exception as e:
+        logger.error(f"Failed to save attendance: {e}")
+
     logger.info(f"Session ended. Attendance count: {len(active_students)}")
     
     # 4. Broadcast END to sockets (optional, or let client handle disconnect)
@@ -183,3 +204,129 @@ async def get_active_sessions_for_student(
         })
         
     return {"active_sessions": result}
+
+@router.get("/content/{batch_id}")
+async def get_session_content(
+    batch_id: str,
+    current_user: UserModel = Depends(require_teacher_or_admin)
+):
+    """Get AI-generated content for the current active session"""
+    db = await get_db()
+    
+    # 1. Find active session
+    session = await db.live_sessions.find_one({
+        "batch_id": batch_id,
+        "current_state": {"$ne": SessionState.ENDED}
+    })
+    
+    if not session:
+        raise HTTPException(status_code=404, detail="No active session found")
+        
+    timeslot_id = session.get("timeslot_id")
+    if not timeslot_id or timeslot_id == "ADHOC":
+        # Fallback to active payload if exists
+        content = session.get("active_content_payload", {})
+        return {
+            "quizzes": content.get("quizzes", []),
+            "polls": content.get("polls", []),
+            "flashcards": content.get("flashcards", [])
+        }
+        
+    # 2. Fetch Content
+    content = await db.live_content.find_one({"timeslot_id": timeslot_id})
+    
+    if not content:
+        # Fallback to active payload if exists
+        content = session.get("active_content_payload", {})
+        return {
+            "quizzes": content.get("quizzes", []),
+            "polls": content.get("polls", []),
+            "flashcards": content.get("flashcards", [])
+        }
+        
+    return {
+        "quizzes": content.get("quizzes", []),
+        "polls": content.get("polls", []),
+        "flashcards": content.get("flashcards", [])
+    }
+
+@router.post("/content/{batch_id}/generate")
+async def generate_session_content(
+    batch_id: str,
+    current_user: UserModel = Depends(require_teacher_or_admin)
+):
+    """Generate AI content for the active session"""
+    db = await get_db()
+    
+    # 1. Find active session
+    session = await db.live_sessions.find_one({
+        "batch_id": batch_id,
+        "current_state": {"$ne": SessionState.ENDED}
+    })
+    
+    if not session:
+        raise HTTPException(status_code=404, detail="No active session found")
+        
+    # Get topic from timeslot or default
+    topic_name = "General Coding"
+    timeslot_id = session.get("timeslot_id")
+    if timeslot_id and timeslot_id != "ADHOC":
+        timeslot = await db.timeslots.find_one({"_id": ObjectId(timeslot_id)})
+        if timeslot:
+            topic_name = timeslot.get("topic", "General Coding")
+    
+    # 2. Generate Content via Gemini
+    from ..services.gemini_coding_service import GeminiCodingService
+    gemini_service = GeminiCodingService()
+    
+    generated_content = await gemini_service.generate_live_class_content(topic_name)
+    
+    # 3. Save to LiveContent
+    # If using timeslot_id, update existing or create new
+    if timeslot_id and timeslot_id != "ADHOC":
+        await db.live_content.update_one(
+            {"timeslot_id": timeslot_id},
+            {"$set": {
+                "quizzes": generated_content.get("quizzes", []),
+                "polls": generated_content.get("polls", []),
+                "flashcards": generated_content.get("flashcards", []),
+                "updated_at": datetime.utcnow()
+            }},
+            upsert=True
+        )
+    
+    # Also update the session's active payload temporarily 
+    await db.live_sessions.update_one(
+        {"_id": session["_id"]},
+        {"$set": {"active_content_payload": generated_content}}
+    )
+
+    return generated_content
+
+@router.post("/upload/{batch_id}")
+async def upload_session_material(
+    batch_id: str,
+    file: UploadFile = File(...),
+    current_user: UserModel = Depends(require_teacher_or_admin)
+):
+    """Upload material for the live session"""
+    try:
+        # Create directory if not exists
+        import os
+        upload_dir = "static/materials"
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Save file
+        file_path = f"{upload_dir}/{datetime.utcnow().timestamp()}_{file.filename}"
+        with open(file_path, "wb") as buffer:
+            import shutil
+            shutil.copyfileobj(file.file, buffer)
+            
+        # Return URL (assuming static mount or similar)
+        # In this setup, we might need to mount static in main.py, but for now we return the relative path
+        # which frontend or socket can handle.
+        return {"url": f"/{file_path}", "type": file.content_type, "name": file.filename}
+        
+    except Exception as e:
+        logger.error(f"Upload failed: {e}")
+        raise HTTPException(status_code=500, detail="File upload failed")

@@ -129,6 +129,16 @@ const Dashboard: React.FC = () => {
     }
   }
 
+  // Poll for active sessions and notifications (Real-time-ish updates)
+  useEffect(() => {
+    if (!user) return
+
+    fetchActiveSessions()
+    const interval = setInterval(fetchActiveSessions, 5000) // Check every 5 seconds
+
+    return () => clearInterval(interval)
+  }, [user])
+
 
 
   return (

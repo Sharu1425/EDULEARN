@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Upload, BookOpen, FileText, CheckCircle, ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button'
-import Card from '../components/ui/Card'
 import api from '../utils/api'
 import { useToast } from '../contexts/ToastContext'
 import AnimatedBackground from '../components/AnimatedBackground'
@@ -120,194 +119,268 @@ const CreateSchedule: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen pt-20 px-4 relative z-10">
-            <AnimatedBackground />
-            <div className="max-w-3xl mx-auto">
-                <Button variant="ghost" onClick={() => navigate('/teacher-dashboard')} className="mb-6 flex items-center">
-                    <ArrowLeft className="mr-2" /> Back to Dashboard
-                </Button>
+        <div className="min-h-screen bg-black relative overflow-hidden text-white font-sans">
+            {/* Background */}
+            <div className="absolute inset-0 z-0 opacity-40">
+                <AnimatedBackground />
+            </div>
 
-                <Card className="p-8">
-                    <div className="mb-8 border-b border-border pb-6">
-                        <h1 className="text-3xl font-bold text-foreground">Create Course Schedule</h1>
-                        <p className="text-muted-foreground mt-2">AI-powered schedule generation from course handout</p>
+            {/* Content */}
+            <div className="relative z-10 min-h-screen pt-24 pb-12 px-4 flex flex-col items-center">
+
+                <div className="w-full max-w-4xl mx-auto mb-6">
+                    <Button variant="ghost" onClick={() => navigate('/teacher-dashboard')} className="text-gray-400 hover:text-white flex items-center">
+                        <ArrowLeft className="mr-2 w-4 h-4" /> Back to Dashboard
+                    </Button>
+                </div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full max-w-4xl bg-gray-900/60 backdrop-blur-xl border border-gray-800 rounded-3xl overflow-hidden shadow-2xl"
+                >
+                    <div className="p-8 md:p-12 border-b border-gray-800">
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
+                            Create Course Schedule
+                        </h1>
+                        <p className="text-gray-400 text-lg">AI-powered schedule generation from your course materials.</p>
                     </div>
 
-                    <form onSubmit={handleSubmit}>
-                        {/* Step Indicator */}
-                        <div className="flex items-center mb-8">
-                            <div className={`flex items-center justify-center w-10 h-10 rounded-full ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'} font-bold text-lg transition-colors`}>1</div>
-                            <div className={`flex-1 h-1 mx-4 ${step >= 2 ? 'bg-primary' : 'bg-muted'} transition-colors`} />
-                            <div className={`flex items-center justify-center w-10 h-10 rounded-full ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'} font-bold text-lg transition-colors`}>2</div>
-                        </div>
+                    <div className="p-8 md:p-12">
+                        <form onSubmit={handleSubmit}>
+                            {/* Step Indicator */}
+                            <div className="flex items-center justify-center mb-12">
+                                <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 ${step >= 1 ? 'border-blue-500 bg-blue-500/20 text-blue-400' : 'border-gray-700 bg-gray-800 text-gray-500'} font-bold text-lg transition-all shadow-[0_0_15px_rgba(59,130,246,0.2)]`}>1</div>
+                                <div className={`w-24 h-1 mx-4 rounded-full ${step >= 2 ? 'bg-gradient-to-r from-blue-500 to-purple-500' : 'bg-gray-800'}`} />
+                                <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 ${step >= 2 ? 'border-purple-500 bg-purple-500/20 text-purple-400' : 'border-gray-700 bg-gray-800 text-gray-500'} font-bold text-lg transition-all shadow-[0_0_15px_rgba(168,85,247,0.2)]`}>2</div>
+                            </div>
 
-                        {step === 1 ? (
-                            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-                                {/* Batch Selection */}
-                                <div>
-                                    <label className="block text-sm font-medium text-foreground mb-2">Select Batch</label>
-                                    <select
-                                        name="batch_id"
-                                        value={formData.batch_id}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-muted/50 border border-border rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-                                        required
+                            <AnimatePresence mode="wait">
+                                {step === 1 ? (
+                                    <motion.div
+                                        key="step1"
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        className="space-y-8"
                                     >
-                                        <option value="" disabled>Select a batch</option>
-                                        {batches.filter(b => b.id !== 'all').map(batch => (
-                                            <option key={batch.id} value={batch.id}>{batch.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                {/* Subject Selection */}
-                                <div>
-                                    <label className="block text-sm font-medium text-foreground mb-2">Subject</label>
-                                    <select
-                                        name="subject"
-                                        value={formData.subject}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-muted/50 border border-border rounded-lg mb-3 focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-                                        required
-                                    >
-                                        <option value="" disabled>Select Subject</option>
-                                        {SUBJECTS.map(sub => (
-                                            <option key={sub} value={sub}>{sub}</option>
-                                        ))}
-                                        <option value="Other">Other</option>
-                                    </select>
-                                    {formData.subject === 'Other' && (
-                                        <input
-                                            type="text"
-                                            name="customSubject"
-                                            value={formData.customSubject}
-                                            onChange={handleChange}
-                                            placeholder="Enter subject name"
-                                            className="w-full px-4 py-3 bg-muted/50 border border-border rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-                                        />
-                                    )}
-                                </div>
-
-                                {/* Files */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:bg-muted/30 transition-colors cursor-pointer relative group">
-                                        <input
-                                            type="file"
-                                            id="syllabus-upload"
-                                            className="hidden"
-                                            onChange={(e) => handleFileChange(e, 'syllabus')}
-                                            accept=".pdf,.doc,.docx,.txt"
-                                        />
-                                        <label htmlFor="syllabus-upload" className="cursor-pointer block w-full h-full">
-                                            <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                                <BookOpen className="w-6 h-6 text-blue-500" />
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            {/* Batch Selection */}
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Target Batch</label>
+                                                <div className="relative">
+                                                    <select
+                                                        name="batch_id"
+                                                        value={formData.batch_id}
+                                                        onChange={handleChange}
+                                                        className="w-full pl-4 pr-10 py-4 bg-black/40 border border-gray-700 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-white appearance-none outline-none transition-all cursor-pointer hover:border-gray-600"
+                                                        required
+                                                    >
+                                                        <option value="" disabled>Select a batch</option>
+                                                        {batches.filter(b => b.id !== 'all').map(batch => (
+                                                            <option key={batch.id} value={batch.id} className="bg-gray-900">{batch.name}</option>
+                                                        ))}
+                                                    </select>
+                                                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-500">
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <span className="text-base font-medium block mb-1">Upload Syllabus</span>
-                                            <span className="text-xs text-muted-foreground block">
-                                                {files.syllabus ? files.syllabus.name : "Optional (PDF, Doc)"}
-                                            </span>
-                                        </label>
-                                    </div>
-                                    <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer relative group ${files.handout ? 'border-primary/50 bg-primary/5' : 'border-border hover:bg-muted/30'}`}>
-                                        <input
-                                            type="file"
-                                            id="handout-upload"
-                                            className="hidden"
-                                            onChange={(e) => handleFileChange(e, 'handout')}
-                                            accept=".pdf,.doc,.docx,.txt"
-                                        />
-                                        <label htmlFor="handout-upload" className="cursor-pointer block w-full h-full">
-                                            <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                                <FileText className="w-6 h-6 text-green-500" />
+
+                                            {/* Subject Selection */}
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Subject</label>
+                                                <div className="relative mb-3">
+                                                    <select
+                                                        name="subject"
+                                                        value={formData.subject}
+                                                        onChange={handleChange}
+                                                        className="w-full pl-4 pr-10 py-4 bg-black/40 border border-gray-700 rounded-xl focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white appearance-none outline-none transition-all cursor-pointer hover:border-gray-600"
+                                                        required
+                                                    >
+                                                        <option value="" disabled>Select Subject</option>
+                                                        {SUBJECTS.map(sub => (
+                                                            <option key={sub} value={sub} className="bg-gray-900">{sub}</option>
+                                                        ))}
+                                                        <option value="Other" className="bg-gray-900">Other (Custom)</option>
+                                                    </select>
+                                                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-500">
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                                    </div>
+                                                </div>
+                                                {formData.subject === 'Other' && (
+                                                    <motion.input
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: 'auto' }}
+                                                        type="text"
+                                                        name="customSubject"
+                                                        value={formData.customSubject}
+                                                        onChange={handleChange}
+                                                        placeholder="Enter custom subject name"
+                                                        className="w-full px-4 py-3 bg-black/40 border border-purple-500/50 rounded-xl focus:border-purple-500 text-white placeholder-gray-600 outline-none"
+                                                    />
+                                                )}
                                             </div>
-                                            <span className="text-base font-medium block mb-1">Upload Handout *</span>
-                                            <span className="text-xs text-muted-foreground block">
-                                                {files.handout ? files.handout.name : "Required (PDF, Doc)"}
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
+                                        </div>
 
-                                <div className="flex justify-end pt-6">
-                                    <Button
-                                        type="button"
-                                        variant="primary"
-                                        onClick={() => setStep(2)}
-                                        disabled={!files.handout || !formData.subject || (!formData.subject && !formData.customSubject)}
-                                        className="w-full md:w-auto"
-                                    >
-                                        Next Step
-                                    </Button>
-                                </div>
-                            </motion.div>
-                        ) : (
-                            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-foreground mb-2">Start Date</label>
-                                        <input
-                                            type="date"
-                                            name="start_date"
-                                            value={formData.start_date}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 bg-muted/50 border border-border rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-foreground mb-2">Class Time</label>
-                                        <input
-                                            type="time"
-                                            name="start_time"
-                                            value={formData.start_time}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 bg-muted/50 border border-border rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-                                            required
-                                        />
-                                    </div>
-                                </div>
+                                        {/* Files Upload Area */}
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">Course Materials</label>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {/* Syllabus */}
+                                                <div className="relative group">
+                                                    <input
+                                                        type="file"
+                                                        id="syllabus-upload"
+                                                        className="hidden"
+                                                        onChange={(e) => handleFileChange(e, 'syllabus')}
+                                                        accept=".pdf,.doc,.docx,.txt"
+                                                    />
+                                                    <label
+                                                        htmlFor="syllabus-upload"
+                                                        className={`flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300
+                                                        ${files.syllabus
+                                                                ? 'border-blue-500/50 bg-blue-500/10'
+                                                                : 'border-gray-700 hover:border-gray-500 hover:bg-gray-800/50'}`}
+                                                    >
+                                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 shadow-lg
+                                                            ${files.syllabus ? 'bg-blue-500 text-white' : 'bg-gray-800 text-gray-400'}`}>
+                                                            <BookOpen className="w-8 h-8" />
+                                                        </div>
+                                                        <span className="text-lg font-medium text-white mb-1">
+                                                            {files.syllabus ? "Syllabus Uploaded" : "Upload Syllabus"}
+                                                        </span>
+                                                        <span className="text-sm text-gray-500 max-w-[200px] truncate">
+                                                            {files.syllabus ? files.syllabus.name : "Optional (PDF, Doc)"}
+                                                        </span>
+                                                    </label>
+                                                </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-foreground mb-3">Class Days</label>
-                                    <div className="flex flex-wrap gap-3">
-                                        {DAYS.map(day => (
-                                            <button
-                                                key={day}
+                                                {/* Handout */}
+                                                <div className="relative group">
+                                                    <input
+                                                        type="file"
+                                                        id="handout-upload"
+                                                        className="hidden"
+                                                        onChange={(e) => handleFileChange(e, 'handout')}
+                                                        accept=".pdf,.doc,.docx,.txt"
+                                                    />
+                                                    <label
+                                                        htmlFor="handout-upload"
+                                                        className={`flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300
+                                                        ${files.handout
+                                                                ? 'border-green-500/50 bg-green-500/10'
+                                                                : 'border-gray-700 hover:border-gray-500 hover:bg-gray-800/50'}`}
+                                                    >
+                                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 shadow-lg
+                                                            ${files.handout ? 'bg-green-500 text-white' : 'bg-gray-800 text-gray-400'}`}>
+                                                            <FileText className="w-8 h-8" />
+                                                        </div>
+                                                        <span className="text-lg font-medium text-white mb-1">
+                                                            {files.handout ? "Handout Uploaded" : "Upload Handout *"}
+                                                        </span>
+                                                        <span className="text-sm text-gray-500 max-w-[200px] truncate">
+                                                            {files.handout ? files.handout.name : "Required for AI Generation"}
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-end pt-8">
+                                            <Button
                                                 type="button"
-                                                onClick={() => handleDayToggle(day)}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.days_of_week.includes(day)
-                                                    ? 'bg-primary text-primary-foreground shadow-md scale-105'
-                                                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                                    }`}
+                                                variant="primary"
+                                                onClick={() => setStep(2)}
+                                                disabled={!files.handout || !formData.subject || (!formData.subject && !formData.customSubject)}
+                                                className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white px-8 py-3 rounded-xl shadow-lg shadow-blue-500/20 text-lg"
                                             >
-                                                {day.slice(0, 3)}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
+                                                Next Step
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="step2"
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 20 }}
+                                        className="space-y-8"
+                                    >
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Start Date</label>
+                                                <input
+                                                    type="date"
+                                                    name="start_date"
+                                                    value={formData.start_date}
+                                                    onChange={handleChange}
+                                                    className="w-full px-4 py-4 bg-black/40 border border-gray-700 rounded-xl focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white appearance-none outline-none transition-all cursor-pointer [color-scheme:dark]"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Class Time</label>
+                                                <input
+                                                    type="time"
+                                                    name="start_time"
+                                                    value={formData.start_time}
+                                                    onChange={handleChange}
+                                                    className="w-full px-4 py-4 bg-black/40 border border-gray-700 rounded-xl focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white appearance-none outline-none transition-all cursor-pointer [color-scheme:dark]"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
 
-                                <div className="flex justify-between pt-8 border-t border-border mt-8">
-                                    <Button type="button" variant="ghost" onClick={() => setStep(1)} disabled={loading}>
-                                        Back
-                                    </Button>
-                                    <Button type="submit" variant="primary" disabled={loading || formData.days_of_week.length === 0} className="px-8">
-                                        {loading ? (
-                                            <span className="flex items-center">
-                                                <Upload className="w-4 h-4 mr-2 animate-spin" />
-                                                Generating Schedule...
-                                            </span>
-                                        ) : (
-                                            <span className="flex items-center">
-                                                <CheckCircle className="w-4 h-4 mr-2" />
-                                                Generate Schedule
-                                            </span>
-                                        )}
-                                    </Button>
-                                </div>
-                            </motion.div>
-                        )}
-                    </form>
-                </Card>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">Class Days</label>
+                                            <div className="flex flex-wrap gap-3">
+                                                {DAYS.map(day => (
+                                                    <button
+                                                        key={day}
+                                                        type="button"
+                                                        onClick={() => handleDayToggle(day)}
+                                                        className={`px-6 py-3 rounded-xl text-sm font-medium transition-all duration-200 border transform active:scale-95
+                                                        ${formData.days_of_week.includes(day)
+                                                                ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/25 scale-105'
+                                                                : 'bg-black/40 border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white'
+                                                            }`}
+                                                    >
+                                                        {day}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center pt-8 border-t border-gray-800 mt-8">
+                                            <Button type="button" variant="ghost" onClick={() => setStep(1)} disabled={loading} className="text-gray-400 hover:text-white">
+                                                Go Back
+                                            </Button>
+                                            <Button
+                                                type="submit"
+                                                variant="primary"
+                                                disabled={loading || formData.days_of_week.length === 0}
+                                                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white px-10 py-4 rounded-xl shadow-xl shadow-green-500/20 text-lg font-bold"
+                                            >
+                                                {loading ? (
+                                                    <span className="flex items-center">
+                                                        <Upload className="w-5 h-5 mr-3 animate-spin" />
+                                                        Generating Schedule...
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center">
+                                                        <CheckCircle className="w-5 h-5 mr-3" />
+                                                        Generate Schedule
+                                                    </span>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </form>
+                    </div>
+                </motion.div>
             </div>
         </div>
     )

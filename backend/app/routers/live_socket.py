@@ -28,7 +28,6 @@ async def websocket_endpoint(websocket: WebSocket, batch_id: str, user_id: str, 
     token_user_id = await validate_token_ws(token)
     
     if not token_user_id or token_user_id != user_id:
-        # Close with policy violation if auth fails
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
@@ -36,20 +35,29 @@ async def websocket_endpoint(websocket: WebSocket, batch_id: str, user_id: str, 
     await socket_manager.connect(websocket, batch_id, user_id)
     
     try:
-        # 3. Restore State (Crucial Step)
-        # Fetch current live session state from DB
+        db = await get_db()
+        
+        # Fetch user name for broadcast
+        user_name = "Student"
         try:
-            db = await get_db()
-            # Find active session for this batch
-            # Assuming one active session per batch for now or derived from TimeSlot
-            # For strictness, we might query by 'batch_id' and 'is_active' or similar. 
-            # Per prompt: "LiveSession... active_content_payload... active_students"
-            # We look for a LiveSession associated with a TimeSlot that is somewhat "current".
-            # For simplicity in Phase 1 Foundation, we fetch by batch_id if we decide to store batch_id in LiveSession (I added it).
+            user_doc = await db.users.find_one({"_id": ObjectId(user_id)})
+            if user_doc:
+                user_name = user_doc.get("username") or user_doc.get("name") or user_doc.get("email").split("@")[0]
+        except Exception:
+            pass
+
+        # Broadcast JOIN event to teacher and others
+        await socket_manager.broadcast_to_batch(batch_id, {
+            "type": "USER_JOIN",
+            "user_id": user_id,
+            "name": user_name
+        }, exclude_user=user_id)
+        
+        # 3. Restore State
+        try:
+            # Find active session
             live_session = await db.live_sessions.find_one(
-                {"batch_id": batch_id, "current_state": {"$ne": "ENDED"}} # assuming ENDED or similar logic
-                # Actually, models.py LiveSession has `current_state` enum. 'WAITING' is initial.
-                # Only check logic if session exists.
+                {"batch_id": batch_id, "current_state": {"$ne": "ENDED"}}
             )
             
             if live_session:
@@ -79,13 +87,52 @@ async def websocket_endpoint(websocket: WebSocket, batch_id: str, user_id: str, 
         # 4. Listen loop
         while True:
             data = await websocket.receive_text()
-            # Handle incoming messages from client (e.g. "PONG", "ANSWER", "DOUBT")
-            # For now, just logging or basic echoing/formatting
-            # In Phase 4/5 we implement logic.
-            # Example:
-            # message = json.loads(data)
-            # if message['type'] == 'DOUBT': ...
-            pass
+            try:
+                message = json.loads(data)
+                msg_type = message.get("type")
+                
+                if msg_type in ["PUSH_QUIZ", "PUSH_POLL", "PUSH_MATERIAL"]:
+                    # Update active content in DB so late joiners see it
+                    if msg_type in ["PUSH_QUIZ", "PUSH_POLL"]:
+                        await db.live_sessions.update_one(
+                            {"batch_id": batch_id, "current_state": {"$ne": "ENDED"}},
+                            {"$set": {
+                                "current_state": msg_type.replace("PUSH_", ""),
+                                "active_content_payload": message.get("payload")
+                            }}
+                        )
+                    
+                    # Broadcast to everyone in batch
+                    await socket_manager.broadcast_to_batch(batch_id, message)
+                    
+                elif msg_type == "RAISE_HAND":
+                     await socket_manager.broadcast_to_batch(batch_id, {
+                        "type": "RAISE_HAND",
+                        "user_id": user_id,
+                        "name": user_name
+                    })
+                    
+                elif msg_type in ["SUBMIT_ANSWER", "SUBMIT_POLL"]:
+                    # Forward to teacher (or everyone for analytics updates)
+                    # For simplicty, broadcast as RESPONSE_RECEIVED
+                    await socket_manager.broadcast_to_batch(batch_id, {
+                        "type": "RESPONSE_RECEIVED",
+                        "user_id": user_id,
+                        "payload": message.get("payload")
+                    })
+                    
+                elif msg_type == "FOCUS_CHANGE":
+                    # Broadcast focus status to teacher (and others)
+                    await socket_manager.broadcast_to_batch(batch_id, {
+                        "type": "FOCUS_CHANGE",
+                        "user_id": user_id,
+                        "isFocused": message.get("payload", {}).get("isFocused", True)
+                    })
+                    
+            except json.JSONDecodeError:
+                pass
+            except Exception as e:
+                logger.error(f"Error processing message from {user_id}: {e}")
 
     except WebSocketDisconnect:
         socket_manager.disconnect(batch_id, user_id)

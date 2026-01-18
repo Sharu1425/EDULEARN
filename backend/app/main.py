@@ -182,6 +182,10 @@ app.include_router(schedule.router, prefix="/api/schedule", tags=["Schedule"])
 from .routers import live_session
 app.include_router(live_session.router, prefix="/api/sessions", tags=["Live Session"])
 
+# Include Notifications Router
+from .routers import notifications
+app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
+
 # Add /db/questions endpoint for backward compatibility
 @app.get("/db/questions")
 async def get_questions_from_db(

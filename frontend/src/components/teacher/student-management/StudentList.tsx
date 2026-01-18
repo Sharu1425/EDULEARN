@@ -17,6 +17,7 @@ interface Student {
   lastActive: string
   batch?: string
   batchId?: string
+  batchIds?: string[]
 }
 
 interface StudentListProps {
@@ -46,10 +47,14 @@ const StudentList: React.FC<StudentListProps> = ({
   // Filter students based on search term and selected batch
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.email.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesBatch = selectedBatch === "all" || student.batchId === selectedBatch
-    
+      student.email.toLowerCase().includes(searchTerm.toLowerCase())
+
+    // Check if student is in the selected batch
+    // Support both single batchId and multiple batchIds array
+    const matchesBatch = selectedBatch === "all" ||
+      student.batchId === selectedBatch ||
+      (Array.isArray((student as any).batchIds) && (student as any).batchIds.includes(selectedBatch))
+
     return matchesSearch && matchesBatch
   })
 
@@ -58,18 +63,18 @@ const StudentList: React.FC<StudentListProps> = ({
       <Card className="p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
           <h2 className="text-2xl font-bold text-foreground mb-4 md:mb-0">Students</h2>
-          
+
           <div className="flex space-x-3">
-            <Button 
-              variant="primary" 
+            <Button
+              variant="primary"
               onClick={() => onAddStudent(selectedBatch)}
               className="text-sm"
             >
               Add Student
             </Button>
             {selectedBatch !== "all" && (
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 onClick={() => {
                   const batch = batches.find(b => b.id === selectedBatch)
                   if (batch) {
@@ -96,7 +101,7 @@ const StudentList: React.FC<StudentListProps> = ({
                 className="w-full"
               />
             </div>
-            
+
             <div className="flex space-x-2">
               <select
                 value={selectedBatch}
@@ -136,7 +141,7 @@ const StudentList: React.FC<StudentListProps> = ({
                     </span>
                   )}
                 </div>
-                
+
                 <div className="text-right">
                   <div className="text-sm text-muted-foreground mb-1">
                     Progress: {student.progress}%
@@ -146,7 +151,7 @@ const StudentList: React.FC<StudentListProps> = ({
                   </div>
                 </div>
               </div>
-              
+
               {/* Progress Bar */}
               <div className="w-full bg-muted rounded-full h-2">
                 <div
@@ -162,8 +167,8 @@ const StudentList: React.FC<StudentListProps> = ({
         {filteredStudents.length === 0 && (
           <div className="text-center py-12">
             <div className="text-foreground text-lg mb-2">
-              {searchTerm || selectedBatch !== "all" 
-                ? "No students found matching your criteria" 
+              {searchTerm || selectedBatch !== "all"
+                ? "No students found matching your criteria"
                 : "No students found"
               }
             </div>

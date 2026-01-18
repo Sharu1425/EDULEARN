@@ -93,3 +93,16 @@ class LiveContent(BaseModel):
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str}
     )
+
+class Attendance(BaseModel):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    session_id: str
+    batch_id: str
+    date: datetime
+    present_students: List[str] # List of user_ids
+    
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
