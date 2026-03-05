@@ -1,0 +1,153 @@
+<mxfile host="app.diagrams.net" modified="2026-03-04T00:00:00.000Z" agent="GPT-5.2-Codex" version="24.7.17" type="device">
+  <diagram id="system-architecture" name="System Architecture">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="title1" value="EDULEARN — 4-Layer System Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=20;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="600" y="20" width="720" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="frontend" value="Frontend Layer&#xa;React 18 + TypeScript + Vite&#xa;Tailwind + Framer Motion&#xa;Monaco Editor + Axios" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="90" y="120" width="320" height="160" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="backend" value="Backend Layer&#xa;FastAPI + Uvicorn&#xa;Routers: auth/users/admin/teacher/assessments/coding&#xa;Services: Gemini + Code Execution + Notifications" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="480" y="120" width="420" height="160" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="dbq" value="Database + Queue Layer&#xa;MongoDB collections (users, batches, assessments, results, coding, notifications)&#xa;Redis + Celery for background tasks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="980" y="120" width="420" height="160" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ext" value="External Services&#xa;Google Gemini AI&#xa;Judge0 / HackerEarth Execution API&#xa;Google OAuth 2.0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1480" y="120" width="320" height="160" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="f2b" value="REST/JSON + WebSocket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;" edge="1" parent="1" source="frontend" target="backend">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="b2d" value="Motor async ops + cache + queues" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;" edge="1" parent="1" source="backend" target="dbq">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="b2e" value="AI generation + code execution + OAuth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;" edge="1" parent="1" source="backend" target="ext">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="database-schema" name="Database Schema">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="dbtitle" value="EDULEARN MongoDB Schema (Core Collections)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=20;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="560" y="20" width="800" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="users" value="users&#xa;- _id&#xa;- email, username, role&#xa;- batch_ids[]&#xa;- xp, level, badges, streak" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="120" y="120" width="240" height="170" as="geometry"/></mxCell>
+        <mxCell id="batches" value="batches&#xa;- _id&#xa;- name, teacher_id&#xa;- student_ids[]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="430" y="120" width="220" height="140" as="geometry"/></mxCell>
+        <mxCell id="teacher_assessments" value="teacher_assessments&#xa;- _id&#xa;- teacher_id&#xa;- batches[]&#xa;- questions[]&#xa;- status, created_at" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1"><mxGeometry x="740" y="100" width="260" height="180" as="geometry"/></mxCell>
+        <mxCell id="teacher_results" value="teacher_assessment_results&#xa;- _id&#xa;- assessment_id&#xa;- student_id&#xa;- score, submitted_at" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1"><mxGeometry x="1060" y="120" width="280" height="160" as="geometry"/></mxCell>
+
+        <mxCell id="coding_problems" value="coding_problems&#xa;- _id&#xa;- title, difficulty, language&#xa;- test_cases[]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="430" y="340" width="240" height="150" as="geometry"/></mxCell>
+        <mxCell id="code_submissions" value="code_submissions&#xa;- _id&#xa;- problem_id&#xa;- student_id&#xa;- status, time, memory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="740" y="340" width="250" height="150" as="geometry"/></mxCell>
+        <mxCell id="ai_questions" value="ai_questions&#xa;- topic, difficulty&#xa;- options, answer&#xa;- quality_score" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1"><mxGeometry x="1060" y="340" width="230" height="140" as="geometry"/></mxCell>
+        <mxCell id="notifications" value="notifications&#xa;- user_id&#xa;- type, title, message&#xa;- is_read, created_at" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1"><mxGeometry x="1360" y="190" width="230" height="150" as="geometry"/></mxCell>
+
+        <mxCell id="e1" value="many-to-many" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="users" target="batches"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="teacher owns" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="users" target="teacher_assessments"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" value="assigned to batches" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="teacher_assessments" target="batches"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" value="submissions" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="teacher_results" target="teacher_assessments"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" value="student result" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="teacher_results" target="users"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" value="attempts" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="code_submissions" target="coding_problems"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e7" value="submitted by" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="code_submissions" target="users"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e8" value="AI pool for assessments" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="ai_questions" target="teacher_assessments"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e9" value="notifies" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="notifications" target="users"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="ai-workflow" name="AI Generation Workflow">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="aiTitle" value="AI Question Generation Pipeline (Gemini)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=20;fontStyle=1" vertex="1" parent="1"><mxGeometry x="620" y="20" width="700" height="40" as="geometry"/></mxCell>
+
+        <mxCell id="s1" value="1. Input Processing&#xa;topic + difficulty + count&#xa;normalize + validate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1"><mxGeometry x="120" y="200" width="230" height="130" as="geometry"/></mxCell>
+        <mxCell id="s2" value="2. Prompt Engineering&#xa;schema-guided JSON prompt&#xa;few-shot examples" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1"><mxGeometry x="410" y="200" width="230" height="130" as="geometry"/></mxCell>
+        <mxCell id="s3" value="3. Gemini API Call&#xa;generate_content_async&#xa;temperature + token limits" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" vertex="1" parent="1"><mxGeometry x="700" y="200" width="230" height="130" as="geometry"/></mxCell>
+        <mxCell id="s4" value="4. Parse + Validate&#xa;JSON parsing&#xa;quality scoring + duplicate check" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1"><mxGeometry x="990" y="200" width="250" height="130" as="geometry"/></mxCell>
+
+        <mxCell id="decision" value="Quality score ≥ 80?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1" vertex="1" parent="1"><mxGeometry x="1300" y="215" width="190" height="100" as="geometry"/></mxCell>
+        <mxCell id="store" value="Store in question bank&#xa;(ai_questions / assessment pool)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366" vertex="1" parent="1"><mxGeometry x="1550" y="150" width="250" height="100" as="geometry"/></mxCell>
+        <mxCell id="review" value="Flag for teacher review&#xa;manual correction workflow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450" vertex="1" parent="1"><mxGeometry x="1550" y="300" width="250" height="100" as="geometry"/></mxCell>
+
+        <mxCell id="a1" edge="1" parent="1" source="s1" target="s2" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="a2" edge="1" parent="1" source="s2" target="s3" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="a3" edge="1" parent="1" source="s3" target="s4" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="a4" edge="1" parent="1" source="s4" target="decision" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="a5" value="Yes" edge="1" parent="1" source="decision" target="store" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="a6" value="No" edge="1" parent="1" source="decision" target="review" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="gamification" name="Gamification System">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="gTitle" value="Gamification Progression Model" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=20;fontStyle=1" vertex="1" parent="1"><mxGeometry x="700" y="20" width="540" height="40" as="geometry"/></mxCell>
+
+        <mxCell id="activity" value="Learning Activity&#xa;(assessment/coding completion)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1"><mxGeometry x="120" y="240" width="250" height="120" as="geometry"/></mxCell>
+        <mxCell id="xp" value="XP Engine&#xa;Difficulty multipliers&#xa;Easy 1.0x, Medium 1.5x, Hard 2.0x" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1"><mxGeometry x="450" y="220" width="290" height="160" as="geometry"/></mxCell>
+        <mxCell id="lvl" value="Level Calculation&#xa;Level = floor(XP / 100) + 1&#xa;(or custom quadratic progression)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" vertex="1" parent="1"><mxGeometry x="820" y="220" width="280" height="160" as="geometry"/></mxCell>
+        <mxCell id="badges" value="Badges + Achievements&#xa;first_assessment, high_scorer,&#xa;perfect_score, streak_master" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1"><mxGeometry x="1180" y="180" width="290" height="130" as="geometry"/></mxCell>
+        <mxCell id="streak" value="Streak Tracking&#xa;daily activity update&#xa;current + longest streak" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1" vertex="1" parent="1"><mxGeometry x="1180" y="340" width="290" height="120" as="geometry"/></mxCell>
+        <mxCell id="leaderboard" value="Leaderboard + Analytics&#xa;rank, score%, completion stats" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1" vertex="1" parent="1"><mxGeometry x="1550" y="240" width="250" height="140" as="geometry"/></mxCell>
+
+        <mxCell id="ge1" edge="1" parent="1" source="activity" target="xp" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ge2" edge="1" parent="1" source="xp" target="lvl" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ge3" edge="1" parent="1" source="lvl" target="badges" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ge4" edge="1" parent="1" source="xp" target="streak" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ge5" edge="1" parent="1" source="badges" target="leaderboard" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ge6" edge="1" parent="1" source="streak" target="leaderboard" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="use-cases" name="Use Cases">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="uTitle" value="EDULEARN Deployment Use Cases" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=20;fontStyle=1" vertex="1" parent="1"><mxGeometry x="680" y="20" width="560" height="40" as="geometry"/></mxCell>
+
+        <mxCell id="platform" value="EDULEARN Platform&#xa;AI Assessments + Coding + Analytics" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1" vertex="1" parent="1"><mxGeometry x="790" y="230" width="340" height="170" as="geometry"/></mxCell>
+
+        <mxCell id="actor1" value="University CS Dept" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="270" y="180" width="60" height="120" as="geometry"/></mxCell>
+        <mxCell id="actor2" value="Coding Bootcamp" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="270" y="380" width="60" height="120" as="geometry"/></mxCell>
+        <mxCell id="actor3" value="K-12 School" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="1600" y="180" width="60" height="120" as="geometry"/></mxCell>
+        <mxCell id="actor4" value="Corporate Training" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="1600" y="380" width="60" height="120" as="geometry"/></mxCell>
+
+        <mxCell id="uc1" value="Generate coding assignments" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf" vertex="1" parent="1"><mxGeometry x="590" y="150" width="220" height="60" as="geometry"/></mxCell>
+        <mxCell id="uc2" value="Adaptive daily assessments" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf" vertex="1" parent="1"><mxGeometry x="590" y="430" width="220" height="60" as="geometry"/></mxCell>
+        <mxCell id="uc3" value="Secure remote exam delivery" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450" vertex="1" parent="1"><mxGeometry x="1140" y="150" width="230" height="60" as="geometry"/></mxCell>
+        <mxCell id="uc4" value="Skill-gap analytics + badges" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450" vertex="1" parent="1"><mxGeometry x="1140" y="430" width="230" height="60" as="geometry"/></mxCell>
+
+        <mxCell id="ue1" edge="1" parent="1" source="actor1" target="uc1" style="endArrow=none;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ue2" edge="1" parent="1" source="actor2" target="uc2" style="endArrow=none;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ue3" edge="1" parent="1" source="actor3" target="uc3" style="endArrow=none;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ue4" edge="1" parent="1" source="actor4" target="uc4" style="endArrow=none;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="ue5" edge="1" parent="1" source="uc1" target="platform" style="endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ue6" edge="1" parent="1" source="uc2" target="platform" style="endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ue7" edge="1" parent="1" source="uc3" target="platform" style="endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ue8" edge="1" parent="1" source="uc4" target="platform" style="endArrow=block;strokeWidth=2"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

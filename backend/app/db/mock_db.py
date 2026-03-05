@@ -102,8 +102,12 @@ class MockDatabase:
                 results.append(item)
         return results
     
-    async def insert_one(self, document: Dict[str, Any]) -> Dict[str, Any]:
+    async def insert_one(self, document: Dict[str, Any]) -> Any:
         """Mock insert_one operation"""
+        class InsertOneResult:
+            def __init__(self, inserted_id):
+                self.inserted_id = inserted_id
+
         collection_name = getattr(self, '_collection_name', 'users')
         if collection_name not in self.data:
             self.data[collection_name] = []
@@ -112,10 +116,14 @@ class MockDatabase:
         document['_id'] = f"mock_id_{len(self.data[collection_name]) + 1}"
         self.data[collection_name].append(document)
         
-        return {"inserted_id": document['_id']}
+        return InsertOneResult(document['_id'])
     
-    async def update_one(self, query: Dict[str, Any], update: Dict[str, Any]) -> Dict[str, Any]:
+    async def update_one(self, query: Dict[str, Any], update: Dict[str, Any]) -> Any:
         """Mock update_one operation"""
+        class UpdateResult:
+            def __init__(self, modified_count):
+                self.modified_count = modified_count
+
         collection_name = getattr(self, '_collection_name', 'users')
         collection = self.data.get(collection_name, [])
         
@@ -125,8 +133,8 @@ class MockDatabase:
                 if '$set' in update:
                     item.update(update['$set'])
                 self.data[collection_name][i] = item
-                return {"modified_count": 1}
-        return {"modified_count": 0}
+                return UpdateResult(1)
+        return UpdateResult(0)
     
     async def count_documents(self, query: Dict[str, Any]) -> int:
         """Mock count_documents operation"""

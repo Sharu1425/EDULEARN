@@ -1,4 +1,4 @@
-"""
+﻿"""
 Gemini AI Coding Service
 Handles all AI-driven features for the coding platform
 """
@@ -18,13 +18,14 @@ load_dotenv()
 class GeminiCodingService:
     def __init__(self):
         """Initialize Gemini AI service for coding platform"""
-        self.api_key = os.getenv("GEMINI_API_KEY")
+        from app.core.config import settings
+        self.api_key = settings.gemini_api_key
         self.cache = {}  # Simple in-memory cache for recent generations
         self.cache_max_size = 50  # Limit cache size
         
-        if self.api_key and self.api_key != "your-google-ai-api-key":
+        if self.api_key and self.api_key != "your-google-ai-api-key" and not self.api_key.startswith("AIzaSyCeT"):
             genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
+            self.model = genai.GenerativeModel('gemini-3-flash-preview')
             self.model.generation_config = {
                 "temperature": 0.7,
                 "top_p": 0.8,
@@ -63,7 +64,7 @@ class GeminiCodingService:
     async def parse_course_handout(self, file_content: bytes, mime_type: str, subject: str) -> List[Dict[str, Any]]:
         """Parse course handout (PDF/Image/Text) to extract session topics"""
         try:
-            print(f"🧠 [GEMINI_CODING] Parsing handout for {subject} (Type: {mime_type})")
+            print(f" [GEMINI_CODING] Parsing handout for {subject} (Type: {mime_type})")
             
             if not self.available:
                 return [
@@ -138,7 +139,7 @@ class GeminiCodingService:
                 return []
 
         except Exception as e:
-            print(f"❌ [GEMINI_CODING] Error parsing handout: {e}")
+            print(f" [GEMINI_CODING] Error parsing handout: {e}")
             return []
 
     async def generate_mcq_questions(
@@ -150,7 +151,7 @@ class GeminiCodingService:
     ) -> List[Dict[str, Any]]:
         """Generate MCQ questions for assessments using Gemini AI"""
         try:
-            print(f"🧠 [GEMINI_CODING] Generating {count} {difficulty} MCQ questions for topic: {topic}")
+            print(f" [GEMINI_CODING] Generating {count} {difficulty} MCQ questions for topic: {topic}")
             
             # Check cache first
             cache_key = self._get_cache_key(topic, difficulty, count)
@@ -201,9 +202,9 @@ class GeminiCodingService:
             try:
                 questions = json.loads(questions_text)
             except json.JSONDecodeError as e:
-                print(f"❌ [GEMINI] JSON parsing error: {str(e)}")
-                print(f"🔍 [GEMINI] Raw content that failed to parse: {questions_text[:200]}...")
-                print(f"⚠️ [GEMINI] Using fallback questions for {topic} ({difficulty})")
+                print(f" [GEMINI] JSON parsing error: {str(e)}")
+                print(f" [GEMINI] Raw content that failed to parse: {questions_text[:200]}...")
+                print(f" [GEMINI] Using fallback questions for {topic} ({difficulty})")
                 return self._generate_fallback_mcq_questions(topic, difficulty, count)
             
             # Validate and clean questions
@@ -229,7 +230,7 @@ class GeminiCodingService:
                         "generated_by": "gemini"
                     })
             
-            print(f"✅ [GEMINI_CODING] Generated {len(validated_questions)} valid MCQ questions")
+            print(f" [GEMINI_CODING] Generated {len(validated_questions)} valid MCQ questions")
             
             # Cache the result
             self._add_to_cache(cache_key, validated_questions)
@@ -237,7 +238,7 @@ class GeminiCodingService:
             return validated_questions
             
         except Exception as e:
-            print(f"❌ [GEMINI_CODING] Error generating MCQ questions: {str(e)}")
+            print(f" [GEMINI_CODING] Error generating MCQ questions: {str(e)}")
             return self._generate_fallback_mcq_questions(topic, difficulty, count)
     
     def _validate_mcq_question(self, question: Dict[str, Any]) -> bool:
@@ -289,7 +290,7 @@ class GeminiCodingService:
     
     def _generate_fallback_mcq_questions(self, topic: str, difficulty: str, count: int) -> List[Dict[str, Any]]:
         """Generate fallback MCQ questions when AI is not available"""
-        print(f"🔄 [GEMINI_CODING] Using fallback MCQ generation for {topic}")
+        print(f" [GEMINI_CODING] Using fallback MCQ generation for {topic}")
         
         fallback_questions = []
         for i in range(count):
@@ -313,7 +314,7 @@ class GeminiCodingService:
     async def generate_live_class_content(self, topic: str) -> Dict[str, Any]:
         """Generate Live Class content: MCQs, Polls, Flashcards"""
         try:
-            print(f"🧠 [GEMINI_CODING] Generating Live Class content for topic: {topic}")
+            print(f" [GEMINI_CODING] Generating Live Class content for topic: {topic}")
             
             if not self.available:
                 # Return basic fallback structure
@@ -390,9 +391,141 @@ class GeminiCodingService:
                 return {"quizzes": [], "polls": [], "flashcards": []}
 
         except Exception as e:
-            print(f"❌ [GEMINI_CODING] Error generating live content: {e}")
+            print(f" [GEMINI_CODING] Error generating live content: {e}")
             return {"quizzes": [], "polls": [], "flashcards": []}
 
+
+
+    async def generate_content_from_file(self, file_content: bytes, mime_type: str, topic: str = "General") -> Dict[str, Any]:
+        """Generate Live Class content from an uploaded file (PDF/PPT/Text/Image)"""
+        try:
+            print(f" [GEMINI_CODING] Generating content from file ({mime_type}) for topic: {topic}")
+            
+            if not self.available:
+                print("[WARNING] [GEMINI_CODING] Service not available (missing API key?)")
+                return {
+                    "summary": f"Content generation unavailable for {topic}.",
+                    "quizzes": [],
+                    "polls": [],
+                    "flashcards": ["Feature Unavailable"]
+                }
+            
+            print(f"[DEBUG] [GEMINI_CODING] Input File Size: {len(file_content)} bytes")
+            
+            # Extract Text from File
+            extracted_text = ""
+            is_image = False
+            
+            try:
+                if mime_type == "application/pdf":
+                    import io
+                    import PyPDF2
+                    pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_content))
+                    for page in pdf_reader.pages:
+                        text = page.extract_text()
+                        if text:
+                            extracted_text += text + "\n"
+                    # If empty, might be image-based PDF
+                    if not extracted_text.strip():
+                         extracted_text = "[PDF contains images or no selectable text]"
+
+                elif mime_type in ["application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/vnd.ms-powerpoint"]:
+                    import io
+                    from pptx import Presentation
+                    prs = Presentation(io.BytesIO(file_content))
+                    for slide in prs.slides:
+                        for shape in slide.shapes:
+                            if hasattr(shape, "text"):
+                                extracted_text += shape.text + "\n"
+                                
+                elif mime_type.startswith("image/"):
+                    is_image = True
+                    extracted_text = "[Image File Provided]"
+                    
+                else:
+                    # Try generic text decode
+                    extracted_text = file_content.decode("utf-8", errors="ignore")
+                    
+            except Exception as e:
+                print(f"[ERROR] Text extraction failed: {e}")
+                return {"quizzes": [], "polls": [], "flashcards": [], "fillups": [], "summary": f"Error parsing file: {str(e)}"}
+
+            # Prepare Prompt
+            prompt_instruction = f"""
+            You are an expert educational content creator. 
+            Analyze the following course material content covering the topic "{topic}":
+            
+            --- BEGIN CONTENT ---
+            {extracted_text[:50000] if not is_image else "[Image Attached]"}
+            --- END CONTENT ---
+            
+            Based on this content, generate the following interactive elements for a live class:
+            
+            1. **Today's Topic**: Extract the main topic name (e.g., "Photosynthesis", "Linear Algebra").
+            2. **5 MCQ Questions** (for assessment)
+               - Must be directly answered by the file content.
+               - Format: {{ "question": "...", "options": ["A","B","C","D"], "correct_option": 0, "explanation": "..." }}
+            3. **3 Pulse Check Polls** (to check understanding)
+               - Format: {{ "text": "...", "type": "POLL", "options": ["Yes", "No", "Somewhat"] }}
+            4. **5 Flashcards** (Key terms/concepts)
+               - Format: "Term: Definition"
+            5. **5 Fill-in-the-blank Questions** (for recall)
+               - Format: {{ "text": "The _______ is the powerhouse of the cell.", "answer": "mitochondria" }}
+            6. **Brief Summary** (100 words, markdown supported)
+               - Provide a clear, structured summary of the file content.
+            7. **1 Coding Problem** (Optional, only if technical)
+               - Format: {{ "title": "...", "description": "..." }} or null.
+            
+            Return ONLY a valid JSON object with this EXACT structure:
+            {{
+                "summary": "### Key Concepts\\n...",
+                "quizzes": [
+                    {{
+                        "title": "Topic Quiz",
+                        "questions": [
+                            {{ "text": "...", "type": "MCQ", "options": ["..."], "correct_option": 0, "explanation": "..." }}
+                        ]
+                    }}
+                ],
+                "polls": [ {{ "text": "...", "type": "POLL", "options": ["..."] }} ],
+                "flashcards": [ "Term: Definition" ],
+                "fillups": [ {{ "text": "...", "answer": "..." }} ],
+                "coding_problem": {{ ... }}
+            }}
+            """
+            
+            contents = [prompt_instruction]
+            
+            if is_image:
+                 contents.append({
+                    "mime_type": mime_type,
+                    "data": file_content
+                })
+            
+            import asyncio
+            try:
+                response = await asyncio.wait_for(
+                    self.model.generate_content_async(contents),
+                    timeout=60.0 # Increased timeout for large files
+                )
+            except asyncio.TimeoutError:
+                print("[TIMEOUT] [GEMINI_CODING] File processing timed out")
+                return {"quizzes": [], "polls": [], "flashcards": [], "fillups": [], "summary": "Error: Analysis timed out."}
+                
+            if not response.text:
+                return {"quizzes": [], "polls": [], "flashcards": [], "fillups": [], "summary": "Empty response from AI."}
+                
+            json_text = self._clean_json_response(response.text.strip())
+            try:
+                data = json.loads(json_text)
+                return data
+            except json.JSONDecodeError:
+                print(f"[ERROR] JSON parse failed: {json_text[:200]}")
+                return {"quizzes": [], "polls": [], "flashcards": [], "fillups": [], "summary": "Error parsing AI response."}
+
+        except Exception as e:
+            print(f" [GEMINI_CODING] Error: {e}")
+            return {"quizzes": [], "polls": [], "flashcards": [], "fillups": [], "summary": f"System Error: {str(e)}"}
 
     async def generate_coding_problem(
         self, 
@@ -404,7 +537,7 @@ class GeminiCodingService:
     ) -> Dict[str, Any]:
         """Generate a coding problem with test cases using Gemini AI"""
         try:
-            print(f"🧠 [GEMINI_CODING] Generating {difficulty} coding problem for topic: {topic}")
+            print(f" [GEMINI_CODING] Generating {difficulty} coding problem for topic: {topic}")
             
             if not self.available:
                 return self._get_fallback_coding_problem(topic, difficulty)
@@ -775,7 +908,7 @@ class GeminiCodingService:
     ) -> Dict[str, Any]:
         """Execute code with test cases in a secure environment"""
         try:
-            print(f"⚡ [CODE_EXECUTION] Executing {language} code with {len(test_cases)} test cases")
+            print(f" [CODE_EXECUTION] Executing {language} code with {len(test_cases)} test cases")
             
             results = []
             total_time = 0
@@ -1422,7 +1555,7 @@ int main() {
                 "easy": [
                     {
                         "question": "What is the time complexity of accessing an element in an array?",
-                        "options": ["O(1)", "O(n)", "O(log n)", "O(n²)"],
+                        "options": ["O(1)", "O(n)", "O(log n)", "O(n)"],
                         "correct_answer": 0,
                         "explanation": "Array access is O(1) because we can directly access any element using its index."
                     },
@@ -1456,13 +1589,13 @@ int main() {
                         "question": "Which sorting algorithm has the best average-case time complexity?",
                         "options": ["Bubble Sort", "Selection Sort", "Quick Sort", "Insertion Sort"],
                         "correct_answer": 2,
-                        "explanation": "Quick Sort has O(n log n) average-case time complexity, which is better than the O(n²) of the others."
+                        "explanation": "Quick Sort has O(n log n) average-case time complexity, which is better than the O(n) of the others."
                     }
                 ],
                 "medium": [
                     {
                         "question": "What is the time complexity of Dijkstra's algorithm?",
-                        "options": ["O(V)", "O(V + E)", "O(V log V + E)", "O(V²)"],
+                        "options": ["O(V)", "O(V + E)", "O(V log V + E)", "O(V)"],
                         "correct_answer": 2,
                         "explanation": "Dijkstra's algorithm with a binary heap has O(V log V + E) time complexity."
                     }
@@ -1515,7 +1648,7 @@ int main() {
             # Default fallback question
             selected_question = {
                 "question": "What is the time complexity of linear search?",
-                "options": ["O(1)", "O(log n)", "O(n)", "O(n²)"],
+                "options": ["O(1)", "O(log n)", "O(n)", "O(n)"],
                 "correct_answer": 2,
                 "explanation": "Linear search checks each element one by one, so it has O(n) time complexity in the worst case."
             }
@@ -2540,7 +2673,7 @@ IMPORTANT:
                 if start_idx != -1 and end_idx != -1:
                     content = content[start_idx:end_idx+1]
                 
-                print(f"🔍 [GEMINI] Parsing JSON content: {content[:200]}...")
+                print(f" [GEMINI] Parsing JSON content: {content[:200]}...")
                 
                 questions = json.loads(content)
                 
@@ -2565,12 +2698,12 @@ IMPORTANT:
                 return formatted_questions[:count]
                 
             except json.JSONDecodeError as e:
-                print(f"❌ [GEMINI] JSON parsing error: {e}")
-                print(f"🔍 [GEMINI] Raw content that failed to parse: {content}")
+                print(f" [GEMINI] JSON parsing error: {e}")
+                print(f" [GEMINI] Raw content that failed to parse: {content}")
                 return self._get_fallback_mcq_questions(topic, difficulty, count)
                 
         except Exception as e:
-            print(f"❌ [GEMINI] Error generating MCQ questions: {e}")
+            print(f" [GEMINI] Error generating MCQ questions: {e}")
             return self._get_fallback_mcq_questions(topic, difficulty, count)
     
     def _get_fallback_mcq_questions(self, topic: str, difficulty: str, count: int) -> List[Dict[str, Any]]:
@@ -2578,7 +2711,7 @@ IMPORTANT:
         import random
         from datetime import datetime
         
-        print(f"⚠️ [GEMINI] Using fallback questions for {topic} ({difficulty})")
+        print(f" [GEMINI] Using fallback questions for {topic} ({difficulty})")
         
         # Expanded question pool with much more variety
         fallback_questions = []
@@ -2664,25 +2797,25 @@ IMPORTANT:
             "array": [
                 {
                     "question": "What is the time complexity of accessing an element by index in an array?",
-                    "options": ["O(1)", "O(n)", "O(log n)", "O(n²)"],
+                    "options": ["O(1)", "O(n)", "O(log n)", "O(n)"],
                     "correct": 0,
                     "explanation": "Array access by index is O(1) because it uses direct memory addressing"
                 },
                 {
                     "question": "What is the space complexity of an array with n elements?",
-                    "options": ["O(1)", "O(n)", "O(log n)", "O(n²)"],
+                    "options": ["O(1)", "O(n)", "O(log n)", "O(n)"],
                     "correct": 1,
                     "explanation": "An array with n elements requires O(n) space to store all elements"
                 },
                 {
                     "question": "What is the time complexity of linear search in an unsorted array?",
-                    "options": ["O(1)", "O(log n)", "O(n)", "O(n²)"],
+                    "options": ["O(1)", "O(log n)", "O(n)", "O(n)"],
                     "correct": 2,
                     "explanation": "Linear search checks each element sequentially, taking O(n) time in worst case"
                 },
                 {
                     "question": "What is the time complexity of binary search in a sorted array?",
-                    "options": ["O(1)", "O(log n)", "O(n)", "O(n²)"],
+                    "options": ["O(1)", "O(log n)", "O(n)", "O(n)"],
                     "correct": 1,
                     "explanation": "Binary search eliminates half the search space each iteration, taking O(log n) time"
                 }
@@ -2779,7 +2912,7 @@ IMPORTANT:
             return existing_questions[:limit]
             
         except Exception as e:
-            print(f"⚠️ [GEMINI] Error getting existing questions: {str(e)}")
+            print(f" [GEMINI] Error getting existing questions: {str(e)}")
             return []
 
     async def _store_ai_questions_in_db(self, questions: List[Dict[str, Any]], topic: str, difficulty: str):
@@ -2802,7 +2935,7 @@ IMPORTANT:
                     "difficulty": difficulty,
                     "generated_by": "gemini",
                     "metadata": {
-                        "ai_model": "gemini-2.0-flash-exp",
+                        "ai_model": "gemini-3-flash-preview",
                         "generation_timestamp": datetime.utcnow().isoformat(),
                         "original_topic": topic,
                         "original_difficulty": difficulty
@@ -2817,10 +2950,10 @@ IMPORTANT:
             # Insert questions into database
             if questions_to_store:
                 result = await db.ai_questions.insert_many(questions_to_store)
-                print(f"✅ [GEMINI] Stored {len(result.inserted_ids)} AI questions in database")
+                print(f" [GEMINI] Stored {len(result.inserted_ids)} AI questions in database")
                 
         except Exception as e:
-            print(f"❌ [GEMINI] Error storing AI questions in database: {str(e)}")
+            print(f" [GEMINI] Error storing AI questions in database: {str(e)}")
             # Don't raise exception - this is not critical for question generation
 
 # Global instance
@@ -2852,7 +2985,7 @@ def is_harmonious(colors):
         }
     ]
     
-    print("🧪 [TEST] Testing execution with is_harmonious function...")
+    print(" [TEST] Testing execution with is_harmonious function...")
     result = gemini_coding_service.execute_code(
         code=test_code,
         language="python",
@@ -2860,5 +2993,5 @@ def is_harmonious(colors):
         time_limit=5000,
         memory_limit=256
     )
-    print(f"🧪 [TEST] Result: {result}")
+    print(f" [TEST] Result: {result}")
     return result

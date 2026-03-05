@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     cors_origins: List[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
         "http://localhost:3000",
         "http://13.60.212.110",
         "https://13.60.212.110",
@@ -41,7 +43,7 @@ class Settings(BaseSettings):
     ]
 
     # AI Services
-    gemini_api_key: str = os.getenv("GEMINI_API_KEY", "AIzaSyCeT9KMPDDZwHFabO_57mx12SM27pDurh0")
+    gemini_api_key: str = os.getenv("GEMINI_API_KEY", "your-google-ai-api-key")
 
     # Google OAuth
     google_client_id: str = os.getenv(

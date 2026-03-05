@@ -69,10 +69,11 @@ class LiveSession(BaseModel):
     timeslot_id: str
     active_students: List[str] = [] # List of user_ids
     current_state: SessionState = SessionState.WAITING
-    active_content_payload: Optional[Dict[str, Any]] = None
+    active_content_payload: Dict[str, Any] = {}
     session_code: str
     batch_id: str # Denormalized for easier lookup
     started_at: datetime = Field(default_factory=datetime.utcnow)
+    is_published: bool = False
     
     model_config = ConfigDict(
         populate_by_name=True,

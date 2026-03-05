@@ -216,6 +216,9 @@ async def login_user(user_data: UserLogin):
                 "is_admin": user.get("is_admin", False)
             }
         }
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
         print(f"[ERROR] [LOGIN] Error during login: {str(e)}")
         raise HTTPException(

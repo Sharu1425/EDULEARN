@@ -1,4 +1,4 @@
-"""
+﻿"""
 FastAPI application entry point
 Main application configuration and startup
 """
@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import os
 
 # Load .env file - must be called before importing any modules that use environment variables
-load_dotenv()
+load_dotenv(override=True)
 
 # Debug: Print HackerEarth secret to verify it's loaded (remove in production)
 client_secret = os.getenv("HACKEREARTH_CLIENT_SECRET")
@@ -86,7 +86,7 @@ async def add_cors_headers(request: Request, call_next):
         response = await call_next(request)
     except Exception as e:
         # Log the actual error for debugging
-        print(f"❌ [CORS MIDDLEWARE] Error: {e}")
+        print(f" [CORS MIDDLEWARE] Error: {e}")
         import traceback
         traceback.print_exc()
         # If there's an error, create a response with CORS headers
@@ -131,7 +131,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         # Only return 500 for actual server errors
         status_code = 500
         content = {"detail": "Internal server error"}
-        print(f"❌ [GLOBAL HANDLER] Unhandled exception: {type(exc).__name__}: {str(exc)}")
+        print(f" [GLOBAL HANDLER] Unhandled exception: {type(exc).__name__}: {str(exc)}")
         # Only print full traceback in debug mode
         import os
         if os.getenv("DEBUG", "").lower() == "true" or os.getenv("LOG_LEVEL", "").upper() == "DEBUG":
@@ -197,7 +197,7 @@ async def get_questions_from_db(
     try:
         from app.services.gemini_coding_service import gemini_coding_service
         
-        print(f"🤖 [QUESTIONS] Generating {count} unique {difficulty} questions for topic: {topic}")
+        print(f" [QUESTIONS] Generating {count} unique {difficulty} questions for topic: {topic}")
         
         # Always generate fresh questions using Gemini AI
         questions = await gemini_coding_service.generate_mcq_questions(
@@ -228,11 +228,11 @@ async def get_questions_from_db(
             
             transformed_questions.append(question)
         
-        print(f"✅ [QUESTIONS] Generated {len(transformed_questions)} questions successfully")
+        print(f" [QUESTIONS] Generated {len(transformed_questions)} questions successfully")
         return transformed_questions
         
     except Exception as e:
-        print(f"❌ [QUESTIONS] Error generating questions: {str(e)}")
+        print(f" [QUESTIONS] Error generating questions: {str(e)}")
         # Fallback to mock data if AI fails
         mock_questions = []
         for i in range(count):

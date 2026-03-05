@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../contexts/ToastContext'
 import api from '../utils/api'
 import AnimatedBackground from '../components/AnimatedBackground'
+import Button from '../components/ui/Button'
 
 const StudentLiveRoom: React.FC = () => {
     const { batchId } = useParams<{ batchId: string }>()
@@ -377,21 +378,82 @@ const StudentLiveRoom: React.FC = () => {
                             className="bg-gray-900 border border-gray-800 rounded-3xl p-6 shadow-2xl text-center"
                             style={{ position: 'relative', zIndex: 10 }} // Ensure visibility
                         >
-                            <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-purple-400">
-                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                            </div>
-                            <h2 className="text-xl font-bold text-white mb-2">New Material Shared</h2>
-                            <p className="text-gray-400 mb-6">{payload.name || "Teacher shared a file"}</p>
+                            {payload.type === 'fillups' ? (
+                                <div className="text-left w-full max-w-2xl mx-auto">
+                                    <h3 className="text-2xl font-bold mb-6 text-purple-400 text-center">Fill-in-the-Blanks</h3>
+                                    <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                                        {payload.items.map((item: any, idx: number) => (
+                                            <div key={idx} className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50 hover:border-purple-500/30 transition-all">
+                                                <p className="font-medium text-lg mb-4 leading-relaxed">
+                                                    <span className="text-purple-400 font-bold mr-2">{idx + 1}.</span>
+                                                    {item.text.replace(/_+/g, '___________')}
+                                                </p>
+                                                <div className="flex items-center gap-3 group">
+                                                    <span className="text-xs text-gray-500 uppercase font-bold tracking-wider">Answer</span>
+                                                    <span className="bg-black/40 px-4 py-2 rounded-lg text-green-400 font-mono text-sm blur-md group-hover:blur-none transition-all duration-300 cursor-help border border-white/5 select-none">
+                                                        {item.answer}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Button className="mt-8 w-full bg-gray-800 hover:bg-gray-700" onClick={() => setStatus('WAITING')}>
+                                        Done
+                                    </Button>
+                                </div>
+                            ) : payload.type === 'flashcards' ? (
+                                <div className="text-left w-full max-w-2xl mx-auto">
+                                    <h3 className="text-2xl font-bold mb-6 text-green-400 text-center">Flashcards</h3>
+                                    <div className="grid grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                                        {payload.items.map((card: string, idx: number) => {
+                                            const parts = card.includes(':') ? card.split(':') : [card, ''];
+                                            return (
+                                                <div key={idx} className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50 hover:border-green-500/30 transition-all group">
+                                                    <p className="font-bold text-xl mb-2 text-green-300 group-hover:text-green-200 transition-colors">{parts[0]}</p>
+                                                    <p className="text-gray-300 text-base leading-relaxed">{parts[1]}</p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <Button className="mt-8 w-full bg-gray-800 hover:bg-gray-700" onClick={() => setStatus('WAITING')}>
+                                        Done
+                                    </Button>
+                                </div>
+                            ) : payload.type === 'coding' ? (
+                                <div className="text-left w-full max-w-2xl mx-auto">
+                                    <h3 className="text-2xl font-bold mb-4 text-orange-400 text-center">Coding Challenge</h3>
+                                    <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50 hover:border-orange-500/30 transition-all">
+                                        <h4 className="text-xl font-bold text-white mb-2">{payload.problem.title}</h4>
+                                        <div className="prose prose-invert max-w-none text-gray-300 mb-6">
+                                            <p className="whitespace-pre-wrap">{payload.problem.description}</p>
+                                        </div>
+                                        <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-400 border border-gray-700">
+                                            // Solve this problem in your local editor or ask teacher for the IDE link.
+                                        </div>
+                                    </div>
+                                    <Button className="mt-8 w-full bg-orange-600 hover:bg-orange-700" onClick={() => setStatus('WAITING')}>
+                                        Accepted
+                                    </Button>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-purple-400">
+                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                    </div>
+                                    <h2 className="text-xl font-bold text-white mb-2">New Material Shared</h2>
+                                    <p className="text-gray-400 mb-6">{payload.name || "Teacher shared a file"}</p>
 
-                            <a
-                                href={payload.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 rounded-xl font-bold text-white shadow-lg hover:shadow-purple-500/20 transition-all"
-                            >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                Open / Save
-                            </a>
+                                    <a
+                                        href={payload.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 rounded-xl font-bold text-white shadow-lg hover:shadow-purple-500/20 transition-all"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                        Open / Save
+                                    </a>
+                                </>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>

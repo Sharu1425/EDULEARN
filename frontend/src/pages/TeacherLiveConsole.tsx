@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import ReactMarkdown from 'react-markdown'
 import { QRCodeSVG } from 'qrcode.react'
 import { JaaSMeeting } from '@jitsi/react-sdk';
 import {
@@ -45,6 +46,7 @@ const TeacherLiveConsole: React.FC = () => {
     const [showQR, setShowQR] = useState(false)
     const [socket, setSocket] = useState<WebSocket | null>(null)
     const [isConnected, setIsConnected] = useState(false)
+    const [isPublished, setIsPublished] = useState(false)
 
     // Content State
     const [pendingContent, setPendingContent] = useState<any>(null) // Loaded from AI
@@ -53,6 +55,7 @@ const TeacherLiveConsole: React.FC = () => {
 
     // Mock Data for Phase 3 scaffolding (since AI endpoint exists but we need to fetch)
     const [loadingContent, setLoadingContent] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
 
     useEffect(() => {
         // Initialize Session
@@ -178,29 +181,7 @@ const TeacherLiveConsole: React.FC = () => {
         }
     }
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (!file) return
 
-        const formData = new FormData()
-        formData.append('file', file)
-
-        try {
-            const response = await api.post(`/api/sessions/upload/${batchId}`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            })
-
-            // Push Immediately
-            pushContent('MATERIAL', {
-                url: response.data.url,
-                type: response.data.type,
-                name: response.data.name
-            })
-
-        } catch (e) {
-            showError("Upload Error", "Failed to upload material")
-        }
-    }
 
     const pushContent = (type: 'QUIZ' | 'POLL' | 'MATERIAL', content: any) => {
         if (!socket) return
@@ -234,6 +215,43 @@ const TeacherLiveConsole: React.FC = () => {
         }
     }
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return
+
+        const file = e.target.files[0]
+        const formData = new FormData()
+        formData.append("file", file)
+
+        setIsUploading(true)
+        try {
+            const res = await api.post(`/api/sessions/content/${batchId}/upload`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            })
+
+            if (res.data && res.data.content) {
+                setPendingContent(res.data.content)
+                success("Content Generated", "AI has created materials from your file.")
+            }
+        } catch (e) {
+            showError("Upload Failed", "Could not process file.")
+            console.error(e)
+        } finally {
+            setIsUploading(false)
+        }
+    }
+
+    const handlePublish = async () => {
+        if (confirm("Publish this session? Students will be able to join now.")) {
+            try {
+                await api.post(`/api/sessions/publish/${batchId}`)
+                setIsPublished(true)
+                success("Session Published", "Students can now join the session.")
+            } catch (e) {
+                showError("Error", "Failed to publish session")
+            }
+        }
+    }
+
     if (!user) return <div className="p-8 text-center">Loading...</div>
 
     return (
@@ -257,6 +275,15 @@ const TeacherLiveConsole: React.FC = () => {
                         <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
                         {isConnected ? 'LIVE' : 'OFFLINE'}
                     </div>
+                    {!isPublished ? (
+                        <Button variant="primary" className="bg-green-600 hover:bg-green-700 border-green-600 animate-pulse" size="sm" onClick={handlePublish}>
+                            Publish Class
+                        </Button>
+                    ) : (
+                        <div className="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded border border-green-500/30 flex items-center font-bold">
+                            PUBLISHED
+                        </div>
+                    )}
                     <Button variant="primary" className="bg-red-500 hover:bg-red-600 border-red-500" size="sm" onClick={endClass}>End Class</Button>
                 </div>
             </header>
@@ -339,6 +366,127 @@ const TeacherLiveConsole: React.FC = () => {
                             </AnimatePresence>
 
                             <div className="max-w-3xl mx-auto space-y-6">
+
+                                {/* File Upload / AI Generation Zone */}
+                                <div className="col-span-2">
+                                    <Card className="p-1 border-dashed border-2 border-gray-700 bg-gray-800/30 hover:bg-gray-800/50 transition-colors group relative overflow-hidden">
+                                        <input
+                                            type="file"
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                                            onChange={handleFileUpload}
+                                            accept=".pdf,.ppt,.pptx,.txt,image/*"
+                                            disabled={isUploading}
+                                        />
+                                        <div className="p-8 text-center relative z-10">
+                                            {isUploading ? (
+                                                <div className="flex flex-col items-center animate-pulse">
+                                                    <div className="w-12 h-12 rounded-full border-4 border-blue-500 border-t-transparent animate-spin mb-4"></div>
+                                                    <h3 className="text-xl font-bold text-blue-400">Analyzing Content...</h3>
+                                                    <p className="text-gray-400">Gemini AI is generating quizzes and polls</p>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <div className="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-all text-gray-400">
+                                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                                                    </div>
+                                                    <h3 className="text-xl font-bold mb-2">Drop Course Material</h3>
+                                                    <p className="text-gray-400">Upload PDF, PPT, or Images to instantly generate interactive content</p>
+                                                </>
+                                            )}
+                                        </div>
+                                    </Card>
+
+                                    {/* Generated Content Preview */}
+                                    {pendingContent && (
+                                        <div className="mt-8 space-y-6 animate-slide-up">
+                                            <div className="flex items-center justify-between">
+                                                <h3 className="text-lg font-bold text-blue-300">Content Analysis</h3>
+                                                <Button size="sm" variant="outline" onClick={() => setPendingContent(null)}>Clear</Button>
+                                            </div>
+
+                                            {/* Summary Section */}
+                                            {pendingContent.summary && (
+                                                <Card className="p-6 bg-gray-800/80 border-gray-700">
+                                                    <h4 className="text-sm font-bold text-gray-400 uppercase mb-2">Executive Summary</h4>
+                                                    <div className="prose prose-invert text-gray-300 text-sm max-w-none">
+                                                        <ReactMarkdown>{pendingContent.summary}</ReactMarkdown>
+                                                    </div>
+                                                </Card>
+                                            )}
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {/* Quizzes */}
+                                                {pendingContent.quizzes?.map((quiz: any, idx: number) => (
+                                                    <Card key={`q-${idx}`} className="p-4 bg-gray-800 border-gray-700 hover:border-blue-500/50 transition-all">
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <div className="text-xs font-bold text-yellow-500 mb-1">Recommended Quiz</div>
+                                                                <h4 className="font-bold">{quiz.title || `Quiz ${idx + 1}`}</h4>
+                                                                <p className="text-xs text-gray-400 mt-1">{quiz.questions?.length} MCQs ready</p>
+                                                            </div>
+                                                            <Button size="sm" className="text-xs py-0.5 h-6" onClick={() => pushContent('QUIZ', quiz)}>Push to Class</Button>
+                                                        </div>
+                                                    </Card>
+                                                ))}
+
+                                                {/* Fillups */}
+                                                {pendingContent.fillups?.length > 0 && (
+                                                    <Card className="p-4 bg-gray-800 border-gray-700 hover:border-purple-500/50 transition-all">
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <div className="text-xs font-bold text-purple-500 mb-1">Fill-in-the-Blanks</div>
+                                                                <h4 className="font-bold">Recall Practice</h4>
+                                                                <p className="text-xs text-gray-400 mt-1">{pendingContent.fillups.length} Questions</p>
+                                                            </div>
+                                                            <Button size="sm" className="text-xs py-0.5 h-6" onClick={() => pushContent('MATERIAL', { type: 'fillups', items: pendingContent.fillups })}>Push All</Button>
+                                                        </div>
+                                                    </Card>
+                                                )}
+
+                                                {/* Polls */}
+                                                {pendingContent.polls?.map((poll: any, idx: number) => (
+                                                    <Card key={`p-${idx}`} className="p-4 bg-gray-800 border-gray-700 hover:border-pink-500/50 transition-all">
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <div className="text-xs font-bold text-pink-500 mb-1">Pulse Check</div>
+                                                                <h4 className="font-bold truncate w-32">{poll.text}</h4>
+                                                            </div>
+                                                            <Button size="sm" className="text-xs py-0.5 h-6" onClick={() => pushContent('POLL', poll)}>Ask Now</Button>
+                                                        </div>
+                                                    </Card>
+                                                ))}
+
+                                                {/* Flashcards */}
+                                                {pendingContent.flashcards?.length > 0 && (
+                                                    <Card className="p-4 bg-gray-800 border-gray-700 col-span-2">
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <div className="text-xs font-bold text-green-500 mb-1">Key Terms</div>
+                                                                <h4 className="font-bold">Flashcards</h4>
+                                                                <p className="text-xs text-gray-400 mt-1">{pendingContent.flashcards.length} Cards Generated</p>
+                                                            </div>
+                                                            <Button size="sm" className="text-xs py-0.5 h-6" onClick={() => pushContent('MATERIAL', { type: 'flashcards', items: pendingContent.flashcards })}>Push All</Button>
+                                                        </div>
+                                                    </Card>
+                                                )}
+
+                                                {/* Coding Problem */}
+                                                {pendingContent.coding_problem && (
+                                                    <Card className="p-4 bg-gray-800 border-gray-700 hover:border-orange-500/50 transition-all col-span-2">
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <div className="text-xs font-bold text-orange-500 mb-1">Coding Challenge</div>
+                                                                <h4 className="font-bold">{pendingContent.coding_problem.title}</h4>
+                                                                <p className="text-xs text-gray-400 mt-1 line-clamp-1">{pendingContent.coding_problem.description}</p>
+                                                            </div>
+                                                            <Button size="sm" className="text-xs py-0.5 h-6" onClick={() => pushContent('MATERIAL', { type: 'coding', problem: pendingContent.coding_problem })}>Push Code</Button>
+                                                        </div>
+                                                    </Card>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* Action Cards */}
                                 <div className="grid grid-cols-2 gap-4">
