@@ -150,9 +150,9 @@ const CreateSchedule: React.FC = () => {
                         <form onSubmit={handleSubmit}>
                             {/* Step Indicator */}
                             <div className="flex items-center justify-center mb-12">
-                                <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 ${step >= 1 ? 'border-blue-500 bg-blue-500/20 text-blue-400' : 'border-gray-700 bg-gray-800 text-gray-500'} font-bold text-lg transition-all shadow-[0_0_15px_rgba(59,130,246,0.2)]`}>1</div>
+                                <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 ${step >= 1 ? 'border-blue-500 bg-blue-500/20 text-blue-400 shadow-lg shadow-blue-500/20' : 'border-gray-700 bg-gray-800 text-gray-500'} font-bold text-lg transition-all`}>1</div>
                                 <div className={`w-24 h-1 mx-4 rounded-full ${step >= 2 ? 'bg-gradient-to-r from-blue-500 to-purple-500' : 'bg-gray-800'}`} />
-                                <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 ${step >= 2 ? 'border-purple-500 bg-purple-500/20 text-purple-400' : 'border-gray-700 bg-gray-800 text-gray-500'} font-bold text-lg transition-all shadow-[0_0_15px_rgba(168,85,247,0.2)]`}>2</div>
+                                <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 ${step >= 2 ? 'border-purple-500 bg-purple-500/20 text-purple-400 shadow-lg shadow-purple-500/20' : 'border-gray-700 bg-gray-800 text-gray-500'} font-bold text-lg transition-all`}>2</div>
                             </div>
 
                             <AnimatePresence mode="wait">

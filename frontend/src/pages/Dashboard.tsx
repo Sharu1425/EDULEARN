@@ -10,6 +10,7 @@ import { useToast } from "../contexts/ToastContext"
 import { useAuth } from "../hooks/useAuth"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
+import PageShell from "../components/ui/PageShell"
 import ErrorState from "../components/ErrorState"
 import api from "../utils/api"
 import { ANIMATION_VARIANTS } from "../utils/constants"
@@ -142,54 +143,51 @@ const Dashboard: React.FC = () => {
 
 
   return (
-    <>
-      <div className="min-h-screen pt-20 px-4 relative z-10">
+    <PageShell
+      title={`Welcome back, ${user?.username || user?.name || (user?.email ? user.email.split('@')[0] : "Learner")}!`}
+      subtitle="Ready to continue your learning journey?"
+    >
+      <div className="relative z-10">
         <motion.div
           variants={ANIMATION_VARIANTS.fadeIn}
           initial="initial"
           animate="animate"
           className="max-w-7xl mx-auto"
         >
-          <Card className="p-8 mb-8">
-            <motion.div variants={ANIMATION_VARIANTS.slideDown} className="text-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-                Welcome back, {user?.username || user?.name || (user?.email ? user.email.split('@')[0] : "Learner")}!
-              </h1>
-              <p className="text-muted-foreground text-base md:text-lg mb-4">
-                Ready to continue your learning journey?
-              </p>
-            </motion.div>
-
+          <div className="mb-8">
             {/* Action Cards */}
             <motion.div
               variants={ANIMATION_VARIANTS.stagger}
               initial="initial"
               animate="animate"
-              className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
             >
 
               {/* JOIN LIVE CLASS - DYNAMIC SECTION */}
               {activeSessions.length > 0 && activeSessions.map((session, idx) => (
                 <motion.div key={idx} variants={ANIMATION_VARIANTS.slideUp}>
-                  <Card className="p-6 h-full bg-gradient-to-br from-red-900/40 to-orange-900/40 border-red-500/30">
-                    <div className="flex items-center mb-4">
-                      <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center mr-4 animate-pulse">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  <Card className="p-7 h-full border-destructive/20 bg-destructive/10 backdrop-blur-md overflow-hidden relative group">
+                    {/* Background animated blob */}
+                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-destructive/20 rounded-full blur-3xl group-hover:bg-destructive/30 transition-all duration-700"></div>
+
+                    <div className="flex items-center mb-6 relative z-10">
+                      <div className="w-12 h-12 rounded-2xl bg-destructive text-destructive-foreground shadow-lg shadow-destructive/50 flex items-center justify-center mr-4 animate-pulse">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-white">Join Live Class</h3>
-                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-green-500 text-white animate-pulse">LIVE NOW</span>
+                        <h3 className="text-2xl font-bold font-heading text-destructive dark:text-red-400">Join Live Class</h3>
+                        <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded bg-destructive text-white animate-pulse tracking-widest uppercase">LIVE NOW</span>
                       </div>
                     </div>
-                    <p className="text-red-100/70 mb-4 leading-relaxed">
-                      {session.batch_name} is currently live! Join the session to interact.
+                    <p className="text-foreground/80 mb-6 leading-relaxed relative z-10 font-medium">
+                      <span className="font-bold">{session.batch_name}</span> is currently live! Join the session to interact with your instructor.
                     </p>
-                    <div className="flex flex-col gap-2">
-                      <div className="text-xs text-red-200/50 uppercase font-mono tracking-widest mb-1">Passcode: {session.session_code}</div>
+                    <div className="flex flex-col gap-3 relative z-10">
+                      <div className="text-xs text-destructive/70 dark:text-red-300/70 font-mono tracking-widest mb-1 font-semibold">PASSCODE: {session.session_code}</div>
                       <Link to={`/student/live/${session.batch_id}`}>
-                        <Button variant="primary" className="w-full bg-red-600 hover:bg-red-500 border-none">
+                        <Button className="w-full bg-destructive text-white hover:bg-destructive/90 shadow-lg shadow-destructive/40 border-none h-12">
                           JOIN SESSION
                         </Button>
                       </Link>
@@ -199,52 +197,69 @@ const Dashboard: React.FC = () => {
               ))}
 
               <motion.div variants={ANIMATION_VARIANTS.slideUp}>
-                <Card className="p-6 h-full">
-                  <div className="flex items-center mb-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center mr-4">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                        />
+                <Card className="p-7 h-full group">
+                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-700"></div>
+
+                  <div className="flex items-center mb-6 relative z-10">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-glow-indigo text-white flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                       </svg>
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground">Start New Assessment</h3>
+                    <h3 className="text-2xl font-bold font-heading text-foreground">Start Assessment</h3>
                   </div>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
-                    Choose between MCQ assessments or coding challenges. Both powered by AI with personalized difficulty
-                    adaptation.
+                  <p className="text-muted-foreground mb-8 leading-relaxed relative z-10">
+                    Choose between MCQ assessments or coding challenges. Both are powered by AI with personalized difficulty adaptation.
                   </p>
-                  <Link to="/assessment-choice">
+                  <Link to="/assessment-choice" className="relative z-10">
                     <Button variant="primary" className="w-full">
-                      Choose Assessment Type
+                      Choose Assessment
                     </Button>
                   </Link>
                 </Card>
               </motion.div>
 
-              <motion.div variants={ANIMATION_VARIANTS.slideRight}>
-                <Card className="p-6 h-full">
-                  <div className="flex items-center mb-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center mr-4">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
+              <motion.div variants={ANIMATION_VARIANTS.slideUp}>
+                <Card className="p-7 h-full group border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-900/10 backdrop-blur-md overflow-hidden relative">
+                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all duration-700"></div>
+
+                  <div className="flex items-center mb-6 relative z-10">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 text-white flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground">View Profile</h3>
+                    <h3 className="text-2xl font-bold font-heading text-indigo-900 dark:text-indigo-100">ThinkTrace Interview</h3>
                   </div>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
-                    Manage your account settings and view detailed statistics and progress insights.
+                  <p className="text-muted-foreground mb-8 leading-relaxed relative z-10">
+                    Test your thinking process, not just your knowledge, in an adaptive AI conversation.
                   </p>
-                  <Link to="/profile">
-                    <Button variant="primary" className="w-full">
+                  <Link to="/thinktrace" state={{ topic: "Programming Fundamentals", difficulty: "medium", subject_area: "Computer Science", question_count: 5 }} className="relative z-10 flex h-full items-end pb-1 pb-1">
+                    <Button className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white border-none shadow-lg shadow-indigo-500/25">
+                      Launch Session
+                    </Button>
+                  </Link>
+                </Card>
+              </motion.div>
+
+
+              <motion.div variants={ANIMATION_VARIANTS.slideRight}>
+                <Card className="p-7 h-full group">
+                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl group-hover:bg-secondary/20 transition-all duration-700"></div>
+
+                  <div className="flex items-center mb-6 relative z-10">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-secondary to-pink-500 shadow-lg text-white flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-2xl font-bold font-heading text-foreground">Student Profile</h3>
+                  </div>
+                  <p className="text-muted-foreground mb-8 leading-relaxed relative z-10">
+                    Manage your account settings, review your learning journey, and analyze your performance statistics.
+                  </p>
+                  <Link to="/profile" className="relative z-10">
+                    <Button variant="secondary" className="w-full dark:bg-white/10 dark:hover:bg-white/20">
                       Go to Profile
                     </Button>
                   </Link>
@@ -411,10 +426,10 @@ const Dashboard: React.FC = () => {
                 </Card>
               </motion.div>
             )}
-          </Card>
+          </div>
         </motion.div>
       </div>
-    </>
+    </PageShell>
   )
 }
 

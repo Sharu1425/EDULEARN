@@ -75,7 +75,7 @@
     pdfborder={0 0 0}
 }
 % Title and author information
-\title{modLRN: An AI-Powered Adaptive Learning Platform for Modern Education\\
+\title{EDULEARN: An AI-Powered Adaptive Learning Platform for Modern Education\\
 \thanks{This project was developed under the guidance of Dr. Krunal Dhanraj Randive (email: krunaldr@srmist.edu.in) at SRM Institute of Science and Technology.}
 }
 
@@ -94,7 +94,7 @@ Kattankulathur, Tamil Nadu, 603203, India}
 
 % Abstract
 \begin{abstract}
-modLRN (formerly EDULEARN) is a comprehensive full-stack educational platform that combines modern web technologies with artificial intelligence to create an intelligent learning ecosystem. The platform provides AI-powered assessment generation, multi-language code execution, real-time analytics, and personalized learning experiences for students, teachers, and administrators. Built with FastAPI and React, modLRN supports 100+ API endpoints, handles 1000+ concurrent users, and integrates Google Gemini AI for intelligent content generation. This paper presents the system architecture, key features, implementation details, and performance metrics of the platform.
+EDULEARN (formerly EDULEARN) is a comprehensive full-stack educational platform that combines modern web technologies with artificial intelligence to create an intelligent learning ecosystem. The platform provides AI-powered assessment generation, multi-language code execution, real-time analytics, and personalized learning experiences for students, teachers, and administrators. Built with FastAPI and React, EDULEARN supports 100+ API endpoints, handles 1000+ concurrent users, and integrates Google Gemini AI for intelligent content generation. This paper presents the system architecture, key features, implementation details, and performance metrics of the platform.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -105,7 +105,7 @@ Adaptive Learning, Artificial Intelligence, Code Execution, Web Technologies, Ed
 % 1. INTRODUCTION
 % ============================================
 \section{Introduction}
-Modern educational platforms face the challenge of providing personalized, scalable, and engaging learning experiences. Traditional assessment systems often require significant manual effort from educators and fail to adapt to individual student needs. modLRN addresses these challenges by integrating artificial intelligence with modern web technologies to create an adaptive learning ecosystem.
+Modern educational platforms face the challenge of providing personalized, scalable, and engaging learning experiences. Traditional assessment systems often require significant manual effort from educators and fail to adapt to individual student needs. EDULEARN addresses these challenges by integrating artificial intelligence with modern web technologies to create an adaptive learning ecosystem.
 
 \subsection{Problem Statement}
 Educational institutions struggle with:
@@ -118,7 +118,7 @@ Educational institutions struggle with:
 \end{itemize}
 
 \subsection{Objectives}
-The primary objectives of modLRN are:
+The primary objectives of EDULEARN are:
 \begin{enumerate}
     \item \textbf{Automate Assessment Creation}: Reduce teacher workload through AI-powered question generation using Google Gemini AI
     \item \textbf{Enhance Learning Experience}: Provide personalized, adaptive learning paths based on student performance
@@ -128,7 +128,7 @@ The primary objectives of modLRN are:
 \end{enumerate}
 
 \subsection{Target Users}
-modLRN serves three primary user groups:
+EDULEARN serves three primary user groups:
 \begin{itemize}
     \item \textbf{Students}: Individual learners seeking personalized education with gamification and progress tracking
     \item \textbf{Teachers}: Educators managing classes, creating assessments, and monitoring student performance
@@ -149,19 +149,19 @@ Previous research has demonstrated the effectiveness of adaptive learning system
 The integration of AI in educational assessment has gained traction with systems like Gradescope and Turnitin. However, most existing platforms focus on specific aspects such as grading or plagiarism detection, rather than comprehensive learning management.
 
 \subsection{Code Execution Platforms}
-Platforms like HackerRank and LeetCode have demonstrated the feasibility of secure code execution in educational contexts. modLRN builds upon these concepts while integrating AI-powered problem generation, adaptive difficulty, and real-time execution leveraging the Judge0 API.
+Platforms like HackerRank and LeetCode have demonstrated the feasibility of secure code execution in educational contexts. EDULEARN builds upon these concepts while integrating AI-powered problem generation, adaptive difficulty, and real-time execution leveraging the Judge0 API.
 
 \subsection{Comparative Analysis}
-Table~\ref{tab:comparison} presents a comprehensive comparison between modLRN and existing educational platforms.
+Table~\ref{tab:comparison} presents a comprehensive comparison between EDULEARN and existing educational platforms.
 
 \begin{table}[ht]
     \centering
-    \caption{Comparison of modLRN with Existing Educational Platforms}
+    \caption{Comparison of EDULEARN with Existing Educational Platforms}
     \label{tab:comparison}
     \resizebox{\columnwidth}{!}{%
     \begin{tabular}{@{}lcccccc@{}}
         \toprule
-        \textbf{Feature} & \textbf{modLRN} & \textbf{Khan Academy} & \textbf{Coursera} & \textbf{Judge0 (Raw)} & \textbf{LeetCode} & \textbf{Moodle} \\
+        \textbf{Feature} & \textbf{EDULEARN} & \textbf{Khan Academy} & \textbf{Coursera} & \textbf{Judge0 (Raw)} & \textbf{LeetCode} & \textbf{Moodle} \\
         \midrule
         AI Question Generation & \checkmark & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ \\
         Multi-Language Coding & \checkmark & Limited & $\times$ & \checkmark & \checkmark & Plugin \\
@@ -179,7 +179,7 @@ Table~\ref{tab:comparison} presents a comprehensive comparison between modLRN an
     }
 \end{table}
 
-modLRN distinguishes itself through:
+EDULEARN distinguishes itself through:
 \begin{enumerate}
     \item \textbf{AI-First Approach}: Google Gemini AI integration for automated content generation with quality control
     \item \textbf{Comprehensive Solution}: Combines assessment, coding, and analytics in one unified platform
@@ -193,7 +193,7 @@ modLRN distinguishes itself through:
 % ============================================
 \section{System Architecture}
 
-modLRN follows a three-tier architecture pattern with clear separation between presentation, business logic, and data layers.
+EDULEARN follows a three-tier architecture pattern with clear separation between presentation, business logic, and data layers.
 
 \subsection{High-Level Architecture}
 The system consists of four main layers:
@@ -207,8 +207,8 @@ The system consists of four main layers:
 Figure~\ref{fig:architecture} illustrates the complete system architecture.
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=\columnwidth,alt={System architecture diagram showing modLRN's four-layer structure with Frontend (React), Backend (FastAPI), Database (MongoDB, Redis), and External Services (Google Gemini AI, Judge0, OAuth)}]{figures/system_architecture.pdf}
-    \caption{modLRN System Architecture showing the interaction between Frontend, Backend, Database, and External Services}
+    \includegraphics[width=\columnwidth,alt={System architecture diagram showing EDULEARN's four-layer structure with Frontend (React), Backend (FastAPI), Database (MongoDB, Redis), and External Services (Google Gemini AI, Judge0, OAuth)}]{figures/system_architecture.pdf}
+    \caption{EDULEARN System Architecture showing the interaction between Frontend, Backend, Database, and External Services}
     \label{fig:architecture}
 \end{figure}
 
@@ -256,10 +256,10 @@ Figure~\ref{fig:database} shows the database schema relationships.
 % ============================================
 \section{Technology Stack}
 
-modLRN leverages modern technologies across the entire stack to ensure performance, scalability, and maintainability.
+EDULEARN leverages modern technologies across the entire stack to ensure performance, scalability, and maintainability.
 
 \subsection{Backend Technologies}
-Table~\ref{tab:backend} summarizes the key backend technologies natively integrated in modLRN.
+Table~\ref{tab:backend} summarizes the key backend technologies natively integrated in EDULEARN.
 
 \begin{table}[ht]
     \centering
@@ -309,7 +309,7 @@ The frontend represents a next-generation web application:
 % ============================================
 \section{Key Features}
 
-modLRN provides extensive modular toolsets dedicated to advancing modern pedagogy dynamically.
+EDULEARN provides extensive modular toolsets dedicated to advancing modern pedagogy dynamically.
 
 \subsection{AI-Powered Assessment Generation}
 The platform uses Google Gemini AI to automatically generate assessment questions. The system:
@@ -321,7 +321,7 @@ The platform uses Google Gemini AI to automatically generate assessment question
 \end{itemize}
 
 \subsection{Multi-Language Code Execution}
-Through rigorous Judge0 architectural bonds, modLRN supports code execution in 10+ programming languages:
+Through rigorous Judge0 architectural bonds, EDULEARN supports code execution in 10+ programming languages:
 \begin{itemize}
     \item Python 3.x
     \item JavaScript (Node.js)
@@ -370,7 +370,7 @@ The platform provides comprehensive analytics:
 \end{itemize}
 
 \subsection{Adaptive Learning Algorithm}
-modLRN implements an intelligent adaptive learning system that adjusts question difficulty based on student performance history.
+EDULEARN implements an intelligent adaptive learning system that adjusts question difficulty based on student performance history.
 
 \begin{algorithm}
 \caption{Adaptive Question Difficulty Selection}
@@ -405,7 +405,7 @@ The algorithm considers both recent overall performance and topic-specific maste
 \section{Implementation Details}
 
 \subsection{Authentication System}
-modLRN implements multiple authentication methods:
+EDULEARN implements multiple authentication methods:
 
 \subsubsection{JWT-Based Authentication}
 The system uses JSON Web Tokens (JWT) with HS256 algorithm for stateless authentication. Tokens include user ID, email, role, and expiration time.
@@ -625,11 +625,11 @@ async def get_user_assessments(user_id: str):
 % ============================================
 \section{Use Cases and Application Scenarios}
 
-modLRN has been designed to address real-world educational challenges across various scenarios.
+EDULEARN has been designed to address real-world educational challenges across various scenarios.
 
 \subsection{Scenario 1: University Computer Science Department}
 \textbf{Challenge}: Professor manages 200 students across 3 sections, spending 10+ hours weekly creating and grading programming assignments. \\
-\textbf{Solution with modLRN}:
+\textbf{Solution with EDULEARN}:
 \begin{itemize}
     \item AI generates 20 unique coding problems in 5 minutes
     \item Automatic test case execution and grading
@@ -640,7 +640,7 @@ modLRN has been designed to address real-world educational challenges across var
 
 \subsection{Scenario 2: Online Coding Bootcamp}
 \textbf{Challenge}: Bootcamp needs to assess 50 students daily with diverse skill levels and provide personalized learning paths. \\
-\textbf{Solution with modLRN}:
+\textbf{Solution with EDULEARN}:
 \begin{itemize}
     \item Adaptive difficulty adjusts to student performance
     \item Real-time code execution in 10+ languages
@@ -651,7 +651,7 @@ modLRN has been designed to address real-world educational challenges across var
 
 \subsection{Scenario 3: K-12 School Remote Assessment}
 \textbf{Challenge}: School needs secure online assessments for 500 students during remote learning. \\
-\textbf{Solution with modLRN}:
+\textbf{Solution with EDULEARN}:
 \begin{itemize}
     \item Secure authentication with JWT tokens
     \item Timed assessments with automatic submission
@@ -663,7 +663,7 @@ modLRN has been designed to address real-world educational challenges across var
 
 \subsection{Scenario 4: Corporate Training Programs}
 \textbf{Challenge}: Company trains 100+ employees on new programming frameworks quarterly. \\
-\textbf{Solution with modLRN}:
+\textbf{Solution with EDULEARN}:
 \begin{itemize}
     \item Custom assessments tailored to company tech stack
     \item Skill gap analysis through analytics
@@ -675,8 +675,8 @@ modLRN has been designed to address real-world educational challenges across var
 Figure~\ref{fig:usecases} illustrates the diverse application scenarios.
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=\columnwidth,alt={Use case diagram showing modLRN deployment in university, bootcamp, K-12 school, and corporate training scenarios with specific features used in each context}]{figures/use_cases.pdf}
-    \caption{Real-World Application Scenarios of modLRN}
+    \includegraphics[width=\columnwidth,alt={Use case diagram showing EDULEARN deployment in university, bootcamp, K-12 school, and corporate training scenarios with specific features used in each context}]{figures/use_cases.pdf}
+    \caption{Real-World Application Scenarios of EDULEARN}
     \label{fig:usecases}
 \end{figure}
 
@@ -684,7 +684,7 @@ Figure~\ref{fig:usecases} illustrates the diverse application scenarios.
 % 8. SECURITY FEATURES
 % ============================================
 \section{Security Features}
-modLRN implements comprehensive security measures to protect user data and ensure platform integrity.
+EDULEARN implements comprehensive security measures to protect user data and ensure platform integrity.
 
 \subsection{Authentication Security}
 \begin{itemize}
@@ -723,7 +723,7 @@ The platform implements three-tier RBAC:
 % 9. API DESIGN
 % ============================================
 \section{API Design}
-modLRN provides a RESTful API spanning multiple structural domains.
+EDULEARN provides a RESTful API spanning multiple structural domains.
 
 \subsection{API Structure}
 The API follows RESTful principles:
@@ -777,7 +777,7 @@ All API responses follow a consistent format mapping identical schemas universal
 \section{Performance and Metrics}
 
 \subsection{System Capabilities}
-modLRN is designed to handle:
+EDULEARN is designed to handle:
 \begin{itemize}
     \item \textbf{Concurrent Users}: 1000+ simultaneous users
     \item \textbf{Response Time}: Average $<$ 200ms for API calls
@@ -864,7 +864,7 @@ Comprehensive load testing was conducted using Apache JMeter:
 \section{Testing and Deployment}
 
 \subsection{Testing Strategy}
-modLRN employs a comprehensive testing strategy:
+EDULEARN employs a comprehensive testing strategy:
 \begin{itemize}
     \item \textbf{Unit Tests}: Backend services and utilities via Pytest
     \item \textbf{Integration Tests}: API endpoints and database operations
@@ -894,7 +894,7 @@ The platform supports multiple deployment options:
 % ============================================
 \section{Limitations and Challenges}
 
-While modLRN demonstrates significant capabilities, several limitations and challenges were encountered during development and deployment.
+While EDULEARN demonstrates significant capabilities, several limitations and challenges were encountered during development and deployment.
 
 \subsection{Current Limitations}
 
@@ -950,7 +950,7 @@ Designing the XP and leveling system required careful tuning to avoid excessive 
 % ============================================
 \section{Future Work}
 
-modLRN has a roadmap for continued enhancement:
+EDULEARN has a roadmap for continued enhancement:
 
 \subsection{Version 1.1.0 (Planned)}
 \begin{itemize}
@@ -979,7 +979,7 @@ modLRN has a roadmap for continued enhancement:
 % ============================================
 \section{Conclusion}
 
-modLRN represents a comprehensive solution for modern educational assessment and learning management. The platform successfully combines:
+EDULEARN represents a comprehensive solution for modern educational assessment and learning management. The platform successfully combines:
 \begin{itemize}
     \item A modern technology stack (FastAPI, React, Vite) maximizing performance and rendering capabilities.
     \item Advanced AI integration via Gemini synthesizing unique, logically mapped, difficulty-adaptive assessments iteratively.
@@ -987,7 +987,7 @@ modLRN represents a comprehensive solution for modern educational assessment and
     \item Robust Gamification mapping comprehensive tracking protocols driving motivation across vast institutional cohorts.
 \end{itemize}
 
-The platform operates production-ready, effectively managing 100+ organized endpoints capable of securely executing massive asynchronous load requests alongside continuous background calculations. Future implementations surrounding Progressive Web Application support globally underscore modLRN's capability to actively transform large-scale digital academic deployment infrastructures perpetually.
+The platform operates production-ready, effectively managing 100+ organized endpoints capable of securely executing massive asynchronous load requests alongside continuous background calculations. Future implementations surrounding Progressive Web Application support globally underscore EDULEARN's capability to actively transform large-scale digital academic deployment infrastructures perpetually.
 
 % ============================================
 % ACKNOWLEDGMENTS

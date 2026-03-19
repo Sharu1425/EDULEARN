@@ -1,4 +1,4 @@
-﻿"""
+"""
 Gemini AI Coding Service
 Handles all AI-driven features for the coding platform
 """

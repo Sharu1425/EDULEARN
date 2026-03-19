@@ -223,7 +223,7 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
                     >
                       <div className="flex-1">
                         <h3
-                        className={`font-medium mb-1 ${mode === "professional" ? (colorScheme === "dark" ? "text-gray-200" : "text-gray-800") : colorScheme === "dark" ? "text-blue-200" : "text-blue-800"}`}
+                          className={`font-medium mb-1 ${mode === "professional" ? (colorScheme === "dark" ? "text-gray-200" : "text-gray-800") : colorScheme === "dark" ? "text-blue-200" : "text-blue-800"}`}
                         >
                           {setting.label}
                         </h3>

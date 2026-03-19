@@ -1,6 +1,6 @@
 # EDULEARN Product Vision
 
-EDULEARN (modLRN) exists to make high-quality, personalized, and measurable learning accessible at scale by combining AI-assisted assessment, coding practice, and role-specific analytics for students, teachers, and institutions.
+EDULEARN (EDULEARN) exists to make high-quality, personalized, and measurable learning accessible at scale by combining AI-assisted assessment, coding practice, and role-specific analytics for students, teachers, and institutions.
 
 ## 1. Audience
 

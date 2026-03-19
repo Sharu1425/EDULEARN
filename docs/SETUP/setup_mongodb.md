@@ -81,7 +81,7 @@ If you get connection errors:
 
 ## Database Initialization
 
-The modLRN application will automatically:
+The EDULEARN application will automatically:
 - Create the database when first accessed
 - Set up necessary collections
 - Create indexes for optimal performance

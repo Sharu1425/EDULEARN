@@ -190,3 +190,41 @@ class CodingAnalyticsModel(BaseModel):
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str}
     )
+
+# ThinkTrace Models
+class ThinkTraceSessionModel(BaseModel):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    student_id: str
+    topic: str
+    difficulty: str
+    subject_area: str
+    question_count: int
+    
+    # Internal state tracking
+    status: str = "active"  # "active", "completed", "error"
+    current_question_index: int = 0
+    questions: List[Dict[str, Any]] = Field(default_factory=list)
+    answers: List[Dict[str, Any]] = Field(default_factory=list)
+    
+    # Final Review Data
+    skill_score: Optional[float] = None
+    strong_answers: Optional[int] = None
+    weak_answers: Optional[int] = None
+    strong_percent: Optional[float] = None
+    strengths: Optional[List[str]] = None
+    weak_areas: Optional[List[str]] = None
+    decision_pattern: Optional[str] = None
+    conceptual_gaps: Optional[List[str]] = None
+    learning_style: Optional[Dict[str, str]] = None
+    improvement_suggestions: Optional[List[str]] = None
+    teacher_notes: Optional[Dict[str, Any]] = None
+
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    completed_at: Optional[datetime] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
+

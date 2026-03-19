@@ -39,7 +39,7 @@ const Assessment: React.FC = () => {
   const location = useLocation()
   const { user } = useAuth()
   const { success, error: showError } = useToast()
-  
+
   const [assessment, setAssessment] = useState<Assessment | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<number[]>([])
@@ -89,16 +89,16 @@ const Assessment: React.FC = () => {
       console.log("⚠️ [ASSESSMENT] Request already in progress or already loaded, skipping...")
       return
     }
-    
+
     try {
       setIsFetching(true)
       setLoading(true)
       hasLoaded.current = true
-      
+
       console.log("🔍 [ASSESSMENT] Starting assessment fetch...")
       console.log("🔍 [ASSESSMENT] ID:", id)
       console.log("🔍 [ASSESSMENT] Location state:", location.state)
-      
+
       // Check if configuration was passed from AssessConfig (student-generated)
       const state = location.state as any
       if (state?.isStudentGenerated && state?.assessmentConfig) {
@@ -106,17 +106,17 @@ const Assessment: React.FC = () => {
         await loadStudentGeneratedAssessment(state.assessmentConfig)
         return
       }
-      
+
       // If ID is provided, try to fetch as teacher-created assessment
       if (id) {
         console.log("📋 [ASSESSMENT] Loading teacher-created assessment...")
         await loadTeacherCreatedAssessment(id)
         return
       }
-      
+
       // If no ID and no state, this is an invalid route
       throw new Error("No assessment ID provided and no configuration found")
-      
+
     } catch (err: any) {
       console.error("❌ [ASSESSMENT] Error fetching assessment:", err)
       showError("Error", "Failed to load assessment. Please try again.")
@@ -130,21 +130,21 @@ const Assessment: React.FC = () => {
   const loadStudentGeneratedAssessment = async (config: any) => {
     const { topic, qnCount, difficulty } = config
     const totalTime = getDifficultyTime(difficulty, qnCount)
-    
+
     console.log("🤖 [ASSESSMENT] Fetching questions from Gemini AI...")
     console.log("🤖 [ASSESSMENT] Params:", { topic, difficulty, count: qnCount })
-    
+
     // Fetch questions from Gemini AI (always generates unique questions)
     const geminiResponse = await api.get("/db/questions", {
       params: { topic, difficulty, count: qnCount }
     })
-    
+
     console.log("📊 [ASSESSMENT] Questions fetched:", geminiResponse.data.length, "questions")
-    
+
     if (!Array.isArray(geminiResponse.data) || geminiResponse.data.length === 0) {
       throw new Error("No questions were generated. Please try again.")
     }
-    
+
     // Create assessment object for student-generated assessment
     const studentAssessment: Assessment = {
       id: 'student-generated',
@@ -157,7 +157,7 @@ const Assessment: React.FC = () => {
       questions: geminiResponse.data,
       type: 'mcq'
     }
-    
+
     setAssessment(studentAssessment)
     setTimeLeft(totalTime)
     setAnswers(new Array(qnCount).fill(-1))
@@ -167,15 +167,15 @@ const Assessment: React.FC = () => {
 
   const loadTeacherCreatedAssessment = async (assessmentId: string) => {
     console.log("🔍 [ASSESSMENT] Fetching teacher assessment details for ID:", assessmentId)
-    
+
     // Try teacher assessment endpoint first
     try {
       const response = await api.get(`/api/assessments/teacher/${assessmentId}`)
-      
+
       if (!response.data || !response.data.questions || response.data.questions.length === 0) {
         throw new Error("Teacher assessment not found or has no questions")
       }
-      
+
       setAssessment(response.data)
       setTimeLeft(response.data.time_limit * 60) // Convert minutes to seconds
       setAnswers(new Array(response.data.question_count).fill(-1))
@@ -185,14 +185,14 @@ const Assessment: React.FC = () => {
     } catch (error) {
       console.log("⚠️ [ASSESSMENT] Teacher assessment endpoint failed, trying regular assessment endpoint...")
     }
-    
+
     // Fallback to regular assessment endpoint
     const response = await api.get(`/api/assessments/${assessmentId}/questions`)
-    
+
     if (!response.data || !response.data.questions || response.data.questions.length === 0) {
       throw new Error("Assessment not found or has no questions")
     }
-    
+
     setAssessment(response.data)
     setTimeLeft(response.data.time_limit * 60) // Convert minutes to seconds
     setAnswers(new Array(response.data.question_count).fill(-1))
@@ -223,31 +223,31 @@ const Assessment: React.FC = () => {
 
   const handleSubmitTest = async () => {
     if (submitting) return
-    
+
     try {
       setSubmitting(true)
-      
+
       // Calculate score
       let score = 0
       console.log("📊 [ASSESSMENT] Calculating score...")
       console.log("📊 [ASSESSMENT] Answers array:", answers)
       console.log("📊 [ASSESSMENT] Questions:", assessment?.questions.length)
-      
+
       assessment?.questions.forEach((question, index) => {
         const userAnswer = answers[index]
         const correctAnswer = question.correct_answer
         const isCorrect = userAnswer === correctAnswer
-        
+
         console.log(`📊 [ASSESSMENT] Question ${index + 1}: User=${userAnswer}, Correct=${correctAnswer}, IsCorrect=${isCorrect}`)
-        
+
         if (isCorrect) {
           score++
         }
       })
-      
+
       const percentage = Math.round((score / (assessment?.question_count || 1)) * 100)
       console.log(`📊 [ASSESSMENT] Final score: ${score}/${assessment?.question_count} (${percentage}%)`)
-      
+
       if (assessmentType === 'teacher') {
         // Submit to teacher-created assessment endpoint
         const submission = {
@@ -260,12 +260,12 @@ const Assessment: React.FC = () => {
           submitted_at: new Date().toISOString(),
           is_completed: true
         }
-        
+
         try {
           // Try teacher assessment submit endpoint first
           const res = await api.post(`/api/assessments/teacher/${id}/submit`, submission)
           success("Success", `Test completed! Your score: ${score}/${assessment?.question_count} (${percentage}%)`)
-          
+
           // Prepare result state for Results page (same format as student-generated)
           const resultState = {
             score: res.data.score || score,
@@ -284,8 +284,8 @@ const Assessment: React.FC = () => {
             })) || [],
             userAnswers: answers.map((answerIndex, questionIndex) => {
               const question = assessment?.questions[questionIndex];
-              return answerIndex >= 0 && question?.options[answerIndex] 
-                ? question.options[answerIndex] 
+              return answerIndex >= 0 && question?.options[answerIndex]
+                ? question.options[answerIndex]
                 : '';
             }),
             timeTaken: assessment?.time_limit ? (assessment.time_limit * 60) - timeLeft : 0,
@@ -295,7 +295,7 @@ const Assessment: React.FC = () => {
             })) || [],
             questionReviews: res.data.question_reviews || []
           };
-          
+
           // Navigate to Results page with state
           navigate("/results", { state: resultState });
           return
@@ -303,15 +303,15 @@ const Assessment: React.FC = () => {
           // Fallback to regular assessment submit endpoint
           const res = await api.post(`/api/assessments/${id}/submit`, submission)
           success("Success", `Test completed! Your score: ${score}/${assessment?.question_count} (${percentage}%)`)
-          
+
           // Get response data - it may have question_reviews
           const responseData = res.data;
           const questionReviews = responseData.question_reviews || [];
-          
+
           // Use backend score if available
           const finalScore = responseData.score !== undefined ? responseData.score : score;
           const finalTotalQuestions = responseData.total_questions || assessment?.question_count || 0;
-          
+
           // Prepare result state for Results page (same format as student-generated)
           const resultState = {
             score: finalScore,
@@ -330,8 +330,8 @@ const Assessment: React.FC = () => {
             })) || [],
             userAnswers: answers.map((answerIndex, questionIndex) => {
               const question = assessment?.questions[questionIndex];
-              return answerIndex >= 0 && question?.options[answerIndex] 
-                ? question.options[answerIndex] 
+              return answerIndex >= 0 && question?.options[answerIndex]
+                ? question.options[answerIndex]
                 : '';
             }),
             timeTaken: assessment?.time_limit ? (assessment.time_limit * 60) - timeLeft : 0,
@@ -341,12 +341,12 @@ const Assessment: React.FC = () => {
             })) || [],
             questionReviews: questionReviews
           };
-          
+
           // Navigate to Results page with state
           navigate("/results", { state: resultState });
           return
         }
-        
+
       } else {
         // Submit to student-generated assessment endpoint (existing system)
         const result = {
@@ -361,12 +361,12 @@ const Assessment: React.FC = () => {
           })) || [],
           user_answers: answers.map((answerIndex, questionIndex) => {
             const question = assessment?.questions[questionIndex]
-            const userAnswerText = answerIndex >= 0 && question?.options[answerIndex] 
-              ? question.options[answerIndex] 
+            const userAnswerText = answerIndex >= 0 && question?.options[answerIndex]
+              ? question.options[answerIndex]
               : ''
-            
+
             console.log(`📝 [ASSESSMENT] API Question ${questionIndex + 1}: AnswerIndex=${answerIndex}, AnswerText="${userAnswerText}"`)
-            
+
             return userAnswerText
           }),
           topic: assessment?.subject || '',
@@ -377,25 +377,25 @@ const Assessment: React.FC = () => {
             explanation: q.explanation || "",
           })) || []
         }
-        
+
         await api.post("/api/results", result)
-        
+
         success("Assessment Complete!", `You scored ${score}/${assessment?.question_count}`)
 
         // Map user answers properly
         const mappedUserAnswers = answers.map((answerIndex, questionIndex) => {
           const question = assessment?.questions[questionIndex]
-          const userAnswerText = answerIndex >= 0 && question?.options[answerIndex] 
-            ? question.options[answerIndex] 
+          const userAnswerText = answerIndex >= 0 && question?.options[answerIndex]
+            ? question.options[answerIndex]
             : ''
-          
+
           console.log(`📝 [ASSESSMENT] Question ${questionIndex + 1}: AnswerIndex=${answerIndex}, AnswerText="${userAnswerText}"`)
-          
+
           return userAnswerText
         })
-        
+
         console.log("📝 [ASSESSMENT] Mapped user answers:", mappedUserAnswers)
-        
+
         const resultState = {
           score: score,
           totalQuestions: assessment?.question_count || 0,
@@ -409,10 +409,10 @@ const Assessment: React.FC = () => {
             explanation: q.explanation || "",
           })) || []
         }
-        
+
         navigate("/results", { state: resultState })
       }
-      
+
     } catch (err: any) {
       console.error("❌ [ASSESSMENT] Error submitting test:", err)
       showError("Error", "Failed to submit test. Please try again.")
@@ -431,21 +431,21 @@ const Assessment: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingState size="lg" />
-        </div>
+      </div>
     )
   }
 
   if (!assessment) {
-  return (
+    return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="p-8 text-center">
-            <ErrorState
+          <ErrorState
             title="Assessment Not Found"
             message="The assessment you're looking for doesn't exist or you don't have access to it."
             onBack={() => navigate("/dashboard")}
             backText="Return to Dashboard"
-              showCard={true}
-            />
+            showCard={true}
+          />
         </Card>
       </div>
     )
@@ -511,15 +511,15 @@ const Assessment: React.FC = () => {
                 Start Test
               </Button>
             </div>
-                  </Card>
+          </Card>
         </div>
-                            </div>
+      </div>
     )
   }
 
   const currentQuestion = assessment.questions[currentQuestionIndex]
   const progress = ((currentQuestionIndex + 1) / assessment.question_count) * 100
-  
+
   console.log(`🔍 [ASSESSMENT] Current question index: ${currentQuestionIndex}`)
   console.log(`🔍 [ASSESSMENT] Current answer: ${answers[currentQuestionIndex]}`)
   console.log(`🔍 [ASSESSMENT] All answers:`, answers)
@@ -538,24 +538,24 @@ const Assessment: React.FC = () => {
             <div className="text-right">
               <div className="text-2xl font-bold text-red-400">{formatTime(timeLeft)}</div>
               <div className="text-sm text-gray-400">Time Remaining</div>
-                            </div>
-                        </div>
+            </div>
+          </div>
 
           <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
             <div
               className="bg-blue-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
-                      </div>
-          
+          </div>
+
           <div className="flex justify-between text-sm text-gray-400">
             <span>Question {currentQuestionIndex + 1} of {assessment.question_count}</span>
             <span>{Math.round(progress)}% Complete</span>
           </div>
         </motion.div>
 
-                      {/* Question */}
-                      <motion.div
+        {/* Question */}
+        <motion.div
           key={currentQuestionIndex}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -566,24 +566,22 @@ const Assessment: React.FC = () => {
             <h2 className="text-xl font-semibold text-white mb-6">
               {currentQuestion.question}
             </h2>
-            
+
             <div className="space-y-3">
               {currentQuestion.options.map((option, index) => (
                 <button
                   key={index}
                   onClick={() => handleAnswerSelect(currentQuestionIndex, index)}
-                  className={`w-full p-4 text-left rounded-lg border transition-all duration-200 ${
-                    answers[currentQuestionIndex] === index
+                  className={`w-full p-4 text-left rounded-lg border transition-all duration-200 ${answers[currentQuestionIndex] === index
                       ? 'bg-blue-600 border-blue-400 text-white'
                       : 'bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center">
-                    <div className={`w-6 h-6 rounded-full border-2 mr-3 flex items-center justify-center ${
-                      answers[currentQuestionIndex] === index
+                    <div className={`w-6 h-6 rounded-full border-2 mr-3 flex items-center justify-center ${answers[currentQuestionIndex] === index
                         ? 'border-white bg-white text-blue-600'
                         : 'border-gray-400'
-                    }`}>
+                      }`}>
                       {answers[currentQuestionIndex] === index && '✓'}
                     </div>
                     <span>{String.fromCharCode(65 + index)}. {option}</span>
@@ -592,7 +590,7 @@ const Assessment: React.FC = () => {
               ))}
             </div>
           </Card>
-                      </motion.div>
+        </motion.div>
 
         {/* Navigation */}
         <div className="flex justify-between items-center">
@@ -603,27 +601,26 @@ const Assessment: React.FC = () => {
           >
             Previous
           </Button>
-          
+
           <div className="flex space-x-2">
             {assessment.questions.map((_, index) => (
               <button
-                            key={index}
+                key={index}
                 onClick={() => setCurrentQuestionIndex(index)}
-                className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
-                  index === currentQuestionIndex
+                className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${index === currentQuestionIndex
                     ? 'bg-blue-600 text-white'
                     : answers[index] !== -1
                       ? 'bg-green-600 text-white'
                       : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
+                  }`}
               >
                 {index + 1}
               </button>
             ))}
           </div>
-          
+
           {currentQuestionIndex === assessment.questions.length - 1 ? (
-                            <Button
+            <Button
               onClick={handleSubmitTest}
               disabled={submitting}
               variant="primary"
@@ -638,9 +635,9 @@ const Assessment: React.FC = () => {
               Next
             </Button>
           )}
-                                </div>
-                              </div>
-                    </div>
+        </div>
+      </div>
+    </div>
   )
 }
 

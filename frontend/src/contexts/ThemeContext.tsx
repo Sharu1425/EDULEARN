@@ -36,11 +36,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     localStorage.setItem('theme-mode', mode);
     localStorage.setItem('color-scheme', colorScheme);
-    
+
     // Apply theme classes to document
     const root = document.documentElement;
     root.className = `${mode} ${colorScheme}`;
-    
+
     // Update CSS custom properties
     root.style.setProperty('--theme-mode', mode);
     root.style.setProperty('--color-scheme', colorScheme);

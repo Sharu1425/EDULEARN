@@ -1,6 +1,6 @@
 # Student User Guide
 
-Welcome to modLRN! This guide will help you navigate the platform and make the most of your learning experience.
+Welcome to EDULEARN! This guide will help you navigate the platform and make the most of your learning experience.
 
 ---
 

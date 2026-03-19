@@ -18,14 +18,14 @@ export const useAuth = () => {
     const checkAuthStatus = async () => {
       try {
         const token = localStorage.getItem('access_token');
-        
+
         if (!token) {
           setIsLoading(false);
           return;
         }
 
         const response = await api.get('/auth/status');
-        
+
         if (response.data.isAuthenticated && response.data.user) {
           setUser(response.data.user);
           localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -54,7 +54,7 @@ export const useAuth = () => {
       localStorage.removeItem('access_token');
       return;
     }
-    
+
     // Ensure role is set with default value
     const userWithRole = {
       ...userData,
@@ -71,16 +71,14 @@ export const useAuth = () => {
     setUser(null);
     localStorage.removeItem('user');
     localStorage.removeItem('access_token');
+    localStorage.clear(); // Ensure nothing is left behind
+    window.location.href = '/login';
   };
 
-  return { 
-    user, 
-    setUser: login, 
-    logout: () => {
-      setUser(null);
-      localStorage.removeItem('user');
-      localStorage.removeItem('access_token');
-    }, 
-    isLoading 
+  return {
+    user,
+    setUser: login,
+    logout,
+    isLoading
   };
 };

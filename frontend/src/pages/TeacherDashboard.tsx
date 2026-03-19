@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { useToast } from "../contexts/ToastContext"
 import { useAuth } from "../hooks/useAuth"
@@ -11,6 +11,7 @@ import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
 import AnimatedBackground from "../components/AnimatedBackground"
 import { ANIMATION_VARIANTS } from "../utils/constants"
+import TeacherThinkTraceAnalytics from "../components/teacher/TeacherThinkTraceAnalytics"
 
 interface Student {
   id: string
@@ -29,18 +30,6 @@ interface Batch {
   createdAt?: string
 }
 
-interface TimeSlot {
-  _id: string
-  batch_id: string
-  teacher_id: string
-  start_time: string
-  end_time: string
-  day_of_week: string
-  subject: string
-  topic: string
-  ai_prep_status: 'pending' | 'ready'
-}
-
 const TeacherDashboard: React.FC = () => {
   const { user } = useAuth()
   const { error: showError, success: showSuccess } = useToast()
@@ -48,19 +37,15 @@ const TeacherDashboard: React.FC = () => {
 
   const [students, setStudents] = useState<Student[]>([])
   const [batches, setBatches] = useState<Batch[]>([])
-  // Fix schedule type to include all necessary fields
-  const [schedule, setSchedule] = useState<TimeSlot[]>([])
   const [loading, setLoading] = useState(true)
-  // Notifications moved to Navbar
+  const [showBatchModal, setShowBatchModal] = useState(false)
+  const [sessionStarting, setSessionStarting] = useState(false)
 
-  // Fetch dashboard data when the component mounts
   useEffect(() => {
     fetchDashboardData()
-    // notifications handled globally in Navbar
     return () => { }
   }, [])
 
-  // Early return if user is not available
   if (!user) {
     return (
       <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
@@ -74,155 +59,80 @@ const TeacherDashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch students first
       const studentsResponse = await api.get("/api/teacher/students")
       if (studentsResponse.data.success) {
         setStudents(studentsResponse.data.students)
       }
 
       const batchesResponse = await api.get("/api/teacher/batches")
+      console.log("DEBUG [TEACHER] Raw batches response:", batchesResponse.data)
+      
       if (batchesResponse.data && Array.isArray(batchesResponse.data)) {
-        const allStudentsBatch = {
-          id: "all",
-          name: "All Students",
-          studentCount: studentsResponse.data.students?.length || 0,
-          createdAt: new Date().toISOString().split("T")[0],
-        }
-
-        const formattedBatches = [
-          allStudentsBatch,
-          ...batchesResponse.data.map((batch: any) => ({
-            id: batch.batch_id,
-            name: batch.batch_name,
-            studentCount: batch.total_students,
-            createdAt: new Date().toISOString().split("T")[0],
-          })),
-        ]
-
+        const formattedBatches = batchesResponse.data.map((batch: any) => {
+          const bId = batch.id || batch._id || batch.batch_id
+          const bName = batch.name || batch.batch_name || "Unnamed Batch"
+          const bCount = batch.student_count || batch.total_students || 0
+          
+          return {
+            id: bId,
+            name: bName,
+            studentCount: bCount,
+            createdAt: batch.created_at || new Date().toISOString().split("T")[0],
+          }
+        }).filter(b => b.id) // Only include if has ID
+        
+        console.log("DEBUG [TEACHER] Formatted batches:", formattedBatches)
         setBatches(formattedBatches)
-        console.log("✅ [TEACHER] Batches loaded:", formattedBatches.length)
       } else {
-        setBatches([
-          {
-            id: "all",
-            name: "All Students",
-            studentCount: 0,
-            createdAt: new Date().toISOString().split("T")[0],
-          },
-        ])
+        console.warn("DEBUG [TEACHER] Batches response not an array:", batchesResponse.data)
+        setBatches([])
       }
-
-      // Fetch Schedule
-      try {
-        const scheduleResponse = await api.get("/api/schedule/my-schedule")
-        if (Array.isArray(scheduleResponse.data)) {
-          setSchedule(scheduleResponse.data)
-        }
-      } catch (e) {
-        console.error("Failed to fetch schedule", e)
-      }
-
     } catch (err) {
       console.error("❌ [TEACHER] Failed to fetch dashboard data:", err)
       showError("Error", "Failed to load dashboard data")
       setStudents([])
-      setBatches([
-        {
-          id: "all",
-          name: "All Students",
-          studentCount: 0,
-          createdAt: new Date().toISOString().split("T")[0],
-        },
-      ])
+      setBatches([])
     } finally {
       setLoading(false)
     }
   }
 
-  // Navigation functions
-  const handleNavigateToStudentManagement = () => {
-    navigate('/teacher/student-management')
-  }
+  const handleNavigateToStudentManagement = () => navigate('/teacher/student-management')
+  const handleNavigateToAssessmentManagement = () => navigate('/teacher/assessment-management')
 
-  const handleNavigateToAssessmentManagement = () => {
-    navigate('/teacher/assessment-management')
-  }
-
-  // Schedule Navigation
-  const handleNavigateToCreateSchedule = () => navigate('/teacher/create-schedule')
-
-  // Delete Schedule
-
-  // Delete Schedule
-  const handleDeleteSchedule = async (scheduleId: string) => {
-    if (!window.confirm("Are you sure you want to delete this class?")) return
-    try {
-      await api.delete(`/api/schedule/${scheduleId}`)
-      showSuccess("Success", "Class deleted successfully")
-      fetchDashboardData()
-    } catch (err) {
-      console.error("Failed to delete schedule", err)
-      showError("Error", "Failed to delete class")
+  const handleStartLiveSession = async (batchId: string) => {
+    if (!batchId) {
+      showError("Error", "No batch ID provided")
+      return
     }
-  }
-
-  // Clear All Schedule
-  const handleClearAllSchedule = async () => {
-    if (!window.confirm("Are you sure you want to delete ALL upcoming classes? This cannot be undone.")) return
-    try {
-      await api.delete("/api/schedule/all")
-      showSuccess("Success", "All classes deleted successfully")
-      fetchDashboardData()
-    } catch (err) {
-      console.error("Failed to clear schedule", err)
-      showError("Error", "Failed to clear schedule")
-    }
-  }
-
-  // Start Live Session
-
-  const handleStartLiveSession = async (batchId: string, timeslotId: string) => {
-    // Open new tab immediately to avoid popup blockers
-    const liveWindow = window.open('', '_blank');
+    setSessionStarting(true)
+    const liveWindow = window.open('', '_blank')
     if (liveWindow) {
-      liveWindow.document.write('<h1>Starting Live Session...</h1>');
+      liveWindow.document.write('<h2 style="font-family:sans-serif;padding:2rem">Starting Live Session...</h2>')
     }
-
     try {
-      // Notify backend to start session (and send notifications)
-      console.log("🚀 Starting live session for Batch:", batchId, "Timeslot:", timeslotId)
-      const response = await api.post("/api/sessions/start", {
-        batch_id: batchId,
-        timeslot_id: timeslotId,
-      })
-      console.log("✅ Session started response:", response.data)
-
+      const response = await api.post("/api/livesession/sessions/start", { batch_id: batchId })
       if (response.data && response.data.session_id) {
-        // Notify students via socket (optional if REST handles it, but good for real-time)
-        // For now, REST endpoint handles notifications.
-
-        // Open live console in new tab
         const url = `/teacher/live/${batchId}`
-        console.log("🔗 Opening Live Console at:", url)
         if (liveWindow) {
-          liveWindow.location.href = url;
+          liveWindow.location.href = url
         } else {
-          // Fallback if blocked
-          navigate(url);
+          navigate(url)
         }
-        showSuccess("Live Status", "Session started and students notified!");
+        setShowBatchModal(false)
+        showSuccess("Live Session Started", "Students will be notified. Opening console...")
       } else {
-        // Fallback if session_id is not returned or response is unexpected
-        if (liveWindow) liveWindow.close();
-        showError("Error", "Failed to start session: Unexpected response from server.");
+        if (liveWindow) liveWindow.close()
+        showError("Error", "Unexpected response from server.")
       }
     } catch (err) {
-      console.error("Failed to start session:", err);
-      // Close the tab if start failed
-      if (liveWindow) liveWindow.close();
-      showError("Error", "Failed to start session");
+      console.error("Failed to start session:", err)
+      if (liveWindow) liveWindow.close()
+      showError("Error", "Failed to start session")
+    } finally {
+      setSessionStarting(false)
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -238,6 +148,8 @@ const TeacherDashboard: React.FC = () => {
     )
   }
 
+  const selectableBatches = batches.filter(b => b.id !== 'all')
+
   return (
     <>
       <AnimatedBackground />
@@ -249,6 +161,7 @@ const TeacherDashboard: React.FC = () => {
           className="max-w-6xl mx-auto"
         >
           <Card className="p-6 mb-6">
+            {/* Header */}
             <motion.div variants={ANIMATION_VARIANTS.slideDown} className="text-center mb-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex-1">
@@ -257,7 +170,6 @@ const TeacherDashboard: React.FC = () => {
                     Welcome back, {user?.name || user?.email || "Teacher"}!
                   </p>
                 </div>
-                {/* Notifications are handled in Navbar */}
               </div>
             </motion.div>
 
@@ -268,219 +180,223 @@ const TeacherDashboard: React.FC = () => {
               animate="animate"
               className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"
             >
-              <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20 border border-blue-500/30 rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-muted-foreground text-xs font-medium">Total Students</p>
-                    <p className="text-xl font-bold text-foreground">{students.length}</p>
-                  </div>
-                  <div className="w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center">
-                    <svg className="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-purple-500/10 to-purple-600/10 dark:from-purple-500/20 dark:to-purple-600/20 border border-purple-500/30 rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-muted-foreground text-xs font-medium">Active Batches</p>
-                    <p className="text-xl font-bold text-foreground">{batches.filter((b) => b.id !== "all").length}</p>
-                  </div>
-                  <div className="w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center">
-                    <svg className="w-3 h-3 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 border border-green-500/30 rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-muted-foreground text-xs font-medium">Assessments</p>
-                    <p className="text-xl font-bold text-foreground">12</p>
-                  </div>
-                  <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
-                    <svg className="w-3 h-3 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+              {[
+                {
+                  label: "Total Students", value: students.length,
+                  color: "blue",
+                  icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                },
+                {
+                  label: "Active Batches", value: selectableBatches.length,
+                  color: "purple",
+                  icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                },
+                {
+                  label: "Assessments", value: 12,
+                  color: "green",
+                  icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                },
+                {
+                  label: "Avg. Progress",
+                  value: students.length > 0 ? `${Math.round(students.reduce((a, s) => a + s.progress, 0) / students.length)}%` : "0%",
+                  color: "orange",
+                  icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                },
+              ].map((stat) => (
+                <div key={stat.label} className={`bg-gradient-to-r from-${stat.color}-500/10 to-${stat.color}-600/10 dark:from-${stat.color}-500/20 dark:to-${stat.color}-600/20 border border-${stat.color}-500/30 rounded-lg p-3`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-xs font-medium">{stat.label}</p>
+                      <p className="text-xl font-bold text-foreground">{stat.value}</p>
+                    </div>
+                    <div className={`w-6 h-6 bg-${stat.color}-500/20 rounded-full flex items-center justify-center`}>
+                      <svg className={`w-3 h-3 text-${stat.color}-600 dark:text-${stat.color}-400`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={stat.icon} />
+                      </svg>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-orange-500/10 to-orange-600/10 dark:from-orange-500/20 dark:to-orange-600/20 border border-orange-500/30 rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-muted-foreground text-xs font-medium">Avg. Progress</p>
-                    <p className="text-xl font-bold text-foreground">
-                      {students.length > 0
-                        ? Math.round(students.reduce((acc, student) => acc + student.progress, 0) / students.length)
-                        : 0}
-                      %
-                    </p>
-                  </div>
-                  <div className="w-6 h-6 bg-orange-500/20 rounded-full flex items-center justify-center">
-                    <svg className="w-3 h-3 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+              ))}
             </motion.div>
 
-            {/* Main Management Sections */}
+            {/* Management Cards */}
             <motion.div
               variants={ANIMATION_VARIANTS.slideUp}
               initial="initial"
               animate="animate"
               className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
             >
-              {/* Student Management */}
-              <motion.div variants={ANIMATION_VARIANTS.slideLeft}>
-                <Card className="p-5 h-full">
-                  <div className="flex items-center mb-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center mr-3">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground">Student Management</h3>
+              <Card className="p-5 h-full">
+                <div className="flex items-center mb-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                    </svg>
                   </div>
-                  <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
-                    View and manage all your students, track their progress, and provide feedback.
-                  </p>
-                  <Button variant="primary" size="sm" className="w-full" onClick={handleNavigateToStudentManagement}>
-                    Manage Students
-                  </Button>
-                </Card>
-              </motion.div>
+                  <h3 className="text-lg font-semibold text-foreground">Student Management</h3>
+                </div>
+                <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
+                  View and manage all your students, track their progress, and provide feedback.
+                </p>
+                <Button variant="primary" size="sm" className="w-full" onClick={handleNavigateToStudentManagement}>
+                  Manage Students
+                </Button>
+              </Card>
 
-              {/* Assessment Management */}
-              <motion.div variants={ANIMATION_VARIANTS.slideUp}>
-                <Card className="p-5 h-full">
-                  <div className="flex items-center mb-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center mr-3">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground">Assessment Management</h3>
+              <Card className="p-5 h-full">
+                <div className="flex items-center mb-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                   </div>
-                  <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
-                    Create custom assessments and coding challenges for your students.
-                  </p>
-                  <Button variant="primary" size="sm" className="w-full" onClick={handleNavigateToAssessmentManagement}>
-                    Manage Assessments
-                  </Button>
-                </Card>
-              </motion.div>
+                  <h3 className="text-lg font-semibold text-foreground">Assessment Management</h3>
+                </div>
+                <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
+                  Create custom assessments and coding challenges for your students.
+                </p>
+                <Button variant="primary" size="sm" className="w-full" onClick={handleNavigateToAssessmentManagement}>
+                  Manage Assessments
+                </Button>
+              </Card>
 
-              {/* Schedule Management */}
-              <motion.div variants={ANIMATION_VARIANTS.slideRight}>
-                <Card className="p-5 h-full">
-                  <div className="flex items-center mb-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center mr-3">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground">Schedule Management</h3>
+              <Card className="p-5 h-full">
+                <div className="flex items-center mb-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-red-500 to-rose-500 flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
                   </div>
-                  <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
-                    Plan your upcoming classes, organize sessions, and manage your timetable.
-                  </p>
-                  <Button variant="primary" size="sm" className="w-full" onClick={handleNavigateToCreateSchedule}>
-                    Manage Schedule
-                  </Button>
-                </Card>
-              </motion.div>
+                  <h3 className="text-lg font-semibold text-foreground">Live Sessions</h3>
+                </div>
+                <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
+                  Launch an AI-powered live classroom assessment room for one of your batches.
+                </p>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="w-full bg-red-600 hover:bg-red-700"
+                  onClick={() => setShowBatchModal(true)}
+                >
+                  🔴 Start Live Room
+                </Button>
+              </Card>
             </motion.div>
 
-            {/* Live Class Schedule Section */}
-            <motion.div variants={ANIMATION_VARIANTS.slideUp} className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-foreground">Upcoming Classes</h2>
-                {schedule.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleClearAllSchedule}
-                    className="text-red-400 hover:text-red-500 hover:bg-red-500/10"
-                  >
-                    Clear All
-                  </Button>
-                )}
+            {/* ThinkTrace Analytics */}
+            <motion.div variants={ANIMATION_VARIANTS.slideUp} className="mb-6 border-t border-zinc-200 dark:border-zinc-800 pt-8 mt-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">ThinkTrace Intelligence Insights</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Class-wide cognitive tracking and adaptive interview performance.</p>
+                </div>
               </div>
-              <div className="grid grid-cols-1 gap-4">
-                {schedule.length > 0 ? (
-                  schedule.map((slot) => {
-                    const isNow = new Date(slot.start_time) <= new Date() && new Date(slot.end_time) > new Date();
-                    return (
-                      <Card key={slot._id} className="p-4 border-l-4 border-l-blue-500">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="text-lg font-bold text-foreground">{slot.subject} - {slot.topic}</h3>
-                            <div className="text-sm text-muted-foreground flex gap-4 mt-1">
-                              <span>📅 {new Date(slot.start_time).toLocaleDateString()}</span>
-                              <span>⏰ {new Date(slot.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(slot.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                              <span className="font-medium text-blue-400">Batch: {slot.batch_id}</span>
-                            </div>
-                            {slot.ai_prep_status === 'ready' && (
-                              <span className="inline-block mt-2 px-2 py-0.5 bg-green-500/10 text-green-500 text-xs rounded-full border border-green-500/20">
-                                ✨ AI Content Ready
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {isNow ? (
-                              <Button
-                                variant="primary"
-                                size="sm"
-                                onClick={() => handleStartLiveSession(slot.batch_id, slot._id)}
-                              >
-                                Go Live
-                              </Button>
-                            ) : (
-                              <Button variant="secondary" size="sm" disabled className="opacity-50 cursor-not-allowed">
-                                Starts Soon
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="ml-2 text-red-500 hover:text-red-700 hover:bg-red-500/10"
-                              onClick={() => handleDeleteSchedule(slot._id)}
-                              title="Delete Class"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M3 6h18"></path>
-                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                              </svg>
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
-                    )
-                  })
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground bg-white/5 rounded-lg border border-white/10">
-                    <p>No upcoming classes scheduled.</p>
-                    <Button variant="ghost" size="sm" className="mt-2 text-blue-400 hover:text-blue-300" onClick={handleNavigateToCreateSchedule}>
-                      + Create Schedule
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <TeacherThinkTraceAnalytics />
             </motion.div>
-
           </Card>
-        </motion.div >
-      </div >
+        </motion.div>
+      </div>
 
-      {/* Notifications overlay removed; handled in Navbar */}
+      {/* Batch Picker Modal */}
+      <AnimatePresence>
+        {showBatchModal && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              onClick={() => !sessionStarting && setShowBatchModal(false)}
+            />
+
+            {/* Modal */}
+            <motion.div
+              className="relative bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            >
+              {/* Header */}
+              <div className="px-6 pt-6 pb-4 border-b border-gray-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-white">Start Live Session</h2>
+                      <p className="text-sm text-gray-400">Select a batch to begin</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowBatchModal(false)}
+                    disabled={sessionStarting}
+                    className="text-gray-500 hover:text-white transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Batch List */}
+              <div className="p-6 space-y-3 max-h-80 overflow-y-auto">
+                {selectableBatches.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <svg className="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <p className="text-sm">No batches found.</p>
+                    <p className="text-xs mt-1">Create a batch via Student Management first.</p>
+                  </div>
+                ) : (
+                  selectableBatches.map((batch) => (
+                    <button
+                      key={batch.id}
+                      onClick={() => handleStartLiveSession(batch.id)}
+                      disabled={sessionStarting}
+                      className="w-full flex items-center justify-between p-4 rounded-xl bg-gray-800/60 border border-gray-700 hover:border-red-500/50 hover:bg-red-900/10 transition-all group disabled:opacity-50 disabled:cursor-not-allowed text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500/20 to-rose-600/20 flex items-center justify-center shrink-0">
+                          <span className="text-sm font-bold text-red-400">
+                            {(batch.name || "?").charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-white group-hover:text-red-300 transition-colors">{batch.name}</p>
+                          <p className="text-xs text-gray-400">{batch.studentCount} student{batch.studentCount !== 1 ? 's' : ''}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {sessionStarting ? (
+                          <span className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <span className="text-xs font-bold text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">Launch →</span>
+                        )}
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+
+              {/* Footer hint */}
+              <div className="px-6 py-4 border-t border-gray-800 bg-gray-950/50">
+                <p className="text-xs text-gray-500 text-center">
+                  A live console will open in a new tab. Students will be able to join using the session code.
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }

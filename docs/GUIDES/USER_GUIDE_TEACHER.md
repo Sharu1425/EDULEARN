@@ -1,6 +1,6 @@
 # Teacher User Guide
 
-Welcome to modLRN! This comprehensive guide will help you effectively manage your students, create assessments, and track learning outcomes.
+Welcome to EDULEARN! This comprehensive guide will help you effectively manage your students, create assessments, and track learning outcomes.
 
 ---
 

@@ -19,6 +19,8 @@ from .ai_questions import router as ai_questions_router
 from .bulk_students import router as bulk_students_router
 from .bulk_teachers import router as bulk_teachers_router
 from .test import router as test_router
+from .thinktrace import router as thinktrace_router
+from .livesession import router as livesession_router
 
 # Create main API router
 api_router = APIRouter(prefix="/api")
@@ -37,5 +39,7 @@ api_router.include_router(ai_questions_router, prefix="/ai-questions", tags=["AI
 api_router.include_router(bulk_students_router, prefix="/bulk-students", tags=["Bulk Students"])
 api_router.include_router(bulk_teachers_router, prefix="/bulk-teachers", tags=["Bulk Teachers"])
 api_router.include_router(test_router, tags=["Test"])
+api_router.include_router(thinktrace_router, prefix="/thinktrace", tags=["ThinkTrace"])
+api_router.include_router(livesession_router, prefix="/livesession", tags=["LiveSession"])
 
 __all__ = ["api_router"]

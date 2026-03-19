@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-EDULEARN (modLRN) is a comprehensive AI-powered adaptive learning platform designed to revolutionize educational assessment and learning experiences. The platform combines modern web technologies with artificial intelligence to create an intelligent ecosystem for students, teachers, and administrators.
+EDULEARN (EDULEARN) is a comprehensive AI-powered adaptive learning platform designed to revolutionize educational assessment and learning experiences. The platform combines modern web technologies with artificial intelligence to create an intelligent ecosystem for students, teachers, and administrators.
 
 **Project Status**: Production Ready (v1.0.0)  
 **Development Period**: 2024  

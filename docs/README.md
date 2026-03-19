@@ -1,6 +1,6 @@
 # EDULEARN Documentation
 
-Welcome to the comprehensive documentation for the EDULEARN (modLRN) AI-powered Adaptive Learning Platform.
+Welcome to the comprehensive documentation for the EDULEARN (EDULEARN) AI-powered Adaptive Learning Platform.
 
 ## 📋 Documentation Structure
 

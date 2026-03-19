@@ -23,7 +23,7 @@ async def validate_token_ws(token: str) -> Optional[str]:
         return None
 
 @router.websocket("/ws/live/{batch_id}/{user_id}")
-async def websocket_endpoint(websocket: WebSocket, batch_id: str, user_id: str, token: str = Query(...)):
+async def websocket_endpoint(websocket: WebSocket, batch_id: str, user_id: str, token: str = Query(...), level: int = Query(0)):
     # 1. Validate Token
     token_user_id = await validate_token_ws(token)
     
@@ -32,7 +32,7 @@ async def websocket_endpoint(websocket: WebSocket, batch_id: str, user_id: str, 
         return
 
     # 2. Accept Connection via Manager
-    await socket_manager.connect(websocket, batch_id, user_id)
+    await socket_manager.connect(websocket, batch_id, user_id, level)
     
     try:
         db = await get_db()
@@ -104,6 +104,23 @@ async def websocket_endpoint(websocket: WebSocket, batch_id: str, user_id: str, 
                     
                     # Broadcast to everyone in batch
                     await socket_manager.broadcast_to_batch(batch_id, message)
+                    
+                elif msg_type == "PUSH_LEVEL_QUESTIONS":
+                    # the payload maps stringified levels to question payloads: {"0": {...}, "1": {...}}
+                    # Update active content with the level map so late joiners can restore their specific level
+                    await db.live_sessions.update_one(
+                        {"batch_id": batch_id, "current_state": {"$ne": "ENDED"}},
+                        {"$set": {
+                            "current_state": "QUIZ",
+                            "active_content_payload": message.get("payload")
+                        }}
+                    )
+                    
+                    level_map = message.get("payload", {})
+                    for lvl_str, q_payload in level_map.items():
+                        if q_payload:
+                            lvl = int(lvl_str)
+                            await socket_manager.broadcast_to_level(batch_id, lvl, {"type": "PUSH_QUIZ", "payload": q_payload})
                     
                 elif msg_type == "RAISE_HAND":
                      await socket_manager.broadcast_to_batch(batch_id, {

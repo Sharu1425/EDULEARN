@@ -1,4 +1,4 @@
-# modLRN Project Structure
+# EDULEARN Project Structure
 
 ## 📁 Complete Directory Structure
 

@@ -21,9 +21,15 @@ const StudentLiveRoom: React.FC = () => {
     const [selectedOption, setSelectedOption] = useState<number | null>(null)
     const [answerSubmitted, setAnswerSubmitted] = useState(false)
 
+    // LiveSession State
+    const [selectedLevel, setSelectedLevel] = useState<number | null>(null)
+    const [shortAnswerText, setShortAnswerText] = useState("")
+    const [gradingFeedback, setGradingFeedback] = useState<any>(null)
+    const [isGrading, setIsGrading] = useState(false)
+
     // Phase 4 State
     const [sessionContent, setSessionContent] = useState<any>(null)
-    const [timeLeft, setTimeLeft] = useState(30)
+    const [timeLeft, setTimeLeft] = useState(60)
 
     // Timer Logic
     useEffect(() => {
@@ -52,7 +58,7 @@ const StudentLiveRoom: React.FC = () => {
     }, [batchId])
 
     useEffect(() => {
-        if (!user || !batchId) return
+        if (!user || !batchId || selectedLevel === null) return
 
         let socket: WebSocket | null = null;
         let retryCount = 0;
@@ -70,7 +76,7 @@ const StudentLiveRoom: React.FC = () => {
                 socket.close();
             }
 
-            const wsUrl = `ws://localhost:5001/ws/live/${batchId}/${user.id}?token=${token}`;
+            const wsUrl = `ws://localhost:5001/ws/live/${batchId}/${user.id}?token=${token}&level=${selectedLevel}`;
             console.log(`Connecting to WebSocket: ${wsUrl}`);
             socket = new WebSocket(wsUrl);
 
@@ -119,7 +125,7 @@ const StudentLiveRoom: React.FC = () => {
                 socket.close();
             }
         };
-    }, [user, batchId]);
+    }, [user, batchId, selectedLevel]);
 
     // Focus Tracking
     useEffect(() => {
@@ -166,7 +172,10 @@ const StudentLiveRoom: React.FC = () => {
                 setPayload(msg.payload)
                 setAnswerSubmitted(false)
                 setSelectedOption(null)
-                success("Quiz Started!", "Teacher has started a quiz")
+                setShortAnswerText("")
+                setGradingFeedback(null)
+                setTimeLeft((msg.payload.type === 'short_ans' || msg.payload.type === 'coding') ? 120 : 60)
+                success("Assessment Started!", "Teacher unlocked the next question")
                 break
             case 'PUSH_POLL':
                 setStatus('POLL')
@@ -199,23 +208,85 @@ const StudentLiveRoom: React.FC = () => {
         }
     }
 
-    const submitAnswer = (optionIndex: number, optionLabel: string) => {
+    const submitAnswer = async (optionIndex?: number, optionLabel?: string) => {
         if (!ws || answerSubmitted) return
+
+        const isShortAns = payload?.type === 'short_ans';
+        const isCoding = payload?.type === 'coding';
+        const finalAnswer = isShortAns ? shortAnswerText : optionLabel;
 
         ws.send(JSON.stringify({
             type: status === 'QUIZ' ? 'SUBMIT_ANSWER' : 'SUBMIT_POLL',
             payload: {
-                questionId: 'current', // In real app, payload would have ID
-                answer: optionLabel
+                questionId: payload?.id || 'current',
+                answer: finalAnswer
             }
         }))
 
-        setSelectedOption(optionIndex)
+        if (optionIndex !== undefined) setSelectedOption(optionIndex)
         setAnswerSubmitted(true)
-        success("Submitted", "Your answer has been recorded")
+        
+        if (isShortAns && payload) {
+            setIsGrading(true)
+            try {
+                const res = await api.post('/api/livesession/grade', {
+                    question: payload.question,
+                    model_answer: payload.model_answer || "",
+                    keywords: payload.keywords || [],
+                    student_answer: finalAnswer,
+                    max_score: payload.score || 10,
+                    level: selectedLevel || 0
+                })
+                setGradingFeedback(res.data.feedback)
+                success("Graded", "AI has reviewed your response")
+            } catch(e) {
+                console.error("Grading failed", e)
+                success("Recorded", "Answer recorded (auto-grade failed)")
+            } finally {
+                setIsGrading(false)
+            }
+        } else if (isCoding) {
+            success("Recorded", "Coding approach submitted")
+        } else {
+            success("Submitted", "Your answer has been recorded")
+        }
     }
 
     if (!user) return <div className="p-8 text-white">Loading...</div>
+
+    if (selectedLevel === null) {
+        return (
+            <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+                <AnimatedBackground />
+                <div className="z-10 w-full max-w-3xl bg-gray-900 border border-gray-800 rounded-3xl p-8 shadow-2xl relative">
+                    <h1 className="text-3xl font-bold mb-2 text-center text-blue-400">Join LiveSession</h1>
+                    <p className="text-gray-400 text-center mb-8">Select your cognitive challenge level for this class. Questions will adapt to your choice.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[
+                            { lvl: 0, label: "Beginner", desc: "Pure definition & recall" },
+                            { lvl: 1, label: "Elementary", desc: "Single-step application" },
+                            { lvl: 2, label: "Intermediate", desc: "Multi-step reasoning" },
+                            { lvl: 3, label: "Advanced", desc: "Tradeoffs & scenarios" },
+                            { lvl: 4, label: "Expert", desc: "System design & constraints" },
+                            { lvl: 5, label: "Master", desc: "Synthesis & critique" }
+                        ].map(l => (
+                            <button
+                                key={l.lvl}
+                                onClick={() => setSelectedLevel(l.lvl)}
+                                className="p-4 rounded-xl text-left border-2 border-transparent bg-gray-800 hover:border-blue-500 hover:bg-gray-800/80 transition-all flex flex-col group"
+                            >
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="font-bold text-lg text-white">Level {l.lvl}: {l.label}</span>
+                                    <span className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                                </div>
+                                <span className="text-sm text-gray-400">{l.desc}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -334,31 +405,98 @@ const StudentLiveRoom: React.FC = () => {
                             </div>
                             <h2 className="text-xl font-bold text-white mb-6 leading-relaxed">{payload.text || payload.question}</h2>
 
-                            <div className="space-y-3">
-                                {payload.options && payload.options.map((opt: string, idx: number) => (
-                                    <button
-                                        key={idx}
-                                        disabled={answerSubmitted || (status === 'QUIZ' && timeLeft === 0)}
-                                        onClick={() => submitAnswer(idx, opt)}
-                                        className={`w-full p-4 rounded-xl text-left transition-all duration-200 flex items-center justify-between border-2
-                                                ${selectedOption === idx
-                                                ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/30 scale-[1.02]'
-                                                : 'bg-gray-800 border-transparent text-gray-300 hover:bg-gray-700'
-                                            }
-                                                ${(answerSubmitted || (status === 'QUIZ' && timeLeft === 0)) && selectedOption !== idx ? 'opacity-50' : ''}
-                                            `}
-                                    >
-                                        <span className="font-medium text-lg">{opt}</span>
-                                        {selectedOption === idx && (
-                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
+                            {payload.type === 'mcq' || !payload.type ? (
+                                <div className="space-y-3">
+                                    {payload.options && Object.entries(payload.options).map(([key, opt]: any, idx: number) => (
+                                        <button
+                                            key={idx}
+                                            disabled={answerSubmitted || (status === 'QUIZ' && timeLeft === 0)}
+                                            onClick={() => submitAnswer(idx, opt)}
+                                            className={`w-full p-4 rounded-xl text-left transition-all duration-200 flex items-center justify-between border-2
+                                                    ${selectedOption === idx
+                                                    ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/30 scale-[1.02]'
+                                                    : 'bg-gray-800 border-transparent text-gray-300 hover:bg-gray-700'
+                                                }
+                                                    ${(answerSubmitted || (status === 'QUIZ' && timeLeft === 0)) && selectedOption !== idx ? 'opacity-50' : ''}
+                                                `}
+                                        >
+                                            <span className="font-medium text-lg"><span className="font-bold mr-2">{key}.</span> {opt}</span>
+                                            {selectedOption === idx && (
+                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : payload.type === 'short_ans' ? (
+                                <div className="space-y-4">
+                                    <p className="text-sm text-gray-400">Aim for {payload.min_words} to {payload.max_words} words.</p>
+                                    <textarea
+                                        value={shortAnswerText}
+                                        onChange={(e) => setShortAnswerText(e.target.value)}
+                                        disabled={answerSubmitted || timeLeft === 0 || isGrading}
+                                        className="w-full h-32 bg-gray-800 border-2 border-gray-700 rounded-xl p-4 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                        placeholder="Type your answer here..."
+                                    />
+                                    {!answerSubmitted && (
+                                        <Button
+                                            variant="primary"
+                                            onClick={() => submitAnswer()}
+                                            disabled={!shortAnswerText.trim() || timeLeft === 0}
+                                            className="w-full bg-blue-600 hover:bg-blue-700"
+                                        >
+                                            Submit Answer
+                                        </Button>
+                                    )}
+                                    
+                                    {isGrading && (
+                                        <div className="text-center text-blue-400 py-4 animate-pulse">
+                                            AI is evaluating your response...
+                                        </div>
+                                    )}
 
-                            {answerSubmitted && (
+                                    {gradingFeedback && (
+                                        <div className="mt-4 p-4 rounded-xl border border-gray-700 bg-gray-800/80">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className={`font-bold text-lg ${gradingFeedback.verdict === 'Correct' ? 'text-green-400' : gradingFeedback.verdict === 'Partial' ? 'text-yellow-400' : 'text-red-400'}`}>
+                                                    {gradingFeedback.verdict}
+                                                </span>
+                                                <span className="font-mono text-sm">{gradingFeedback.score} / {gradingFeedback.max_score} px</span>
+                                            </div>
+                                            <p className="text-gray-300 mb-3">{gradingFeedback.feedback_for_student}</p>
+                                            <details className="text-sm text-gray-400 mt-2">
+                                                <summary className="cursor-pointer hover:text-gray-300">View Model Solution</summary>
+                                                <p className="mt-2 p-3 bg-black/50 rounded-lg">{gradingFeedback.correct_answer_revealed || payload.model_answer}</p>
+                                            </details>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : payload.type === 'coding' ? (
+                                <div className="space-y-4">
+                                    <div className="bg-black p-4 rounded-xl font-mono text-sm text-blue-300 mb-4 whitespace-pre-wrap">
+                                        {payload.function_signature}
+                                    </div>
+                                    <textarea
+                                        value={shortAnswerText || payload.starter_code || ""}
+                                        onChange={(e) => setShortAnswerText(e.target.value)}
+                                        disabled={answerSubmitted || timeLeft === 0}
+                                        className="w-full h-48 bg-gray-900 border-2 border-gray-700 rounded-xl p-4 text-green-400 font-mono text-sm focus:outline-none focus:border-orange-500 transition-colors"
+                                    />
+                                    {!answerSubmitted && (
+                                        <Button
+                                            variant="primary"
+                                            onClick={() => submitAnswer()}
+                                            disabled={timeLeft === 0}
+                                            className="w-full bg-orange-600 hover:bg-orange-700"
+                                        >
+                                            Submit Code
+                                        </Button>
+                                    )}
+                                </div>
+                            ) : null}
+
+                            {answerSubmitted && payload.type === 'mcq' && (
                                 <div className="mt-6 text-center text-green-400 text-sm font-medium animate-pulse">
-                                    Answer Submitted! Waiting for results...
+                                    Answer Recorded! Waiting for next question...
                                 </div>
                             )}
 

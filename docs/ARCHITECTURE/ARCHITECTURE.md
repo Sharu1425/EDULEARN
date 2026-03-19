@@ -1,8 +1,8 @@
-# modLRN System Architecture
+# EDULEARN System Architecture
 
 ## Overview
 
-modLRN is a modern full-stack educational platform built with a microservices-inspired architecture, featuring a React frontend and FastAPI backend with MongoDB database.
+EDULEARN is a modern full-stack educational platform built with a microservices-inspired architecture, featuring a React frontend and FastAPI backend with MongoDB database.
 
 ## Architecture Diagram
 

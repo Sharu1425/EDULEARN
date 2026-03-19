@@ -2,7 +2,7 @@
 
 ## Overview
 
-modLRN uses MongoDB as its primary database. This document describes all collections, their schemas, indexes, and relationships.
+EDULEARN uses MongoDB as its primary database. This document describes all collections, their schemas, indexes, and relationships.
 
 ## Database: `edulearn`
 

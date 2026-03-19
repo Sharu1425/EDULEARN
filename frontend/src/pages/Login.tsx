@@ -28,7 +28,7 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
     const savedUser = localStorage.getItem('user')
     if (savedUser) {
       const userData = JSON.parse(savedUser)
-      
+
       // Redirect based on role
       switch (userData.role) {
         case "teacher":

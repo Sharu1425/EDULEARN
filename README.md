@@ -1,4 +1,4 @@
-# modLRN — AI-powered Adaptive Learning Platform
+# EDULEARN — AI-powered Adaptive Learning Platform
 
 A comprehensive full-stack educational platform that combines modern web technologies with artificial intelligence to create an intelligent learning ecosystem for students, teachers, and administrators.
 
@@ -1196,7 +1196,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ```
 MIT License
 
-Copyright (c) 2024 modLRN
+Copyright (c) 2024 EDULEARN
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1222,7 +1222,7 @@ SOFTWARE.
 ## 👥 Authors & Acknowledgments
 
 ### Development Team
-- **modLRN Development Team** - Core development and architecture
+- **EDULEARN Development Team** - Core development and architecture
 
 ### Technologies & Services
 - **Google Gemini AI** - AI-powered question generation
@@ -1289,7 +1289,7 @@ We welcome feature requests! Please:
 
 ## 🎓 Educational Use
 
-modLRN is designed for educational institutions:
+EDULEARN is designed for educational institutions:
 
 - **Schools & Colleges**: Manage classes and assessments
 - **Coding Bootcamps**: Track student progress
@@ -1362,7 +1362,7 @@ modLRN is designed for educational institutions:
 
 ---
 
-## 🌟 Why modLRN?
+## 🌟 Why EDULEARN?
 
 ### For Educators
 - **Save Time**: Automated grading and AI-generated questions
@@ -1407,11 +1407,11 @@ This project wouldn't be possible without:
 
 <div align="center">
 
-**modLRN** - Empowering education through AI-driven adaptive learning
+**EDULEARN** - Empowering education through AI-driven adaptive learning
 
 [![Star on GitHub](https://img.shields.io/github/stars/edulearn/modlrn?style=social)](https://github.com/edulearn/modlrn)
 [![Follow on Twitter](https://img.shields.io/twitter/follow/modlrn?style=social)](https://twitter.com/modlrn)
 
-Made with ❤️ by the modLRN Team
+Made with ❤️ by the EDULEARN Team
 
 </div>

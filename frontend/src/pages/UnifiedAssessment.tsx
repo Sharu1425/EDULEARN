@@ -94,7 +94,7 @@ const UnifiedAssessment: React.FC = () => {
   const fetchCodingData = async () => {
     try {
       setCodingLoading(true)
-      
+
       // Fetch analytics
       const analyticsResponse = await api.get("/api/coding/analytics")
       if (analyticsResponse.data.success) {
@@ -119,10 +119,10 @@ const UnifiedAssessment: React.FC = () => {
   // Tab switching handler
   const handleTabSwitch = (newTab: TabType) => {
     if (newTab === activeTab || isTabSwitching) return
-    
+
     setIsTabSwitching(true)
     setActiveTab(newTab)
-    
+
     // Reset tab switching state after animation
     setTimeout(() => {
       setIsTabSwitching(false)
@@ -171,16 +171,16 @@ const UnifiedAssessment: React.FC = () => {
 
       if (response.data.success) {
         console.log("✅ MCQ assessment config saved, navigating to assessment...")
-        console.log("📤 [UNIFIED_ASSESSMENT] Passing MCQ state:", { 
+        console.log("📤 [UNIFIED_ASSESSMENT] Passing MCQ state:", {
           assessmentConfig: mcqConfig,
-          isStudentGenerated: true 
+          isStudentGenerated: true
         })
         success("MCQ Assessment Started!", `Starting ${mcqConfig.qnCount} questions on ${mcqConfig.topic} (${mcqConfig.difficulty})`)
-        navigate("/assessment", { 
+        navigate("/assessment", {
           replace: true,
-          state: { 
+          state: {
             assessmentConfig: mcqConfig,
-            isStudentGenerated: true 
+            isStudentGenerated: true
           }
         })
       } else {
@@ -195,7 +195,7 @@ const UnifiedAssessment: React.FC = () => {
       })
 
       let errorMessage = "Failed to start MCQ assessment. Please try again."
-      
+
       if (error.code === 'ECONNABORTED') {
         errorMessage = "Request timed out. The AI is taking longer than expected to generate questions. Please try again with a simpler topic or try again later."
       } else if (error.response?.data?.detail) {
@@ -226,7 +226,7 @@ const UnifiedAssessment: React.FC = () => {
     setCodingLoading(true)
     try {
       console.log("🚀 [CODING] Starting problem generation...")
-      
+
       const response = await api.post("/api/coding/problems/generate", {
         topic: selectedTopic,
         difficulty: selectedDifficulty,
@@ -246,9 +246,9 @@ const UnifiedAssessment: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Error generating coding problem:", error)
-      
+
       let errorMessage = "Failed to generate problem. Please try again."
-      
+
       if (error.code === 'ECONNABORTED') {
         errorMessage = "Request timed out. The AI is taking longer than expected. Please try again with a simpler topic or try again later."
       } else if (error.response?.data?.detail) {
@@ -256,7 +256,7 @@ const UnifiedAssessment: React.FC = () => {
       } else if (error.message) {
         errorMessage = error.message
       }
-      
+
       showError("Problem Generation Failed", errorMessage)
     } finally {
       setCodingLoading(false)
@@ -284,26 +284,21 @@ const UnifiedAssessment: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen pt-20 px-4 relative z-10">
+    <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
       <motion.div
         variants={ANIMATION_VARIANTS.fadeIn}
         initial="initial"
         animate="animate"
-        className="max-w-6xl mx-auto"
+        className="w-full"
       >
-        {/* Header */}
-        <motion.div 
-          variants={ANIMATION_VARIANTS.slideDown} 
+        {/* Page Title */}
+        <motion.div
+          variants={ANIMATION_VARIANTS.slideDown}
           initial="initial"
           animate="animate"
-          className="text-center mb-8"
+          className="mb-8"
         >
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 mb-6">
-            <svg className="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Assessment Platform</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">Practice & Assessments</h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Choose your assessment type and customize your learning experience with AI-powered questions and coding challenges
           </p>
@@ -318,17 +313,16 @@ const UnifiedAssessment: React.FC = () => {
                 disabled={isTabSwitching}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`flex-1 px-6 py-4 rounded-lg font-medium transition-all duration-300 relative overflow-hidden ${
-                  activeTab === "mcq"
+                className={`flex-1 px-6 py-4 rounded-lg font-medium transition-all duration-300 relative overflow-hidden ${activeTab === "mcq"
                     ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                } ${isTabSwitching ? "opacity-50 cursor-not-allowed" : ""}`}
+                  } ${isTabSwitching ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <div className="flex items-center justify-center space-x-2 relative z-10">
-                  <motion.svg 
-                    className="w-5 h-5" 
-                    fill="none" 
-                    stroke="currentColor" 
+                  <motion.svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                     animate={activeTab === "mcq" ? { rotate: 360 } : { rotate: 0 }}
                     transition={{ duration: 0.3 }}
@@ -346,23 +340,22 @@ const UnifiedAssessment: React.FC = () => {
                   />
                 )}
               </motion.button>
-              
+
               <motion.button
                 onClick={() => handleTabSwitch("coding")}
                 disabled={isTabSwitching}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`flex-1 px-6 py-4 rounded-lg font-medium transition-all duration-300 relative overflow-hidden ${
-                  activeTab === "coding"
+                className={`flex-1 px-6 py-4 rounded-lg font-medium transition-all duration-300 relative overflow-hidden ${activeTab === "coding"
                     ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                } ${isTabSwitching ? "opacity-50 cursor-not-allowed" : ""}`}
+                  } ${isTabSwitching ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <div className="flex items-center justify-center space-x-2 relative z-10">
-                  <motion.svg 
-                    className="w-5 h-5" 
-                    fill="none" 
-                    stroke="currentColor" 
+                  <motion.svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                     animate={activeTab === "coding" ? { rotate: 360 } : { rotate: 0 }}
                     transition={{ duration: 0.3 }}
@@ -407,12 +400,12 @@ const UnifiedAssessment: React.FC = () => {
               </div>
             </motion.div>
           )}
-          
+
           {activeTab === "mcq" ? (
             /* MCQ Assessment Tab */
             <Card className="p-8 bg-gradient-to-br from-card to-muted/20 border-2 border-border/50">
-              <motion.div 
-                variants={ANIMATION_VARIANTS.slideDown} 
+              <motion.div
+                variants={ANIMATION_VARIANTS.slideDown}
                 initial="initial"
                 animate="animate"
                 className="text-center mb-8"
@@ -493,11 +486,10 @@ const UnifiedAssessment: React.FC = () => {
                           disabled={mcqSubmitting}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className={`p-4 rounded-lg border-2 transition-all duration-300 ${
-                            mcqConfig.difficulty === option.value
+                          className={`p-4 rounded-lg border-2 transition-all duration-300 ${mcqConfig.difficulty === option.value
                               ? `border-border bg-gradient-to-r ${option.color} text-white shadow-lg`
                               : "border-border/40 bg-muted/20 text-foreground hover:border-border/60 hover:bg-muted/30"
-                          }`}
+                            }`}
                         >
                           <div className="text-center">
                             <div className="font-semibold">{option.label}</div>
@@ -564,8 +556,8 @@ const UnifiedAssessment: React.FC = () => {
             /* Coding Challenge Tab */
             <div className="space-y-8">
               {/* Coding Header */}
-              <motion.div 
-                variants={ANIMATION_VARIANTS.slideDown} 
+              <motion.div
+                variants={ANIMATION_VARIANTS.slideDown}
                 initial="initial"
                 animate="animate"
                 className="text-center mb-8"
@@ -581,8 +573,8 @@ const UnifiedAssessment: React.FC = () => {
 
               {/* Coding Analytics Overview */}
               {codingLoading ? (
-                <motion.div 
-                  variants={ANIMATION_VARIANTS.slideUp} 
+                <motion.div
+                  variants={ANIMATION_VARIANTS.slideUp}
                   initial="initial"
                   animate="animate"
                   className="grid grid-cols-1 md:grid-cols-4 gap-6"
@@ -597,8 +589,8 @@ const UnifiedAssessment: React.FC = () => {
                   ))}
                 </motion.div>
               ) : analytics ? (
-                <motion.div 
-                  variants={ANIMATION_VARIANTS.stagger} 
+                <motion.div
+                  variants={ANIMATION_VARIANTS.stagger}
                   initial="initial"
                   animate="animate"
                   className="grid grid-cols-1 md:grid-cols-3 gap-6"
@@ -625,8 +617,8 @@ const UnifiedAssessment: React.FC = () => {
                   </motion.div>
                 </motion.div>
               ) : (
-                <motion.div 
-                  variants={ANIMATION_VARIANTS.slideUp} 
+                <motion.div
+                  variants={ANIMATION_VARIANTS.slideUp}
                   initial="initial"
                   animate="animate"
                   className="text-center py-8"
@@ -640,8 +632,8 @@ const UnifiedAssessment: React.FC = () => {
 
               {/* Problem Generation */}
               <Card className="p-8 bg-gradient-to-br from-card to-muted/20 border-2 border-border/50">
-                <motion.div 
-                  variants={ANIMATION_VARIANTS.slideDown} 
+                <motion.div
+                  variants={ANIMATION_VARIANTS.slideDown}
                   initial="initial"
                   animate="animate"
                   className="text-center mb-8"
@@ -744,8 +736,8 @@ const UnifiedAssessment: React.FC = () => {
 
               {/* Recent Problems */}
               <Card className="p-8 bg-gradient-to-br from-card to-muted/20 border-2 border-border/50">
-                <motion.div 
-                  variants={ANIMATION_VARIANTS.slideDown} 
+                <motion.div
+                  variants={ANIMATION_VARIANTS.slideDown}
                   initial="initial"
                   animate="animate"
                   className="flex items-center justify-between mb-6"
@@ -831,15 +823,15 @@ const UnifiedAssessment: React.FC = () => {
         </motion.div>
 
         {/* Back Button */}
-        <motion.div 
-          variants={ANIMATION_VARIANTS.slideUp} 
+        <motion.div
+          variants={ANIMATION_VARIANTS.slideUp}
           initial="initial"
           animate="animate"
           className="text-center mt-8"
         >
-          <Button 
-            onClick={() => navigate("/dashboard")} 
-            variant="primary" 
+          <Button
+            onClick={() => navigate("/dashboard")}
+            variant="primary"
             size="lg"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

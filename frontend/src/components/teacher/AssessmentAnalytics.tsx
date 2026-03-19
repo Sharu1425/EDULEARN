@@ -96,7 +96,7 @@ const AssessmentAnalytics: React.FC<AssessmentAnalyticsProps> = ({ assessmentId,
     try {
       setLoading(true)
       const response = await api.get(`/api/assessments/teacher/assessment-analytics/${assessmentId}`)
-      
+
       if (response.data.success) {
         setData(response.data)
         console.log("✅ [ANALYTICS] Assessment analytics loaded:", response.data.assessment.title)
@@ -197,31 +197,28 @@ const AssessmentAnalytics: React.FC<AssessmentAnalyticsProps> = ({ assessmentId,
           <div className="flex space-x-1 bg-blue-800/30 rounded-lg p-1">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                activeTab === "overview"
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === "overview"
                   ? "bg-blue-500 text-white"
                   : "text-blue-300 hover:text-blue-200 hover:bg-blue-800/50"
-              }`}
+                }`}
             >
               Overview
             </button>
             <button
               onClick={() => setActiveTab("questions")}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                activeTab === "questions"
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === "questions"
                   ? "bg-blue-500 text-white"
                   : "text-blue-300 hover:text-blue-200 hover:bg-blue-800/50"
-              }`}
+                }`}
             >
               Question Analysis
             </button>
             <button
               onClick={() => setActiveTab("students")}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                activeTab === "students"
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === "students"
                   ? "bg-blue-500 text-white"
                   : "text-blue-300 hover:text-blue-200 hover:bg-blue-800/50"
-              }`}
+                }`}
             >
               Student Results
             </button>
@@ -322,7 +319,7 @@ const AssessmentAnalytics: React.FC<AssessmentAnalyticsProps> = ({ assessmentId,
                     <div className="text-3xl font-bold text-red-400 mb-2">
                       {data.analytics.score_distribution.poor}
                     </div>
-                    <p className="text-blue-300 text-sm">Poor (<60%)</p>
+                    <p className="text-blue-300 text-sm">Poor (&lt;60%)</p>
                   </div>
                 </div>
               </Card>
@@ -422,10 +419,9 @@ const AssessmentAnalytics: React.FC<AssessmentAnalyticsProps> = ({ assessmentId,
                         </span>
                         <div className="w-full bg-blue-800/30 rounded-full h-2 ml-4">
                           <div
-                            className={`h-2 rounded-full ${
-                              question.accuracy >= 80 ? 'bg-green-400' :
-                              question.accuracy >= 60 ? 'bg-yellow-400' : 'bg-red-400'
-                            }`}
+                            className={`h-2 rounded-full ${question.accuracy >= 80 ? 'bg-green-400' :
+                                question.accuracy >= 60 ? 'bg-yellow-400' : 'bg-red-400'
+                              }`}
                             style={{ width: `${question.accuracy}%` }}
                           ></div>
                         </div>

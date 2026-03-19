@@ -145,7 +145,7 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ user, onLogou
                   <span>{item.label}</span>
                 </Link>
               ))}
-              
+
               {/* Only show divider if there are menu items */}
               {menuItems.length > 0 && (
                 <div className={`
@@ -156,7 +156,7 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ user, onLogou
                   }
                 `} />
               )}
-              
+
               <button
                 onClick={() => {
                   onLogout();

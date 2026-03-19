@@ -274,7 +274,7 @@ async def options_handler(path: str, request: Request):
 async def root():
     """Root endpoint"""
     return {
-        "message": "modLRN API is running",
+        "message": "EDULEARN API is running",
         "version": settings.app_version,
         "status": "healthy"
     }

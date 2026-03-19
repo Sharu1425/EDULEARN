@@ -127,6 +127,7 @@ export const canAccessRoute = (user: User | null, route: string): boolean => {
     "/assessment-choice": ["student", "teacher", "admin"],
     "/profile": ["student", "teacher", "admin"],
     "/settings": ["student", "teacher", "admin"],
+    "/my-results": ["student"],
   }
 
   const allowedRoles = routePermissions[route]
@@ -175,5 +176,51 @@ export const getNavigationItems = (user: User | null) => {
   // student
   return [
     { path: "/dashboard", label: "Dashboard", icon: "🏠" },
+  ]
+}
+
+export interface SidebarNavItem {
+  path: string
+  label: string
+  icon: string  // Lucide icon name
+  exact?: boolean
+}
+
+/**
+ * Get full sidebar navigation config based on user role
+ */
+export const getSidebarNavItems = (user: User | null): SidebarNavItem[] => {
+  if (!user) return []
+  const role = user.role || "student"
+
+  if (role === "student") {
+    return [
+      { path: "/dashboard", label: "Dashboard", icon: "LayoutDashboard", exact: true },
+      { path: "/assessment-choice", label: "Assessments", icon: "ClipboardList" },
+      { path: "/coding", label: "Coding Lab", icon: "Code2" },
+      { path: "/my-results", label: "My Results", icon: "BarChart3" },
+      { path: "/profile", label: "Profile", icon: "User" },
+      { path: "/settings", label: "Settings", icon: "Settings" },
+    ]
+  }
+
+  if (role === "teacher") {
+    return [
+      { path: "/teacher-dashboard", label: "Dashboard", icon: "LayoutDashboard", exact: true },
+      { path: "/teacher/assessment-management", label: "Assessments", icon: "ClipboardList" },
+      { path: "/teacher/student-management", label: "Students", icon: "Users" },
+      { path: "/teacher/create-schedule", label: "Schedule", icon: "CalendarDays" },
+      { path: "/teacher/batch-analytics", label: "Analytics", icon: "BarChart3" },
+      { path: "/teacher/results-dashboard", label: "Results", icon: "Trophy" },
+      { path: "/profile", label: "Profile", icon: "User" },
+      { path: "/settings", label: "Settings", icon: "Settings" },
+    ]
+  }
+
+  // admin
+  return [
+    { path: "/admin-dashboard", label: "Admin Panel", icon: "ShieldCheck", exact: true },
+    { path: "/profile", label: "Profile", icon: "User" },
+    { path: "/settings", label: "Settings", icon: "Settings" },
   ]
 }

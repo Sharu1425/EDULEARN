@@ -11,6 +11,8 @@ import Button from './ui/Button';
 import LoadingSpinner from './ui/LoadingSpinner';
 import Card from './ui/Card';
 import ConfirmDialog from './ui/ConfirmDialog';
+import { useProctoring } from '../hooks/useProctoring';
+import ProctoringOverlay from './ui/ProctoringOverlay';
 
 interface Question {
   id: string;
@@ -104,7 +106,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
   const [timeLeft, setTimeLeft] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  
+
   // Coding-specific state
   const [code, setCode] = useState<string>('');
   const [language, setLanguage] = useState<string>('python');
@@ -114,14 +116,23 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
   const [autocompleteEnabled, setAutocompleteEnabled] = useState(true);
   const [codingStartTime] = useState(Date.now());
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
-  
+
+  // ── Proctoring ──────────────────────────────────────────────────────────
+  const { violationCount, isWarningVisible, dismissWarning, lastViolationType } = useProctoring({
+    maxViolations: 3,
+    onAutoSubmit: () => handleSubmit(),
+    enabled: !!assessment,
+  })
+
+  const MAX_VIOLATIONS = 3;
+
   const languages = [
     { value: 'python', label: 'Python 3', template: '# Write your solution here\ndef solution():\n    pass' },
     { value: 'c', label: 'C (GCC)', template: '// Write your solution here\n#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    // Your code here\n    return 0;\n}' },
     { value: 'cpp', label: 'C++ (GCC)', template: '// Write your solution here\n#include <iostream>\nusing namespace std;\n\nint main() {\n    // Your code here\n    return 0;\n}' },
     { value: 'java', label: 'Java (OpenJDK)', template: '// Write your solution here\npublic class Main {\n    public static void main(String[] args) {\n        // Your code here\n    }\n}' },
   ];
-  
+
   const getMonacoLanguage = (lang: string) => {
     const languageMap: { [key: string]: string } = {
       python: 'python',
@@ -131,7 +142,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
     };
     return languageMap[lang] || 'python';
   };
-  
+
   const parseInput = (inputStr: string): any => {
     try {
       if (inputStr.includes("=")) {
@@ -171,7 +182,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
       return outputStr;
     }
   };
-  
+
   const validateCode = (code: string): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
     if (!code.trim()) {
@@ -195,7 +206,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
     }
     return { isValid: errors.length === 0, errors };
   };
-  
+
   const toggleTestExpansion = (index: number) => {
     setExpandedTests((prev) => {
       const newSet = new Set(prev);
@@ -224,16 +235,16 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
   // Initialize code template when question changes or language changes
   useEffect(() => {
     if (!assessment || !assessment.questions || assessment.questions.length === 0) return;
-    
+
     const currentQ = assessment.questions[currentQuestionIndex];
     if (!currentQ) return;
-    
+
     const isCoding = currentQ.type === 'coding' ||
-                     currentQ.problem_statement ||
-                     (currentQ.title && !currentQ.question) ||
-                     assessment.type === 'ai_coding' ||
-                     assessment.type === 'coding';
-    
+      currentQ.problem_statement ||
+      (currentQ.title && !currentQ.question) ||
+      assessment.type === 'ai_coding' ||
+      assessment.type === 'coding';
+
     if (isCoding) {
       const selectedLang = languages.find((lang) => lang.value === language);
       if (selectedLang) {
@@ -254,16 +265,16 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
   // Save code when it changes (for coding problems)
   useEffect(() => {
     if (!assessment || !assessment.questions || assessment.questions.length === 0) return;
-    
+
     const currentQ = assessment.questions[currentQuestionIndex];
     if (!currentQ) return;
-    
+
     const isCoding = currentQ.type === 'coding' ||
-                     currentQ.problem_statement ||
-                     (currentQ.title && !currentQ.question) ||
-                     assessment.type === 'ai_coding' ||
-                     assessment.type === 'coding';
-    
+      currentQ.problem_statement ||
+      (currentQ.title && !currentQ.question) ||
+      assessment.type === 'ai_coding' ||
+      assessment.type === 'coding';
+
     if (isCoding && code.trim()) {
       const newAnswers = [...answers];
       newAnswers[currentQuestionIndex] = code;
@@ -275,7 +286,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
     try {
       setLoading(true);
       console.log("📊 [TEST] Fetching assessment:", assessmentId);
-      
+
       // Try teacher endpoint first, then student endpoint
       let response;
       try {
@@ -286,11 +297,11 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
         response = await api.get(`/api/assessments/${assessmentId}/details`);
         console.log("✅ [TEST] Fetched from student endpoint");
       }
-      
+
       const data = response.data;
       console.log("📊 [TEST] Assessment data:", data);
       console.log("📊 [TEST] Questions count:", data.questions?.length);
-      
+
       setAssessment(data);
       setTimeLeft(data.time_limit * 60); // Convert minutes to seconds
       // Initialize answers array - will store MCQ index (number) or code solution (string)
@@ -325,11 +336,11 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
   const runCode = async () => {
     const currentQ = assessment!.questions[currentQuestionIndex];
     const isCoding = currentQ.type === 'coding' ||
-                     currentQ.problem_statement ||
-                     (currentQ.title && !currentQ.question) ||
-                     assessment!.type === 'ai_coding' ||
-                     assessment!.type === 'coding';
-    
+      currentQ.problem_statement ||
+      (currentQ.title && !currentQ.question) ||
+      assessment!.type === 'ai_coding' ||
+      assessment!.type === 'coding';
+
     if (!isCoding || !code.trim()) {
       showError('Please write some code first');
       return;
@@ -345,7 +356,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
     setTestResults([]);
 
     try {
-      const testCases = currentQ.test_cases || 
+      const testCases = currentQ.test_cases ||
         (currentQ.examples || []).map((example: any, index: number) => ({
           input: parseInput(typeof example.input === 'string' ? example.input : JSON.stringify(example.input)),
           output: parseOutput(typeof example.output === 'string' ? example.output : JSON.stringify(example.output)),
@@ -391,7 +402,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
 
   const submitCodeSolution = async () => {
     const currentQ = assessment!.questions[currentQuestionIndex];
-    
+
     if (!code.trim()) {
       showError('Please write some code first');
       return;
@@ -410,12 +421,12 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
   const handleConfirmSubmitCode = async () => {
     setShowSubmitConfirm(false);
     const currentQ = assessment!.questions[currentQuestionIndex];
-    
+
     setSubmitting(true);
-    
+
     try {
       // Run tests first to validate
-      const testCases = currentQ.test_cases || 
+      const testCases = currentQ.test_cases ||
         (currentQ.examples || []).map((example: any, index: number) => ({
           input: parseInput(typeof example.input === 'string' ? example.input : JSON.stringify(example.input)),
           output: parseOutput(typeof example.output === 'string' ? example.output : JSON.stringify(example.output)),
@@ -439,10 +450,10 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
 
       const results = exec.results || [];
       setTestResults(results);
-      
+
       const passed = results.filter((r: any) => r.passed).length;
       const total = results.length;
-      
+
       // Check if all tests passed
       if (passed < total) {
         showError(`Only ${passed}/${total} test cases passed. Fix your solution before submitting.`);
@@ -463,7 +474,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
 
       if (response.data.success) {
         success('🎉 Solution submitted successfully!');
-        
+
         // Prepare result state for CodingResults page
         const resultState = {
           assessmentId: assessmentId,
@@ -479,10 +490,10 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
           score: response.data.submission?.status === 'accepted' ? 1 : 0,
           timeTaken: Math.floor((Date.now() - codingStartTime) / 1000),
         };
-        
+
         // Navigate to CodingResults page
         navigate('/coding-results', { state: resultState });
-        
+
         // Call onComplete if provided
         if (onComplete) {
           onComplete(response.data);
@@ -520,7 +531,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
   const handleSubmit = async () => {
     try {
       setSubmitting(true);
-      
+
       // Calculate score locally first (for MCQ questions)
       let score = 0;
       assessment!.questions.forEach((question, index) => {
@@ -530,24 +541,24 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
         }
         // For coding problems, score is handled by backend based on test results
       });
-      
+
       const percentage = Math.round((score / assessment!.questions.length) * 100);
       const timeTaken = assessment!.time_limit * 60 - timeLeft;
-      
+
       // Prepare answers for submission (MCQ indices and coding solutions)
       const submissionAnswers = answers.map((ans, idx) => {
         const q = assessment!.questions[idx];
         const isCoding = q.type === 'coding' ||
-                         q.problem_statement ||
-                         (q.title && !q.question) ||
-                         assessment!.type === 'ai_coding' ||
-                         assessment!.type === 'coding';
+          q.problem_statement ||
+          (q.title && !q.question) ||
+          assessment!.type === 'ai_coding' ||
+          assessment!.type === 'coding';
         if (isCoding) {
           return typeof ans === 'string' ? ans : '';
         }
         return typeof ans === 'number' ? ans : -1;
       });
-      
+
       // Submit to backend
       const response = await api.post(`/api/assessments/${assessmentId}/submit`, {
         assessment_id: assessmentId,
@@ -559,17 +570,17 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
         submitted_at: new Date().toISOString(),
         is_completed: true
       });
-      
+
       // Get response data - it may have question_reviews
       const responseData = response.data;
       const questionReviews = responseData.question_reviews || [];
-      
+
       // Use backend score if available, otherwise use local score
       const finalScore = responseData.score !== undefined ? responseData.score : score;
       const finalPercentage = responseData.percentage !== undefined ? responseData.percentage : percentage;
-      
+
       success('Success', 'Assessment submitted successfully!');
-      
+
       // Prepare result state for Results page
       const resultState = {
         score: finalScore,
@@ -600,10 +611,10 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
         })),
         questionReviews: questionReviews
       };
-      
+
       // Navigate to Results page with state
       navigate('/results', { state: resultState });
-      
+
       // Call onComplete if provided (for backward compatibility)
       if (onComplete) {
         onComplete(response.data);
@@ -647,18 +658,27 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
 
   const currentQuestion = assessment.questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / assessment.questions.length) * 100;
-  
+
   // Detect if this is a coding problem
   const isCodingProblem = currentQuestion ? (
-    currentQuestion.type === "coding" || 
-    currentQuestion.problem_statement || 
+    currentQuestion.type === "coding" ||
+    currentQuestion.problem_statement ||
     (currentQuestion.title && !currentQuestion.question) ||
-    assessment?.type === "ai_coding" || 
+    assessment?.type === "ai_coding" ||
     assessment?.type === "coding"
   ) : false;
 
   return (
     <div className="min-h-screen pt-20 px-4" style={{ backgroundColor: 'rgb(26, 32, 44)' }}>
+      {/* Proctoring Warning Overlay */}
+      <ProctoringOverlay
+        isVisible={isWarningVisible}
+        violationCount={violationCount}
+        maxViolations={MAX_VIOLATIONS}
+        lastViolationType={lastViolationType}
+        onDismiss={dismissWarning}
+      />
+
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <motion.div
@@ -669,11 +689,14 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-2xl font-bold text-white">{assessment.title}</h1>
             <div className="text-right">
-              <div className="text-orange-500 font-bold text-xl">{formatTime(timeLeft)}</div>
+              <div className={`font-bold text-xl ${timeLeft < 300 ? 'text-red-400 animate-pulse' : 'text-orange-500'
+                }`}>
+                {formatTime(timeLeft)}
+              </div>
               <div className="text-gray-400 text-sm">Time Remaining</div>
             </div>
           </div>
-          
+
           {/* Progress Bar */}
           <div className="w-full bg-gray-800 rounded-full h-2 mb-3">
             <motion.div
@@ -683,7 +706,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
               transition={{ duration: 0.3 }}
             />
           </div>
-          
+
           <div className="flex items-center justify-between text-gray-400">
             <div>Question {currentQuestionIndex + 1} of {assessment.questions.length}</div>
             <div>{Math.round(progress)}% Complete</div>
@@ -766,7 +789,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
                                 <div>
                                   <span className="text-foreground">Expected Output: </span>
                                   <span className="text-foreground font-mono">
-                                    {typeof (testCase.expected_output || testCase.output) === "string" 
+                                    {typeof (testCase.expected_output || testCase.output) === "string"
                                       ? (testCase.expected_output || testCase.output)
                                       : JSON.stringify(testCase.expected_output || testCase.output)}
                                   </span>
@@ -893,7 +916,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
                           "🚀 Submit"
                         )}
                       </Button>
-                      
+
                       <ConfirmDialog
                         isOpen={showSubmitConfirm}
                         onClose={() => setShowSubmitConfirm(false)}
@@ -1004,10 +1027,10 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
                         // Autocomplete and suggestions
                         quickSuggestions: autocompleteEnabled
                           ? {
-                              other: true,
-                              comments: true,
-                              strings: true,
-                            }
+                            other: true,
+                            comments: true,
+                            strings: true,
+                          }
                           : false,
                         suggestOnTriggerCharacters: autocompleteEnabled,
                         acceptSuggestionOnEnter: autocompleteEnabled ? "on" : "off",
@@ -1090,11 +1113,10 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
                         </h4>
                         <div className="flex items-center space-x-4">
                           <div
-                            className={`px-3 py-1 rounded-full text-sm font-medium ${
-                              testResults.filter((r) => r.passed).length === testResults.length
-                                ? "bg-green-900/30 text-green-300 border border-green-500/30"
-                                : "bg-red-900/30 text-red-300 border border-red-500/30"
-                            }`}
+                            className={`px-3 py-1 rounded-full text-sm font-medium ${testResults.filter((r) => r.passed).length === testResults.length
+                              ? "bg-green-900/30 text-green-300 border border-green-500/30"
+                              : "bg-red-900/30 text-red-300 border border-red-500/30"
+                              }`}
                           >
                             {testResults.filter((r) => r.passed).length}/{testResults.length} passed
                           </div>
@@ -1112,11 +1134,10 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
                           return (
                             <div
                               key={index}
-                              className={`p-4 rounded-lg border transition-all duration-200 ${
-                                result.passed
-                                  ? "bg-green-900/20 border-green-500/30 hover:bg-green-900/30"
-                                  : "bg-red-900/20 border-red-500/30 hover:bg-red-900/30"
-                              }`}
+                              className={`p-4 rounded-lg border transition-all duration-200 ${result.passed
+                                ? "bg-green-900/20 border-green-500/30 hover:bg-green-900/30"
+                                : "bg-red-900/20 border-red-500/30 hover:bg-red-900/30"
+                                }`}
                             >
                               <div className="flex items-center justify-between mb-3">
                                 <button
@@ -1166,118 +1187,118 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
                                     </div>
                                   </div>
 
-                          {!result.passed && (
-                            <div className="space-y-4">
-                              {/* Error Message (if compilation/runtime error) */}
-                              {result.error && (
-                                <div>
-                                  <div className="flex items-center space-x-2 mb-2">
-                                    <span className="text-sm font-medium text-red-300">Error:</span>
-                                  </div>
-                                  <div className="p-3 bg-red-900/30 rounded-lg border border-red-500/30 text-red-200 text-sm font-mono">
-                                    {typeof result.error === "string"
-                                      ? result.error
-                                      : JSON.stringify(result.error)}
-                                  </div>
-                                </div>
-                              )}
+                                  {!result.passed && (
+                                    <div className="space-y-4">
+                                      {/* Error Message (if compilation/runtime error) */}
+                                      {result.error && (
+                                        <div>
+                                          <div className="flex items-center space-x-2 mb-2">
+                                            <span className="text-sm font-medium text-red-300">Error:</span>
+                                          </div>
+                                          <div className="p-3 bg-red-900/30 rounded-lg border border-red-500/30 text-red-200 text-sm font-mono">
+                                            {typeof result.error === "string"
+                                              ? result.error
+                                              : JSON.stringify(result.error)}
+                                          </div>
+                                        </div>
+                                      )}
 
-                              {/* Always show Expected vs Actual Output for failed tests */}
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                  <div>
-                                    <div className="flex items-center space-x-2 mb-2">
-                                      <span className="text-sm font-medium text-green-300">Expected Output:</span>
-                                    </div>
-                                    <div className="p-3 bg-green-900/20 rounded-lg border border-green-500/30 text-green-200 text-sm font-mono">
-                                      {result.expected !== undefined && result.expected !== null ? (
-                                        typeof result.expected === "string"
-                                          ? result.expected
-                                          : JSON.stringify(result.expected, null, 2)
-                                      ) : (
-                                        <span className="text-green-400 opacity-75">No expected output</span>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <div className="flex items-center space-x-2 mb-2">
-                                      <span className="text-sm font-medium text-red-300">Your Output:</span>
-                                    </div>
-                                    <div className="p-3 bg-red-900/20 rounded-lg border border-red-500/30 text-red-200 text-sm font-mono">
-                                      {result.output ? (
-                                        typeof result.output === "string"
-                                          ? result.output
-                                          : JSON.stringify(result.output, null, 2)
-                                      ) : (
-                                        <span className="text-red-400 opacity-75">No output</span>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                {/* Debug Information */}
-                                {result.debug_info && (
-                                  <div className="mt-4 p-4 bg-gray-900/30 rounded-lg border border-gray-500/30">
-                                    <div className="flex items-center space-x-2 mb-3">
-                                      <span className="text-sm font-medium text-yellow-300">Debug Analysis:</span>
-                                    </div>
-                                    <div className="space-y-3 text-sm">
-                                      <div>
-                                        <span className="text-yellow-300">Status: </span>
-                                        <span className="text-yellow-200">{result.debug_info.status}</span>
-                                      </div>
-                                      <div>
-                                        <span className="text-yellow-300">Comparison: </span>
-                                        <span className="text-yellow-200">{result.debug_info.comparison?.message}</span>
-                                      </div>
-                                      {result.debug_info.comparison?.type === "different" && result.debug_info.comparison?.line_analysis?.first_difference && (
-                                        <div className="mt-3 p-3 bg-gray-800/50 rounded border border-gray-600/30">
-                                          <div className="text-yellow-300 mb-2">First Difference at Line {result.debug_info.comparison.line_analysis.first_difference.line_number}:</div>
-                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <div>
-                                              <div className="text-red-300 text-xs mb-1">Your Output:</div>
-                                              <div className="p-2 bg-red-900/20 rounded text-red-200 font-mono text-xs">
-                                                {result.debug_info.comparison.line_analysis.first_difference.actual_line || "No output"}
-                                              </div>
+                                      {/* Always show Expected vs Actual Output for failed tests */}
+                                      <div className="space-y-4">
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                          <div>
+                                            <div className="flex items-center space-x-2 mb-2">
+                                              <span className="text-sm font-medium text-green-300">Expected Output:</span>
                                             </div>
-                                            <div>
-                                              <div className="text-green-300 text-xs mb-1">Expected:</div>
-                                              <div className="p-2 bg-green-900/20 rounded text-green-200 font-mono text-xs">
-                                                {result.debug_info.comparison.line_analysis.first_difference.expected_line || "No output"}
-                                              </div>
+                                            <div className="p-3 bg-green-900/20 rounded-lg border border-green-500/30 text-green-200 text-sm font-mono">
+                                              {result.expected !== undefined && result.expected !== null ? (
+                                                typeof result.expected === "string"
+                                                  ? result.expected
+                                                  : JSON.stringify(result.expected, null, 2)
+                                              ) : (
+                                                <span className="text-green-400 opacity-75">No expected output</span>
+                                              )}
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <div className="flex items-center space-x-2 mb-2">
+                                              <span className="text-sm font-medium text-red-300">Your Output:</span>
+                                            </div>
+                                            <div className="p-3 bg-red-900/20 rounded-lg border border-red-500/30 text-red-200 text-sm font-mono">
+                                              {result.output ? (
+                                                typeof result.output === "string"
+                                                  ? result.output
+                                                  : JSON.stringify(result.output, null, 2)
+                                              ) : (
+                                                <span className="text-red-400 opacity-75">No output</span>
+                                              )}
                                             </div>
                                           </div>
                                         </div>
-                                      )}
-                                      {result.debug_info.execution_details && (
-                                        <div className="mt-3 p-3 bg-gray-800/50 rounded border border-gray-600/30">
-                                          <div className="text-yellow-300 mb-2">Execution Details:</div>
-                                          <div className="grid grid-cols-2 gap-4 text-xs">
-                                            <div>
-                                              <span className="text-gray-400">Time: </span>
-                                              <span className="text-white">{result.debug_info.execution_details.time}s</span>
+
+                                        {/* Debug Information */}
+                                        {result.debug_info && (
+                                          <div className="mt-4 p-4 bg-gray-900/30 rounded-lg border border-gray-500/30">
+                                            <div className="flex items-center space-x-2 mb-3">
+                                              <span className="text-sm font-medium text-yellow-300">Debug Analysis:</span>
                                             </div>
-                                            <div>
-                                              <span className="text-gray-400">Memory: </span>
-                                              <span className="text-white">{result.debug_info.execution_details.memory}KB</span>
-                                            </div>
-                                            <div>
-                                              <span className="text-gray-400">Exit Code: </span>
-                                              <span className="text-white">{result.debug_info.execution_details.exit_code}</span>
-                                            </div>
-                                            <div>
-                                              <span className="text-gray-400">Wall Time: </span>
-                                              <span className="text-white">{result.debug_info.execution_details.wall_time}s</span>
+                                            <div className="space-y-3 text-sm">
+                                              <div>
+                                                <span className="text-yellow-300">Status: </span>
+                                                <span className="text-yellow-200">{result.debug_info.status}</span>
+                                              </div>
+                                              <div>
+                                                <span className="text-yellow-300">Comparison: </span>
+                                                <span className="text-yellow-200">{result.debug_info.comparison?.message}</span>
+                                              </div>
+                                              {result.debug_info.comparison?.type === "different" && result.debug_info.comparison?.line_analysis?.first_difference && (
+                                                <div className="mt-3 p-3 bg-gray-800/50 rounded border border-gray-600/30">
+                                                  <div className="text-yellow-300 mb-2">First Difference at Line {result.debug_info.comparison.line_analysis.first_difference.line_number}:</div>
+                                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <div>
+                                                      <div className="text-red-300 text-xs mb-1">Your Output:</div>
+                                                      <div className="p-2 bg-red-900/20 rounded text-red-200 font-mono text-xs">
+                                                        {result.debug_info.comparison.line_analysis.first_difference.actual_line || "No output"}
+                                                      </div>
+                                                    </div>
+                                                    <div>
+                                                      <div className="text-green-300 text-xs mb-1">Expected:</div>
+                                                      <div className="p-2 bg-green-900/20 rounded text-green-200 font-mono text-xs">
+                                                        {result.debug_info.comparison.line_analysis.first_difference.expected_line || "No output"}
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              )}
+                                              {result.debug_info.execution_details && (
+                                                <div className="mt-3 p-3 bg-gray-800/50 rounded border border-gray-600/30">
+                                                  <div className="text-yellow-300 mb-2">Execution Details:</div>
+                                                  <div className="grid grid-cols-2 gap-4 text-xs">
+                                                    <div>
+                                                      <span className="text-gray-400">Time: </span>
+                                                      <span className="text-white">{result.debug_info.execution_details.time}s</span>
+                                                    </div>
+                                                    <div>
+                                                      <span className="text-gray-400">Memory: </span>
+                                                      <span className="text-white">{result.debug_info.execution_details.memory}KB</span>
+                                                    </div>
+                                                    <div>
+                                                      <span className="text-gray-400">Exit Code: </span>
+                                                      <span className="text-white">{result.debug_info.execution_details.exit_code}</span>
+                                                    </div>
+                                                    <div>
+                                                      <span className="text-gray-400">Wall Time: </span>
+                                                      <span className="text-white">{result.debug_info.execution_details.wall_time}s</span>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              )}
                                             </div>
                                           </div>
-                                        </div>
-                                      )}
+                                        )}
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
+                                  )}
 
                                   {/* Success Message */}
                                   {result.passed && (
@@ -1313,16 +1334,15 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
             <h2 className="text-xl font-bold text-white mb-6">
               {currentQuestion.question}
             </h2>
-            
+
             <div className="space-y-3">
               {(currentQuestion.options || []).map((option, index) => (
                 <label
                   key={index}
-                  className={`flex items-center p-4 rounded-lg bg-gray-800 border cursor-pointer transition-all hover:bg-gray-700 ${
-                    answers[currentQuestionIndex] === index
-                      ? 'border-blue-500 bg-gray-700'
-                      : 'border-gray-700'
-                  }`}
+                  className={`flex items-center p-4 rounded-lg bg-gray-800 border cursor-pointer transition-all hover:bg-gray-700 ${answers[currentQuestionIndex] === index
+                    ? 'border-blue-500 bg-gray-700'
+                    : 'border-gray-700'
+                    }`}
                 >
                   <input
                     type="radio"
@@ -1354,13 +1374,12 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
               <button
                 key={index}
                 onClick={() => setCurrentQuestionIndex(index)}
-                className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${
-                  index === currentQuestionIndex
-                    ? 'bg-blue-600 text-white'
-                    : answers[index] !== -1
+                className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${index === currentQuestionIndex
+                  ? 'bg-blue-600 text-white'
+                  : answers[index] !== -1
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                }`}
+                  }`}
               >
                 {index + 1}
               </button>

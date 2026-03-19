@@ -61,16 +61,16 @@ const AssessConfig: React.FC<AssessConfigProps> = () => {
 
       if (response.data.success) {
         console.log("✅ Assessment config saved, navigating to assessment...")
-        console.log("📤 [ASSESSCONFIG] Passing state:", { 
+        console.log("📤 [ASSESSCONFIG] Passing state:", {
           assessmentConfig: config,
-          isStudentGenerated: true 
+          isStudentGenerated: true
         })
         success("Assessment Started!", `Starting ${config.qnCount} questions on ${config.topic} (${config.difficulty})`)
-        navigate("/assessment", { 
+        navigate("/assessment", {
           replace: true,
-          state: { 
+          state: {
             assessmentConfig: config,
-            isStudentGenerated: true 
+            isStudentGenerated: true
           }
         })
       } else {
@@ -199,11 +199,10 @@ const AssessConfig: React.FC<AssessConfigProps> = () => {
                         disabled={isSubmitting}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`p-4 rounded-lg border-2 transition-all duration-300 ${
-                          config.difficulty === option.value
+                        className={`p-4 rounded-lg border-2 transition-all duration-300 ${config.difficulty === option.value
                             ? `border-border bg-gradient-to-r ${option.color} text-white shadow-lg`
                             : "border-border/40 bg-muted/20 text-foreground hover:border-border/60 hover:bg-muted/30"
-                        }`}
+                          }`}
                       >
                         <div className="text-center">
                           <div className="font-semibold">{option.label}</div>
