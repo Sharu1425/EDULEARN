@@ -76,7 +76,7 @@
    Dark-mode compound selectors (.dark .glass) live outside this layer. */
 @layer utilities {
   .glass {
-    @apply bg-white/70 backdrop-blur-2xl border border-white/40 transition-all duration-500;
+    @apply bg-white/90 backdrop-blur-2xl border border-border transition-all duration-500;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
   }
 

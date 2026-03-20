@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status, Body
 from typing import Dict, Any, List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 import logging
 import io
 import fitz  # PyMuPDF
@@ -26,6 +26,7 @@ class GenerateRequest(BaseModel):
     coding_count: int
 
 class GradeRequest(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
     question: str
     model_answer: str
     keywords: List[str]

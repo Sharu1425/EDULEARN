@@ -12,13 +12,13 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 const Input: React.FC<InputProps> = ({ label, error, icon, className = "", ...props }) => {
   return (
     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-2">
-      {label && <label className="block text-sm font-medium text-purple-200">{label}</label>}
-      <div className="relative">
-        {icon && <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400">{icon}</div>}
+      {label && <label className="block text-sm font-medium text-foreground/70">{label}</label>}
+      <div className="relative group">
+        {icon && <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">{icon}</div>}
         <input
           className={`
-            w-full px-4 py-3 rounded-lg border border-purple-500/30 bg-black/20 backdrop-blur-md
-            text-purple-200 placeholder:text-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400
+            w-full px-4 py-3 rounded-lg border border-border bg-muted/10 backdrop-blur-md
+            text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
             transition-all duration-300 ${icon ? "pl-10" : ""} ${error ? "border-red-500 focus:ring-red-500" : ""} ${className}
           `}
           {...props}

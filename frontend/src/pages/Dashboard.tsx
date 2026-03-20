@@ -399,10 +399,10 @@ const Dashboard: React.FC = () => {
                             <div className="text-right">
                               <div
                                 className={`text-lg font-bold ${(test.percentage || (test.score / test.total_questions) * 100) >= 80
-                                  ? "text-green-400"
+                                  ? "text-emerald-600 dark:text-emerald-400"
                                   : (test.percentage || (test.score / test.total_questions) * 100) >= 60
-                                    ? "text-yellow-400"
-                                    : "text-red-400"
+                                    ? "text-amber-600 dark:text-amber-400"
+                                    : "text-rose-600 dark:text-rose-400"
                                   }`}
                               >
                                 {Math.round(test.percentage || (test.score / test.total_questions) * 100)}%

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BrainCircuit, Activity, CheckCircle2, AlertCircle, BarChart3, ArrowLeft } from 'lucide-react';
 import api from '../utils/api';
@@ -24,9 +24,9 @@ export default function ThinkTraceSession() {
     difficulty?: string;
     subject_area?: string;
     question_count?: number;
+    autoStart?: boolean;
   } | null;
 
-  // Configuration State
   const [phase, setPhase] = useState<SessionPhase>('config');
   const [topic, setTopic] = useState(stateData?.topic || 'Programming Fundamentals');
   const [customTopic, setCustomTopic] = useState('');
@@ -42,6 +42,14 @@ export default function ThinkTraceSession() {
   // UI State
   const [isLoading, setIsLoading] = useState(false);
   const [isAnswering, setIsAnswering] = useState(false);
+
+  // Auto-start when navigated from the assessment config page
+  useEffect(() => {
+    if (stateData?.autoStart) {
+      startSession();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // HANDLERS

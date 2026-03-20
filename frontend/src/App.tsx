@@ -43,6 +43,7 @@ import TestPage from "./pages/TestPage"
 import TeacherLiveConsole from "./pages/TeacherLiveConsole"
 import StudentLiveRoom from "./pages/StudentLiveRoom"
 import ThinkTraceSession from "./pages/ThinkTraceSession"
+import ThinkTraceResultDetail from "./pages/ThinkTraceResultDetail"
 
 const FULLSCREEN_ROUTES = [
   "/assessment",
@@ -127,6 +128,7 @@ const AppLayout: React.FC<{
                   <Route path="/unified-assessment" element={<ProtectedRoute allowedRoles={["student"]}><UnifiedAssessment /></ProtectedRoute>} />
                   <Route path="/student/live/:batchId" element={<ProtectedRoute allowedRoles={["student"]}><StudentLiveRoom /></ProtectedRoute>} />
                   <Route path="/thinktrace" element={<ProtectedRoute allowedRoles={["student"]}><ThinkTraceSession /></ProtectedRoute>} />
+                  <Route path="/thinktrace-result/:sessionId" element={<ProtectedRoute allowedRoles={["student"]}><ThinkTraceResultDetail /></ProtectedRoute>} />
 
                   {/* Teacher */}
                   <Route path="/teacher-dashboard" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherDashboard /></ProtectedRoute>} />
