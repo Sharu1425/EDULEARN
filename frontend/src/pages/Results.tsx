@@ -20,14 +20,15 @@ interface Explanation {
 const Results: React.FC<ResultsProps> = ({ }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { score, totalQuestions, topic, difficulty, questions, userAnswers, timeTaken, explanations: stateExplanations, questionReviews } = location.state || {
+    const { score, totalQuestions, topic, difficulty, questions, userAnswers, timeTaken, explanations: stateExplanations, questionReviews, ai_feedback: stateAiFeedback } = location.state || {
         score: 0,
         totalQuestions: 0,
         questions: [],
         userAnswers: [],
         timeTaken: 0,
         explanations: [],
-        questionReviews: []
+        questionReviews: [],
+        ai_feedback: null
     };
 
     const [explanations, setExplanations] = useState<Explanation[]>(stateExplanations || []);
@@ -53,12 +54,7 @@ const Results: React.FC<ResultsProps> = ({ }) => {
         }
     }, [location.state, navigate, questions, stateExplanations]);
 
-    const getScoreColor = (percentage: number | string) => {
-        const perc = typeof percentage === 'string' ? parseFloat(percentage) : percentage;
-        if (perc >= 80) return "from-green-500 to-emerald-500";
-        if (perc >= 60) return "from-yellow-500 to-orange-500";
-        return "from-red-500 to-pink-500";
-    };
+
 
     const getScoreMessage = (percentage: number | string) => {
         const perc = typeof percentage === 'string' ? parseFloat(percentage) : percentage;
@@ -347,72 +343,139 @@ const Results: React.FC<ResultsProps> = ({ }) => {
 
                                                 {/* Options */}
                                                 <div className="space-y-3 mb-6">
-                                                    {question.options.map((option, optionIndex) => {
-                                                        // Use normalized comparison for better matching
-                                                        const normalizedOption = (option || '').trim();
-                                                        const normalizedUserAnswer = (userAnswer || '').trim();
-                                                        const normalizedCorrectAnswer = (correctAnswer || '').trim();
+                                                    {question.type === 'coding' ? (
+                                                        <div className="space-y-4">
+                                                            <div className="p-5 rounded-lg border bg-purple-900/30 border-purple-500/30 text-white font-mono text-sm whitespace-pre-wrap">
+                                                                {/* Display User's Code for Coding Questions */}
+                                                                <div className="mb-2 text-purple-300 font-semibold">Your Code:</div>
+                                                                {userAnswer || 'No code submitted.'}
+                                                            </div>
 
-                                                        // Check if this option matches user answer or correct answer
-                                                        const isUserChoice = normalizedOption.toLowerCase() === normalizedUserAnswer.toLowerCase();
-                                                        const isCorrectChoice = normalizedOption.toLowerCase() === normalizedCorrectAnswer.toLowerCase();
-
-                                                        // Priority: Correct answer always shows in green, wrong user answer shows in red (if not correct)
-                                                        const showAsCorrect = isCorrectChoice;
-                                                        const showAsWrong = isUserChoice && !isCorrectChoice;
-
-                                                        let optionClasses = "p-5 rounded-lg border transition-all duration-200 ";
-
-                                                        if (showAsCorrect) {
-                                                            optionClasses += "bg-green-600 border-2 border-green-500";
-                                                        } else if (showAsWrong) {
-                                                            optionClasses += "bg-red-600 border-2 border-red-500";
-                                                        } else {
-                                                            optionClasses += "bg-purple-900/30 border border-purple-500/30";
-                                                        }
-
-                                                        return (
-                                                            <div key={optionIndex} className={optionClasses}>
-                                                                <div className="flex items-center justify-between">
-                                                                    <div className="flex items-center space-x-3 flex-1">
-                                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${showAsCorrect
-                                                                                ? 'bg-green-700 text-white'
-                                                                                : showAsWrong
-                                                                                    ? 'bg-red-700 text-white'
-                                                                                    : 'bg-purple-500/20 border border-purple-500/50 text-white'
-                                                                            }`}>
-                                                                            {String.fromCharCode(65 + optionIndex)}
-                                                                        </div>
-                                                                        <span className={`flex-1 font-medium text-base ${showAsCorrect || showAsWrong ? 'text-white font-semibold' : 'text-white'}`}>{option}</span>
+                                                            {/* Actual Answer for Coding Question */}
+                                                            {question.reference_solution && (
+                                                                <div className="p-5 rounded-lg border bg-green-900/20 border-green-500/30 text-green-100 font-mono text-sm whitespace-pre-wrap shadow-lg shadow-green-500/10">
+                                                                    <div className="mb-2 text-green-300 font-semibold flex items-center gap-2">
+                                                                        <span className="text-lg">✅</span> Actual Answer:
                                                                     </div>
-                                                                    {/* Icons and Labels on the right */}
-                                                                    <div className="flex items-center space-x-2">
-                                                                        {showAsCorrect && (
-                                                                            <>
-                                                                                <span className="text-green-200 text-xl font-bold">✓</span>
-                                                                                <span className="px-3 py-1 rounded-full bg-green-700/50 text-white text-sm font-semibold">
-                                                                                    Correct
-                                                                                </span>
-                                                                            </>
+                                                                    {question.reference_solution}
+                                                                </div>
+                                                            )}
+
+                                                            {/* AI Feedback for Coding Question */}
+                                                            {stateAiFeedback && (
+                                                                <div className="bg-blue-900/20 rounded-xl p-5 border border-blue-500/30">
+                                                                    <div className="flex items-center space-x-2 mb-4 text-blue-400">
+                                                                        <div className="p-2 bg-blue-500/20 rounded-lg">
+                                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                                            </svg>
+                                                                        </div>
+                                                                        <h4 className="font-bold text-lg">AI Code Insights</h4>
+                                                                    </div>
+                                                                    
+                                                                    {stateAiFeedback.overall_score && (
+                                                                        <div className="mb-4 flex items-center justify-between">
+                                                                            <span className="text-sm text-purple-300">Quality Score:</span>
+                                                                            <span className="text-xl font-bold text-blue-400">{stateAiFeedback.overall_score}/100</span>
+                                                                        </div>
+                                                                    )}
+
+                                                                    <div className="space-y-4">
+                                                                        {stateAiFeedback.correctness && (
+                                                                            <div>
+                                                                                <div className="text-xs text-purple-400 uppercase tracking-widest mb-2 font-bold">Correctness</div>
+                                                                                <ul className="space-y-1">
+                                                                                    {stateAiFeedback.correctness.issues?.map((issue: string, i: number) => (
+                                                                                        <li key={i} className="text-sm text-red-200 flex items-start space-x-2">
+                                                                                            <span className="text-red-400 mt-1">•</span>
+                                                                                            <span>{issue}</span>
+                                                                                        </li>
+                                                                                    ))}
+                                                                                </ul>
+                                                                            </div>
                                                                         )}
-                                                                        {isUserChoice && isCorrect && (
-                                                                            <span className="px-3 py-1 rounded-full bg-green-700/50 text-white text-sm font-semibold">
-                                                                                Your Choice
-                                                                            </span>
-                                                                        )}
-                                                                        {showAsWrong && (
-                                                                            <>
-                                                                                <span className="text-red-200 text-xl font-bold">✗</span>
-                                                                                <span className="px-3 py-1 rounded-full bg-red-700/50 text-white text-sm font-semibold">
-                                                                                    Your Choice
-                                                                                </span>
-                                                                            </>
+                                                                        
+                                                                        {stateAiFeedback.performance && (
+                                                                            <div>
+                                                                                <div className="text-xs text-purple-400 uppercase tracking-widest mb-2 font-bold">Performance</div>
+                                                                                <div className="flex space-x-3 mb-2">
+                                                                                    <span className="text-xs bg-blue-500/10 px-2 py-0.5 rounded text-blue-200">Time: {stateAiFeedback.performance.time_complexity}</span>
+                                                                                    <span className="text-xs bg-blue-500/10 px-2 py-0.5 rounded text-blue-200">Space: {stateAiFeedback.performance.space_complexity}</span>
+                                                                                </div>
+                                                                            </div>
                                                                         )}
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                        );
-                                                    })}
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        question.options?.map((option: string, optionIndex: number) => {
+                                                            // Use normalized comparison for better matching
+                                                            const normalizedOption = (option || '').trim();
+                                                            const normalizedUserAnswer = (userAnswer || '').trim();
+                                                            const normalizedCorrectAnswer = (correctAnswer || '').trim();
+
+                                                            // Check if this option matches user answer or correct answer
+                                                            const isUserChoice = normalizedOption.toLowerCase() === normalizedUserAnswer.toLowerCase();
+                                                            const isCorrectChoice = normalizedOption.toLowerCase() === normalizedCorrectAnswer.toLowerCase();
+
+                                                            // Priority: Correct answer always shows in green, wrong user answer shows in red (if not correct)
+                                                            const showAsCorrect = isCorrectChoice;
+                                                            const showAsWrong = isUserChoice && !isCorrectChoice;
+
+                                                            let optionClasses = "p-5 rounded-lg border transition-all duration-200 ";
+
+                                                            if (showAsCorrect) {
+                                                                optionClasses += "bg-green-600 border-2 border-green-500";
+                                                            } else if (showAsWrong) {
+                                                                optionClasses += "bg-red-600 border-2 border-red-500";
+                                                            } else {
+                                                                optionClasses += "bg-purple-900/30 border border-purple-500/30";
+                                                            }
+
+                                                            return (
+                                                                <div key={optionIndex} className={optionClasses}>
+                                                                    <div className="flex items-center justify-between">
+                                                                        <div className="flex items-center space-x-3 flex-1">
+                                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${showAsCorrect
+                                                                                    ? 'bg-green-700 text-white'
+                                                                                    : showAsWrong
+                                                                                        ? 'bg-red-700 text-white'
+                                                                                        : 'bg-purple-500/20 border border-purple-500/50 text-white'
+                                                                                }`}>
+                                                                                {String.fromCharCode(65 + optionIndex)}
+                                                                            </div>
+                                                                            <span className={`flex-1 font-medium text-base ${showAsCorrect || showAsWrong ? 'text-white font-semibold' : 'text-white'}`}>{option}</span>
+                                                                        </div>
+                                                                        {/* Icons and Labels on the right */}
+                                                                        <div className="flex items-center space-x-2">
+                                                                            {showAsCorrect && (
+                                                                                <>
+                                                                                    <span className="text-green-200 text-xl font-bold">✓</span>
+                                                                                    <span className="px-3 py-1 rounded-full bg-green-700/50 text-white text-sm font-semibold">
+                                                                                        Correct
+                                                                                    </span>
+                                                                                </>
+                                                                            )}
+                                                                            {isUserChoice && isCorrect && (
+                                                                                <span className="px-3 py-1 rounded-full bg-green-700/50 text-white text-sm font-semibold">
+                                                                                    Your Choice
+                                                                                </span>
+                                                                            )}
+                                                                            {showAsWrong && (
+                                                                                <>
+                                                                                    <span className="text-red-200 text-xl font-bold">✗</span>
+                                                                                    <span className="px-3 py-1 rounded-full bg-red-700/50 text-white text-sm font-semibold">
+                                                                                        Your Choice
+                                                                                    </span>
+                                                                                </>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })
+                                                    )}
                                                 </div>
 
                                                 {/* Explanation Section */}

@@ -472,10 +472,7 @@ int main() {
       const initialTotalTests = (exec.results || []).length
 
       if (initialPassedTests < initialTotalTests) {
-        showError(`Only ${initialPassedTests}/${initialTotalTests} test cases passed. Please fix your solution before submitting.`)
-        setTestResults(exec.results || [])
-        setSubmitting(false)
-        return
+        info(`Submitted with ${initialPassedTests}/${initialTotalTests} test cases passed.`)
       }
 
       // Submit to coding platform

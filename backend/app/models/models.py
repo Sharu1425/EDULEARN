@@ -53,6 +53,8 @@ class UserModel(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     username: str
     email: EmailStr
+    full_name: Optional[str] = None
+    bio: Optional[str] = None
     password_hash: str
     role: UserRole = UserRole.student
     profile_picture: Optional[str] = None
@@ -127,6 +129,7 @@ class CodingProblemModel(BaseModel):
     language: str
     test_cases: List[Dict[str, Any]]
     starter_code: str
+    reference_solution: Optional[str] = None
     hints: Optional[List[str]] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     created_by: str
@@ -178,8 +181,10 @@ class CodingSessionModel(BaseModel):
 class CodingAnalyticsModel(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     student_id: str
-    total_problems: int = 0
-    solved_problems: int = 0
+    total_problems_attempted: int = 0
+    total_problems_solved: int = 0
+    attempted_problem_ids: List[PyObjectId] = Field(default_factory=list)
+    solved_problem_ids: List[PyObjectId] = Field(default_factory=list)
     average_time: float = 0.0
     success_rate: float = 0.0
     language_stats: Dict[str, int] = {}

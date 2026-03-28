@@ -24,18 +24,21 @@ interface TestResult {
   total_questions: number
   questions?: QuestionResult[]
   user_answers?: string[]
+  ai_feedback?: any
 }
 
 interface QuestionResult {
   question_index?: number
   question: string
-  options: string[]
+  options?: string[]
   correct_answer: string | number
   correct_answer_index?: number
   user_answer: string | number
   user_answer_index?: number
   is_correct: boolean
   explanation?: string
+  type?: string
+  reference_solution?: string
 }
 
 const TestResultDetail: React.FC = () => {
@@ -90,7 +93,8 @@ const TestResultDetail: React.FC = () => {
           total_questions: resultData.total_questions,
           time_taken: resultData.time_taken || 0,
           questions: resultData.questions || [],
-          user_answers: resultData.user_answers || []
+          user_answers: resultData.user_answers || [],
+          ai_feedback: resultData.ai_feedback
         })
         
         setQuestionReviews(reviews)
@@ -112,11 +116,7 @@ const TestResultDetail: React.FC = () => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
-  const getScoreColor = (percentage: number) => {
-    if (percentage >= 80) return "text-green-400"
-    if (percentage >= 60) return "text-yellow-400"
-    return "text-red-400"
-  }
+
 
   const getScoreMessage = (percentage: number) => {
     if (percentage >= 90) return "Excellent work!"
@@ -362,114 +362,180 @@ const TestResultDetail: React.FC = () => {
                       </div>
 
                       {/* Options */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        {question.options.map((option, optIndex) => {
-                          // Handle correct answer matching - check both text and index
-                          let isCorrectAnswer = false
-                          if (question.correct_answer !== undefined && question.correct_answer !== null) {
-                            // If correct_answer is text, compare directly
-                            if (typeof question.correct_answer === 'string') {
-                              isCorrectAnswer = option.trim() === question.correct_answer.trim()
-                            }
-                            // If correct_answer_index is provided and matches
-                            else if (question.correct_answer_index !== undefined && question.correct_answer_index === optIndex) {
-                              isCorrectAnswer = true
-                            }
-                            // If correct_answer is the same as option index
-                            else if (typeof question.correct_answer === 'number' && question.correct_answer === optIndex) {
-                              isCorrectAnswer = true
-                            }
-                          }
-                          
-                          // Handle user answer matching - check both text and index
-                          let isUserAnswer = false
-                          if (question.user_answer !== undefined && question.user_answer !== null) {
-                            // If user_answer is text, compare directly
-                            if (typeof question.user_answer === 'string') {
-                              isUserAnswer = option.trim() === question.user_answer.trim()
-                            }
-                            // If user_answer_index is provided and matches
-                            else if (question.user_answer_index !== undefined && question.user_answer_index === optIndex) {
-                              isUserAnswer = true
-                            }
-                            // If user_answer is the same as option index
-                            else if (typeof question.user_answer === 'number' && question.user_answer === optIndex) {
-                              isUserAnswer = true
-                            }
-                          }
-                          
-                          const isWrongUserAnswer = isUserAnswer && !question.is_correct && !isCorrectAnswer
-                          const isCorrectUserAnswer = isUserAnswer && question.is_correct
-                          
-                          // Priority: Correct answer always shows in green, wrong user answer shows in red (if not correct)
-                          const showAsCorrect = isCorrectAnswer
-                          const showAsWrong = isWrongUserAnswer && !isCorrectAnswer
-                          
-                          return (
-                            <div
-                              key={optIndex}
-                              className={`
-                                group relative p-5 rounded-lg text-left transition-all duration-300
-                                ${showAsCorrect
-                                  ? "bg-green-600 border-2 border-green-500" 
-                                  : showAsWrong
-                                    ? "bg-red-600 border-2 border-red-500"
-                                    : "bg-purple-900/30 border border-purple-500/30"
-                                }
-                              `}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3 flex-1">
-                                  <div className={`
-                                    w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
-                                    ${showAsCorrect
-                                      ? "bg-green-700 text-white" 
-                                      : showAsWrong
-                                        ? "bg-red-700 text-white"
-                                        : "bg-purple-500/20 border border-purple-500/50 text-white"
-                                    }
-                                  `}>
-                                    {String.fromCharCode(65 + optIndex)}
-                                  </div>
-                                  <span className={`
-                                    font-medium text-base
-                                    ${showAsCorrect || showAsWrong
-                                      ? "text-white font-semibold" 
-                                      : "text-white"
-                                    }
-                                  `}>
-                                    {option}
-                                  </span>
+                        {question.type === 'coding' ? (
+                          <div className="space-y-4 mb-6">
+                            <div className="p-5 rounded-lg border bg-purple-900/30 border-purple-500/30 text-white font-mono text-sm whitespace-pre-wrap">
+                              <div className="mb-2 text-blue-300 font-semibold">Your Code:</div>
+                              {question.user_answer || 'No code submitted.'}
+                            </div>
+
+                            {/* Actual Answer for Coding Question */}
+                            {question.reference_solution && (
+                              <div className="p-5 rounded-lg border bg-green-900/20 border-green-500/30 text-green-100 font-mono text-sm whitespace-pre-wrap shadow-lg shadow-green-500/10">
+                                <div className="mb-2 text-green-300 font-semibold flex items-center gap-2">
+                                  <span className="text-lg">✅</span> Actual Answer:
                                 </div>
-                                {/* Icons and Labels on the right */}
-                                <div className="flex items-center space-x-2">
-                                  {showAsCorrect && (
-                                    <>
-                                      <span className="text-green-200 text-xl font-bold">✓</span>
-                                      <span className="px-3 py-1 rounded-full bg-green-700/50 text-white text-sm font-semibold">
-                                        Correct
-                                      </span>
-                                    </>
+                                {question.reference_solution}
+                              </div>
+                            )}
+
+                            {/* AI Feedback for Coding Question */}
+                            {result.ai_feedback && (
+                              <div className="bg-blue-900/20 rounded-xl p-5 border border-blue-500/30">
+                                <div className="flex items-center space-x-2 mb-4 text-blue-400">
+                                  <div className="p-2 bg-blue-500/20 rounded-lg">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                  </div>
+                                  <h4 className="font-bold text-lg">AI Code Insights</h4>
+                                </div>
+                                
+                                {result.ai_feedback.overall_score && (
+                                  <div className="mb-4 flex items-center justify-between">
+                                    <span className="text-sm text-purple-300">Quality Score:</span>
+                                    <span className="text-xl font-bold text-blue-400">{result.ai_feedback.overall_score}/100</span>
+                                  </div>
+                                )}
+
+                                <div className="space-y-4">
+                                  {result.ai_feedback.correctness && (
+                                    <div>
+                                      <div className="text-xs text-purple-400 uppercase tracking-widest mb-2 font-bold">Correctness</div>
+                                      <ul className="space-y-1">
+                                        {result.ai_feedback.correctness.issues?.map((issue: string, i: number) => (
+                                          <li key={i} className="text-sm text-red-200 flex items-start space-x-2">
+                                            <span className="text-red-400 mt-1">•</span>
+                                            <span>{issue}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
                                   )}
-                                  {isCorrectUserAnswer && (
-                                    <span className="px-3 py-1 rounded-full bg-green-700/50 text-white text-sm font-semibold">
-                                      Your Choice
-                                    </span>
-                                  )}
-                                  {showAsWrong && (
-                                    <>
-                                      <span className="text-red-200 text-xl font-bold">✗</span>
-                                      <span className="px-3 py-1 rounded-full bg-red-700/50 text-white text-sm font-semibold">
-                                        Your Choice
-                                      </span>
-                                    </>
+                                  
+                                  {result.ai_feedback.performance && (
+                                    <div>
+                                      <div className="text-xs text-purple-400 uppercase tracking-widest mb-2 font-bold">Performance</div>
+                                      <div className="flex space-x-3 mb-2">
+                                        <span className="text-xs bg-blue-500/10 px-2 py-0.5 rounded text-blue-200">Time: {result.ai_feedback.performance.time_complexity}</span>
+                                        <span className="text-xs bg-blue-500/10 px-2 py-0.5 rounded text-blue-200">Space: {result.ai_feedback.performance.space_complexity}</span>
+                                      </div>
+                                    </div>
                                   )}
                                 </div>
                               </div>
-                            </div>
-                          )
-                        })}
-                      </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            {question.options?.map((option, optIndex) => {
+                              // Handle correct answer matching - check both text and index
+                              let isCorrectAnswer = false
+                              if (question.correct_answer !== undefined && question.correct_answer !== null) {
+                                // If correct_answer is text, compare directly
+                                if (typeof question.correct_answer === 'string') {
+                                  isCorrectAnswer = option.trim() === question.correct_answer.trim()
+                                }
+                                // If correct_answer_index is provided and matches
+                                else if (question.correct_answer_index !== undefined && question.correct_answer_index === optIndex) {
+                                  isCorrectAnswer = true
+                                }
+                                // If correct_answer is the same as option index
+                                else if (typeof question.correct_answer === 'number' && question.correct_answer === optIndex) {
+                                  isCorrectAnswer = true
+                                }
+                              }
+                              
+                              // Handle user answer matching - check both text and index
+                              let isUserAnswer = false
+                              if (question.user_answer !== undefined && question.user_answer !== null) {
+                                // If user_answer is text, compare directly
+                                if (typeof question.user_answer === 'string') {
+                                  isUserAnswer = option.trim() === question.user_answer.trim()
+                                }
+                                // If user_answer_index is provided and matches
+                                else if (question.user_answer_index !== undefined && question.user_answer_index === optIndex) {
+                                  isUserAnswer = true
+                                }
+                                // If user_answer is the same as option index
+                                else if (typeof question.user_answer === 'number' && question.user_answer === optIndex) {
+                                  isUserAnswer = true
+                                }
+                              }
+                              
+                              const isWrongUserAnswer = isUserAnswer && !question.is_correct && !isCorrectAnswer
+                              const isCorrectUserAnswer = isUserAnswer && question.is_correct
+                              
+                              // Priority: Correct answer always shows in green, wrong user answer shows in red (if not correct)
+                              const showAsCorrect = isCorrectAnswer
+                              const showAsWrong = isWrongUserAnswer && !isCorrectAnswer
+                              
+                              return (
+                                <div
+                                  key={optIndex}
+                                  className={`
+                                    group relative p-5 rounded-lg text-left transition-all duration-300
+                                    ${showAsCorrect
+                                      ? "bg-green-600 border-2 border-green-500" 
+                                      : showAsWrong
+                                        ? "bg-red-600 border-2 border-red-500"
+                                        : "bg-purple-900/30 border border-purple-500/30"
+                                    }
+                                  `}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3 flex-1">
+                                      <div className={`
+                                        w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
+                                        ${showAsCorrect
+                                          ? "bg-green-700 text-white" 
+                                          : showAsWrong
+                                            ? "bg-red-700 text-white"
+                                            : "bg-purple-500/20 border border-purple-500/50 text-white"
+                                        }
+                                      `}>
+                                        {String.fromCharCode(65 + optIndex)}
+                                      </div>
+                                      <span className={`
+                                        font-medium text-base
+                                        ${showAsCorrect || showAsWrong
+                                          ? "text-white font-semibold" 
+                                          : "text-white"
+                                        }
+                                      `}>
+                                        {option}
+                                      </span>
+                                    </div>
+                                    {/* Icons and Labels on the right */}
+                                    <div className="flex items-center space-x-2">
+                                      {showAsCorrect && (
+                                        <>
+                                          <span className="text-green-200 text-xl font-bold">✓</span>
+                                          <span className="px-3 py-1 rounded-full bg-green-700/50 text-white text-sm font-semibold">
+                                            Correct
+                                          </span>
+                                        </>
+                                      )}
+                                      {isCorrectUserAnswer && (
+                                        <span className="px-3 py-1 rounded-full bg-green-700/50 text-white text-sm font-semibold">
+                                          Your Choice
+                                        </span>
+                                      )}
+                                      {showAsWrong && (
+                                        <>
+                                          <span className="text-red-200 text-xl font-bold">✗</span>
+                                          <span className="px-3 py-1 rounded-full bg-red-700/50 text-white text-sm font-semibold">
+                                            Your Choice
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
 
                       {/* Explanation */}
                       <div className="mt-6">

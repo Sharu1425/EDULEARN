@@ -4,13 +4,13 @@ import React, { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { useToast } from "../contexts/ToastContext"
-import { useAuth } from "../hooks/useAuth"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
 import AnimatedBackground from "../components/AnimatedBackground"
 import PerformanceAnalytics from "../components/teacher/PerformanceAnalytics"
 import api from "../utils/api"
 import { ANIMATION_VARIANTS } from "../utils/constants"
+import { AssessmentHistory } from "../components/teacher/assessment-management"
 
 interface Student {
   id: string
@@ -68,8 +68,7 @@ interface StudentDetailedResults {
 }
 
 const TeacherResultsDashboard: React.FC = () => {
-  const { user } = useAuth()
-  const { success: showSuccess, error: showError } = useToast()
+  const { error: showError } = useToast()
   const navigate = useNavigate()
   
   const [activeTab, setActiveTab] = useState<"overview" | "student-details">("overview")
@@ -79,10 +78,26 @@ const TeacherResultsDashboard: React.FC = () => {
   const [studentDetailedResults, setStudentDetailedResults] = useState<StudentDetailedResults | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedBatch, setSelectedBatch] = useState<string>("all")
+  const [recentAssessments, setRecentAssessments] = useState<any[]>([])
 
   useEffect(() => {
     fetchClassPerformance()
+    fetchTeacherAssessments()
   }, [])
+
+  const fetchTeacherAssessments = async () => {
+    try {
+      const res = await api.get("/api/teacher/assessments")
+      if (Array.isArray(res.data)) {
+        const recent = [...res.data]
+          .sort((a: any, b: any) => new Date(b.created_at || b.createdAt || 0).getTime() - new Date(a.created_at || a.createdAt || 0).getTime())
+          .slice(0, 5)
+        setRecentAssessments(recent)
+      }
+    } catch (e) {
+      console.warn("⚠️ [TEACHER RESULTS] Unable to fetch recent assessments", e)
+    }
+  }
 
   const fetchClassPerformance = async () => {
     try {
@@ -127,6 +142,10 @@ const TeacherResultsDashboard: React.FC = () => {
   const handleStudentClick = (student: Student) => {
     setSelectedStudent(student)
     fetchStudentDetailedResults(student.id)
+  }
+
+  const handleAssessmentClick = (assessmentId: string) => {
+    navigate(`/teacher/assessment/${assessmentId}/results`)
   }
 
   const handleBackToOverview = () => {
@@ -196,6 +215,12 @@ const TeacherResultsDashboard: React.FC = () => {
           animate="animate"
           className="max-w-7xl mx-auto"
         >
+          {/* Recent Tests Section */}
+          <AssessmentHistory 
+            recentAssessments={recentAssessments}
+            onAssessmentClick={handleAssessmentClick}
+          />
+
           {/* Header */}
           <Card className="p-6 mb-6">
             <div className="flex items-center justify-between mb-4">

@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
+import { useNavigate } from "react-router-dom"
 import type { User, CodingProblem, CodingAnalytics } from "../types"
 import { useToast } from "../contexts/ToastContext"
 import { useAuth } from "../hooks/useAuth"
@@ -18,6 +19,7 @@ interface CodingPlatformProps {
 
 const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
   const { user: authUser } = useAuth()
+  const navigate = useNavigate()
   const { success, error: showError } = useToast()
 
   // Use prop user or auth user
@@ -250,7 +252,7 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
             variants={ANIMATION_VARIANTS.slideUp}
             className="bg-muted/20 rounded-lg p-6 mb-8 border border-border"
           >
-            <h3 className="text-xl font-semibold text-foreground mb-4">🧠 Generate AI-Powered Problem</h3>
+            <h3 className="text-xl font-semibold text-foreground mb-4"> Generate AI-Powered Problem</h3>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="flex flex-col">
                 <label className="block text-sm font-medium text-muted-foreground mb-2">Select Topic</label>
@@ -260,14 +262,14 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
                   className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="">Select Topic</option>
-                  <optgroup label="🔥 Popular Topics">
+                  <optgroup label=" Popular Topics">
                     {popularTopics.map((topic) => (
                       <option key={topic} value={topic}>
                         {topic}
                       </option>
                     ))}
                   </optgroup>
-                  <optgroup label="📚 All Topics">
+                  <optgroup label=" All Topics">
                     {allTopics
                       .filter((topic) => !popularTopics.includes(topic))
                       .map((topic) => (
@@ -314,7 +316,7 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
                         <span className="ml-2">Generating...</span>
                       </>
                     ) : (
-                      "🚀 Generate Problem"
+                      " Generate Problem"
                     )}
                   </Button>
 
@@ -335,7 +337,7 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
                         <span className="ml-2">Creating...</span>
                       </>
                     ) : (
-                      "🎲 Quick Generate"
+                      " Quick Generate"
                     )}
                   </Button>
                 </div>
@@ -354,7 +356,7 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
 
             {recentProblems.length === 0 ? (
               <div className="text-center py-12">
-                <div className="text-6xl mb-4">🤖</div>
+                <div className="text-6xl mb-4"></div>
                 <h3 className="text-xl font-semibold text-foreground mb-2">No Problems Yet</h3>
                 <p className="text-muted-foreground mb-6">
                   Generate your first AI-powered coding problem to get started!
@@ -420,7 +422,7 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
           <motion.div variants={ANIMATION_VARIANTS.stagger} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <motion.div variants={ANIMATION_VARIANTS.slideUp}>
               <Card className="p-6 text-center hover:border-purple-400/50 transition-all duration-300 cursor-pointer">
-                <div className="text-4xl mb-4">📊</div>
+                <div className="text-4xl mb-4"></div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">Analytics Dashboard</h3>
                 <p className="text-muted-foreground text-sm mb-4">
                   Track your progress, view detailed statistics, and get AI insights
@@ -433,7 +435,7 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
 
             <motion.div variants={ANIMATION_VARIANTS.slideUp}>
               <Card className="p-6 text-center hover:border-purple-400/50 transition-all duration-300 cursor-pointer">
-                <div className="text-4xl mb-4">🎯</div>
+                <div className="text-4xl mb-4"></div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">Learning Path</h3>
                 <p className="text-muted-foreground text-sm mb-4">
                   Get AI-generated personalized learning recommendations
@@ -446,10 +448,10 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
 
             <motion.div variants={ANIMATION_VARIANTS.slideUp}>
               <Card className="p-6 text-center hover:border-purple-400/50 transition-all duration-300 cursor-pointer">
-                <div className="text-4xl mb-4">🏆</div>
+                <div className="text-4xl mb-4"></div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">My Solutions</h3>
                 <p className="text-muted-foreground text-sm mb-4">Review your submissions and AI feedback</p>
-                <Button onClick={() => (window.location.href = "/coding/solutions")} variant="outline" size="sm">
+                <Button onClick={() => navigate("/my-results", { state: { activeTab: "coding" } })} variant="outline" size="sm">
                   View Solutions
                 </Button>
               </Card>

@@ -2,7 +2,7 @@
 Teacher dashboard endpoints
 Handles teacher-specific functionality, student management, and educational tools
 """
-from fastapi import APIRouter, HTTPException, Depends, status, Query
+from fastapi import APIRouter, HTTPException, Depends, status, Query, BackgroundTasks
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from pydantic import BaseModel
@@ -14,6 +14,7 @@ from ..schemas.schemas import UserResponse
 from ..models.models import UserModel
 from ..dependencies import require_teacher_or_admin, require_batch_management, require_analytics_access, require_student, get_current_user
 from ..services.hackerearth_execution_service import hackerearth_execution_service
+from .coding import generate_ai_feedback_task
 
 router = APIRouter()
 
@@ -170,7 +171,18 @@ async def get_students(
         
         # Build query filter
         filter_dict = {"role": "student"}
-        if batch_id and batch_id != "all":
+        
+        # If no specific batch_id provided, filter by all batches taught by this teacher
+        if not batch_id or batch_id == "all":
+            # Find all batches owned by this teacher
+            teacher_batches = await db.batches.find({"teacher_id": current_user.id}).to_list(length=100)
+            teacher_batch_ids = [str(b["_id"]) for b in teacher_batches]
+            
+            if not teacher_batch_ids:
+                return {"success": True, "students": []}
+            
+            filter_dict["batch_ids"] = {"$in": teacher_batch_ids}
+        else:
             filter_dict["batch_ids"] = batch_id
         
         # Get students from database
@@ -222,7 +234,8 @@ async def get_students(
                 "lastActive": last_activity,
                 "batch": batch_name,
                 "batchId": batch_ids[0] if batch_ids else None,  # First batch for backward compatibility
-                "batchIds": batch_ids  # All batches (multi-batch support)
+                "batchIds": batch_ids,  # All batches (multi-batch support)
+                "average_score": round(progress, 2) if progress else 0 # Alias for frontend compatibility
             })
         
         return {"success": True, "students": student_list}
@@ -1061,6 +1074,7 @@ async def get_teacher_assessment_questions(
 async def submit_teacher_assessment_coding_solution(
     assessment_id: str,
     submission: TeacherAssessmentCodingSubmission,
+    background_tasks: BackgroundTasks,
     current_user: UserModel = Depends(get_current_user)
 ):
     """Submit a coding solution for a teacher assessment problem (student/teacher access)"""
@@ -1197,6 +1211,17 @@ async def submit_teacher_assessment_coding_solution(
             except Exception as session_err:
                 print(f"[WARN] [TEACHER ASSESSMENT] Failed to update session {submission.session_id}: {str(session_err)}")
 
+        # Trigger AI feedback generation in background
+        background_tasks.add_task(
+            generate_ai_feedback_task,
+            str(result.inserted_id),
+            submission.code,
+            problem.get("problem_statement", problem.get("description", "")),
+            submission.language,
+            judge_results,
+            collection_name="teacher_assessment_results"
+        )
+
         return {
             "success": True,
             "submission": {
@@ -1332,6 +1357,39 @@ async def get_teacher_assessment_results(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to get assessment results: {str(e)}")
+
+@router.get("/assessments/results/{result_id}")
+async def get_teacher_assessment_result(
+    result_id: str,
+    current_user: UserModel = Depends(get_current_user)
+):
+    """Get a specific teacher assessment result (for AI feedback polling)"""
+    try:
+        db = await get_db()
+        
+        if not ObjectId.is_valid(result_id):
+            raise HTTPException(status_code=400, detail="Invalid result ID")
+            
+        result = await db.teacher_assessment_results.find_one({"_id": ObjectId(result_id)})
+        if not result:
+            raise HTTPException(status_code=404, detail="Result not found")
+            
+        # Ensure user has access
+        if str(result["student_id"]) != str(current_user.id) and current_user.role not in ["teacher", "admin"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+            
+        # Format the result
+        result["id"] = str(result.pop("_id"))
+        
+        return {
+            "success": True,
+            "result": result
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] [TEACHER ASSESSMENT] Error getting single result: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get result: {str(e)}")
 
 # Teacher Assessment Management
 class TeacherAssessmentCreate(BaseModel):
@@ -1550,3 +1608,145 @@ async def create_teacher_assessment(
             status_code=500,
             detail=f"Failed to create assessment: {str(e)}"
         )
+
+@router.get("/batches/{batch_id}/students")
+async def get_batch_students_list(batch_id: str, current_user: UserModel = Depends(require_teacher_or_admin)):
+    """Get all students in a specific batch"""
+    try:
+        db = await get_db()
+        
+        if not ObjectId.is_valid(batch_id):
+            raise HTTPException(status_code=400, detail="Invalid batch ID")
+        
+        # Verify batch belongs to teacher
+        batch = await db.batches.find_one({
+            "_id": ObjectId(batch_id),
+            "teacher_id": str(current_user.id)
+        })
+        
+        if not batch:
+            raise HTTPException(status_code=404, detail="Batch not found")
+        
+        # Get students in this batch
+        students = await db.users.find({
+            "batch_ids": batch_id,
+            "role": "student"
+        }).to_list(length=None)
+        
+        # Format student data
+        student_list = []
+        for student in students:
+            student_list.append({
+                "id": str(student["_id"]),
+                "name": student.get("username", student.get("email", "Unknown")),
+                "email": student["email"],
+                "level": student.get("level", 1),
+                "xp": student.get("xp", 0),
+                "last_activity": student.get("last_activity", datetime.utcnow()).isoformat(),
+                "completed_assessments": student.get("completed_assessments", 0),
+                "average_score": student.get("average_score", 0)
+            })
+        
+        return {
+            "batch_id": batch_id,
+            "batch_name": batch["name"],
+            "student_count": len(student_list),
+            "students": student_list
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/batches/{batch_id}/analytics")
+async def get_single_batch_analytics(batch_id: str, current_user: UserModel = Depends(require_teacher_or_admin)):
+    """Get analytics for a specific batch"""
+    try:
+        db = await get_db()
+        
+        if not ObjectId.is_valid(batch_id):
+            raise HTTPException(status_code=400, detail="Invalid batch ID")
+        
+        # Verify batch belongs to teacher
+        batch = await db.batches.find_one({
+            "_id": ObjectId(batch_id),
+            "teacher_id": str(current_user.id)
+        })
+        
+        if not batch:
+            raise HTTPException(status_code=404, detail="Batch not found")
+        
+        # Get students in this batch
+        students = await db.users.find({
+            "batch_ids": batch_id,
+            "role": "student"
+        }).to_list(length=None)
+        
+        student_ids = [str(student["_id"]) for student in students]
+        
+        # Get submissions from these students
+        submissions = await db.assessment_submissions.find({
+            "student_id": {"$in": student_ids}
+        }).to_list(length=None)
+        
+        # Calculate analytics
+        total_students = len(students)
+        total_submissions = len(submissions)
+        
+        if total_submissions > 0:
+            average_performance = sum(sub["percentage"] for sub in submissions) / total_submissions
+            high_performers = len([s for s in submissions if s["percentage"] >= 80])
+            low_performers = len([s for s in submissions if s["percentage"] < 60])
+        else:
+            average_performance = 0
+            high_performers = 0
+            low_performers = 0
+        
+        # Get recent activity with student names
+        recent_submissions = sorted(submissions, key=lambda x: x.get("submitted_at", datetime.utcnow()), reverse=True)[:5]
+        
+        recent_activity = []
+        for sub in recent_submissions:
+            # Get student name
+            student_name = "Unknown"
+            student_id = sub.get("student_id")
+            if student_id:
+                try:
+                    if isinstance(student_id, str):
+                        student_id = ObjectId(student_id) if ObjectId.is_valid(student_id) else student_id
+                    student = await db.users.find_one({"_id": student_id})
+                    if student:
+                        student_name = student.get("full_name") or student.get("username") or student.get("email", "Unknown")
+                except:
+                    pass
+            
+            # Handle submitted_at
+            submitted_at = sub.get("submitted_at", datetime.utcnow())
+            if hasattr(submitted_at, 'isoformat'):
+                submitted_at_str = submitted_at.isoformat()
+            else:
+                submitted_at_str = str(submitted_at)
+            
+            recent_activity.append({
+                "student_name": student_name,
+                "percentage": sub.get("percentage", 0),
+                "submitted_at": submitted_at_str
+            })
+        
+        return {
+            "batch_id": batch_id,
+            "batch_name": batch["name"],
+            "total_students": total_students,
+            "total_submissions": total_submissions,
+            "average_performance": round(average_performance, 2),
+            "high_performers": high_performers,
+            "low_performers": low_performers,
+            "recent_activity": recent_activity
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] [BATCH ANALYTICS] Error: {str(e)}")
+        import traceback
+        print(f"[ERROR] [BATCH ANALYTICS] Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))

@@ -71,8 +71,9 @@ const TeacherProfile: React.FC = () => {
   
   // Profile fields
   const [fullName, setFullName] = useState(user?.full_name || user?.username || "")
-  const [email, setEmail] = useState(user?.email || "")
+  const [email] = useState(user?.email || "")
   const [bio, setBio] = useState("")
+  const [savedProfile, setSavedProfile] = useState({ fullName: "", bio: "" })
 
   useEffect(() => {
     fetchProfileData()
@@ -82,6 +83,17 @@ const TeacherProfile: React.FC = () => {
     try {
       setLoading(true)
       
+      // Fetch current user profile for bio and full name
+      const profileResponse = await api.get("/api/users/me")
+      if (profileResponse.data && profileResponse.data.user) {
+        const u = profileResponse.data.user
+        const name = u.full_name || u.username || ""
+        const b = u.bio || ""
+        setFullName(name)
+        setBio(b)
+        setSavedProfile({ fullName: name, bio: b })
+      }
+
       // Fetch batches
       const batchesResponse = await api.get("/api/teacher/batches")
       const batchesData = batchesResponse.data || []
@@ -94,7 +106,7 @@ const TeacherProfile: React.FC = () => {
       
       // Fetch students (to count total)
       const studentsResponse = await api.get("/api/teacher/students")
-      const studentsData = studentsResponse.data || []
+      const studentsData = studentsResponse.data?.students || []
       
       // Fetch assessments (teacher assessments)
       const assessmentsResponse = await api.get("/api/teacher/assessments")
@@ -105,9 +117,9 @@ const TeacherProfile: React.FC = () => {
       const totalBatches = batchesData.length
       const totalAssessments = assessmentsData.length
       
-      // Calculate average student performance (simplified)
+      // Calculate average student performance (use average_score from backend)
       const avgPerformance = studentsData.length > 0
-        ? studentsData.reduce((sum: number, s: any) => sum + (s.average_score || 0), 0) / studentsData.length
+        ? studentsData.reduce((sum: number, s: any) => sum + (s.average_score || s.progress || 0), 0) / studentsData.length
         : 0
       
       setStats({
@@ -151,10 +163,12 @@ const TeacherProfile: React.FC = () => {
   const handleSaveProfile = async () => {
     setSaving(true)
     try {
-      await api.put("/api/users/profile", {
+      await api.put("/api/users/me", {
         full_name: fullName,
         bio
       })
+      
+      setSavedProfile({ fullName, bio })
       
       success("Profile Updated", "Your profile has been updated successfully")
       setEditing(false)
@@ -167,8 +181,8 @@ const TeacherProfile: React.FC = () => {
   }
 
   const handleCancelEdit = () => {
-    setFullName(user?.full_name || user?.username || "")
-    setBio("")
+    setFullName(savedProfile.fullName)
+    setBio(savedProfile.bio)
     setEditing(false)
   }
 

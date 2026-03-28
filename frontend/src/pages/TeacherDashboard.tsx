@@ -11,7 +11,6 @@ import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
 import AnimatedBackground from "../components/AnimatedBackground"
 import { ANIMATION_VARIANTS } from "../utils/constants"
-import TeacherThinkTraceAnalytics from "../components/teacher/TeacherThinkTraceAnalytics"
 
 interface Student {
   id: string
@@ -278,21 +277,11 @@ const TeacherDashboard: React.FC = () => {
                   className="w-full bg-red-600 hover:bg-red-700"
                   onClick={() => setShowBatchModal(true)}
                 >
-                  🔴 Start Live Room
+                   Start Live Room
                 </Button>
               </Card>
             </motion.div>
 
-            {/* ThinkTrace Analytics */}
-            <motion.div variants={ANIMATION_VARIANTS.slideUp} className="mb-6 border-t border-zinc-200 dark:border-zinc-800 pt-8 mt-8">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-foreground">ThinkTrace Intelligence Insights</h2>
-                  <p className="text-sm text-muted-foreground mt-1">Class-wide cognitive tracking and adaptive interview performance.</p>
-                </div>
-              </div>
-              <TeacherThinkTraceAnalytics />
-            </motion.div>
           </Card>
         </motion.div>
       </div>

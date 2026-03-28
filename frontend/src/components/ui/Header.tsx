@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Bell, Search, Menu, LogOut, Settings, User as UserIcon, Moon, Sun } from "lucide-react"
+import { Bell, Menu, LogOut, Settings, User as UserIcon, Moon, Sun } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
 import { useTheme } from "../../contexts/ThemeContext"
 import { useNavigate, useLocation } from "react-router-dom"
@@ -66,10 +66,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
                 {/* Right Side: Actions & Profile */}
                 <div className="flex items-center gap-2 sm:gap-4">
-                    {/* Global Search (Placeholder) */}
-                    <button className="hidden sm:flex items-center justify-center h-9 w-9 rounded-full text-muted-foreground hover:bg-muted/50 transition-colors">
-                        <Search className="h-4 w-4" />
-                    </button>
 
                     {/* Theme Toggle */}
                     <button

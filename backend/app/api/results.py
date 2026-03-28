@@ -471,7 +471,8 @@ async def get_detailed_result(
             "date": submitted_iso,
             "percentage": (score / (total_questions or 1)) * 100,
             "correct_answers": correct_answers,
-            "incorrect_answers": (total_questions or 0) - correct_answers
+            "incorrect_answers": (total_questions or 0) - correct_answers,
+            "ai_feedback": result.get("ai_feedback")
         }
         
         # Generate question reviews with proper is_correct calculation

@@ -985,13 +985,20 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
                             showFolders: autocompleteEnabled,
                             showTypeParameters: autocompleteEnabled,
                             showIssues: autocompleteEnabled,
-                            showUsers: autocompleteEnabled,
                             showWords: autocompleteEnabled,
                           },
                         })
+
+                        // ── Proctoring constraints for Monaco ──
+                        editor.updateOptions({ contextmenu: false })
+                        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => showError('Copying is disabled during the assessment.'))
+                        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV, () => showError('Pasting is disabled during the assessment.'))
+                        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX, () => showError('Cutting is disabled during the assessment.'))
                       }}
                       options={{
                         // Basic editor settings
+                        dragAndDrop: false,
+                        dropIntoEditor: { enabled: false },
                         minimap: { enabled: false },
                         fontSize: 18,
                         wordWrap: "on",

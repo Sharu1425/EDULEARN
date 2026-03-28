@@ -21,10 +21,12 @@ interface Assessment {
 
 interface AssessmentHistoryProps {
   recentAssessments: Assessment[]
+  onAssessmentClick?: (assessmentId: string) => void
 }
 
 const AssessmentHistory: React.FC<AssessmentHistoryProps> = ({
-  recentAssessments
+  recentAssessments,
+  onAssessmentClick
 }) => {
   const handleViewHistory = () => {
     window.location.assign('/teacher/assessment-history')
@@ -57,7 +59,10 @@ const AssessmentHistory: React.FC<AssessmentHistoryProps> = ({
               {recentAssessments.slice(0, 5).map((assessment) => (
                 <div 
                   key={assessment.id} 
-                  className="p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                  className={`p-3 bg-muted/30 rounded-lg border border-border transition-all ${
+                    onAssessmentClick ? 'cursor-pointer hover:bg-primary/10 hover:border-primary/50' : 'hover:bg-muted/50'
+                  }`}
+                  onClick={() => onAssessmentClick?.(assessment.id)}
                 >
                   <div className="flex-1">
                     <div className="text-foreground font-semibold">{assessment.title}</div>

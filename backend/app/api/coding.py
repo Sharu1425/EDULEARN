@@ -78,6 +78,7 @@ async def generate_problem(
             "hidden_test_cases": problem_data["hidden_test_cases"],
             "expected_complexity": problem_data["expected_complexity"],
             "hints": problem_data["hints"],
+            "reference_solution": problem_data.get("reference_solution"),
             "code_templates": problem_data.get("code_templates", {}),
             "created_by": "AI",
             "created_at": datetime.utcnow(),
@@ -573,7 +574,7 @@ async def submit_solution(
             solution.language,
             execution_result["results"]
         )
-        background_tasks.add_task(update_user_analytics_task, user_id, status == "accepted")
+        background_tasks.add_task(update_user_analytics_task, user_id, str(solution.problem_id), status == "accepted")
         background_tasks.add_task(update_problem_stats_task, solution.problem_id, status == "accepted", execution_result["execution_time"])
         
         print(f"[OK] [CODING] Solution submitted - Status: {status}")
@@ -617,6 +618,68 @@ async def submit_solution(
             detail=f"Solution submission failed: {str(e)}"
         )
 
+@router.get("/submissions/user")
+async def get_user_submissions(
+    limit: int = Query(50, ge=1, le=100),
+    skip: int = Query(0, ge=0),
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get all submissions for the current user"""
+    try:
+        print(f"[LIST] [CODING] User {user_id} requesting their submissions (limit: {limit}, skip: {skip})")
+        
+        db = await get_db()
+        
+        # Get submissions with problem titles
+        submissions = await db.coding_solutions.find(
+            {"user_id": ObjectId(user_id)}
+        ).sort("submitted_at", -1).skip(skip).limit(limit).to_list(None)
+        
+        # Get all unique problem IDs to fetch their titles
+        problem_ids = list(set([sol["problem_id"] for sol in submissions]))
+        problems = await db.coding_problems.find(
+            {"_id": {"$in": problem_ids}},
+            {"title": 1, "topic": 1, "difficulty": 1}
+        ).to_list(None)
+        
+        # Create a mapping of problem_id to problem info
+        problem_map = {str(p["_id"]): p for p in problems}
+        
+        # Format response
+        formatted_submissions = []
+        for sol in submissions:
+            p_id = str(sol["problem_id"])
+            p_info = problem_map.get(p_id, {})
+            
+            formatted_submissions.append({
+                "id": str(sol["_id"]),
+                "problem_id": p_id,
+                "problem_title": p_info.get("title", "Unknown Problem"),
+                "problem_topic": p_info.get("topic", "Unknown"),
+                "problem_difficulty": p_info.get("difficulty", "medium"),
+                "status": sol["status"],
+                "language": sol["language"],
+                "submitted_at": sol["submitted_at"].isoformat() if hasattr(sol["submitted_at"], "isoformat") else str(sol["submitted_at"]),
+                "execution_time": sol.get("execution_time"),
+                "memory_used": sol.get("memory_used"),
+                "attempts": sol.get("attempts", 1)
+            })
+        
+        print(f"[OK] [CODING] Returning {len(formatted_submissions)} submissions")
+        
+        return {
+            "success": True,
+            "submissions": formatted_submissions,
+            "total": len(formatted_submissions)
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] [CODING] Error fetching user submissions: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch user submissions: {str(e)}"
+        )
+
 @router.get("/submissions/{submission_id}")
 async def get_submission(
     submission_id: str,
@@ -638,10 +701,9 @@ async def get_submission(
         if str(submission["user_id"]) != user_id:
             raise HTTPException(status_code=403, detail="Access denied")
         
-        # Get problem info
         problem = await db.coding_problems.find_one(
             {"_id": submission["problem_id"]},
-            {"title": 1, "topic": 1, "difficulty": 1}
+            {"title": 1, "topic": 1, "difficulty": 1, "description": 1, "problem_statement": 1, "reference_solution": 1}
         )
         
         submission_response = {
@@ -650,6 +712,8 @@ async def get_submission(
             "problem_title": problem["title"] if problem else "Unknown",
             "problem_topic": problem["topic"] if problem else "Unknown",
             "problem_difficulty": problem["difficulty"] if problem else "Unknown",
+            "problem_description": problem.get("description") or problem.get("problem_statement") if problem else "",
+            "reference_solution": problem.get("reference_solution") if problem else None,
             "code": submission["code"],
             "language": submission["language"],
             "status": submission["status"],
@@ -1017,7 +1081,8 @@ async def generate_ai_feedback_task(
     code: str,
     problem_description: str,
     language: str,
-    test_results: List[Dict[str, Any]]
+    test_results: List[Dict[str, Any]],
+    collection_name: str = "coding_solutions"
 ):
     """Background task to generate AI feedback for a submission"""
     try:
@@ -1033,7 +1098,7 @@ async def generate_ai_feedback_task(
         
         # Update submission with AI feedback
         db = await get_db()
-        await db.coding_solutions.update_one(
+        await db[collection_name].update_one(
             {"_id": ObjectId(submission_id)},
             {
                 "$set": {
@@ -1048,10 +1113,10 @@ async def generate_ai_feedback_task(
     except Exception as e:
         print(f"[ERROR] [BACKGROUND] Error generating AI feedback: {str(e)}")
 
-async def update_user_analytics_task(user_id: str, solved: bool):
-    """Background task to update user analytics"""
+async def update_user_analytics_task(user_id: str, problem_id: str, solved: bool):
+    """Background task to update user analytics tracking unique problems"""
     try:
-        print(f"[STATS] [BACKGROUND] Updating analytics for user: {user_id}")
+        print(f"[STATS] [BACKGROUND] Updating analytics for user: {user_id}, problem: {problem_id}")
         
         db = await get_db()
         
@@ -1059,11 +1124,13 @@ async def update_user_analytics_task(user_id: str, solved: bool):
         analytics = await db.coding_analytics.find_one({"user_id": ObjectId(user_id)})
         
         if not analytics:
-            # Create new analytics
+            # Create new analytics with sets for unique tracking
             analytics_doc = {
                 "user_id": ObjectId(user_id),
                 "total_problems_solved": 1 if solved else 0,
                 "total_problems_attempted": 1,
+                "attempted_problem_ids": [ObjectId(problem_id)],
+                "solved_problem_ids": [ObjectId(problem_id)] if solved else [],
                 "success_rate": 100.0 if solved else 0.0,
                 "average_time_per_problem": 0.0,
                 "skill_level": "beginner",
@@ -1077,21 +1144,38 @@ async def update_user_analytics_task(user_id: str, solved: bool):
             }
             await db.coding_analytics.insert_one(analytics_doc)
         else:
-            # Update existing analytics
-            new_attempted = analytics["total_problems_attempted"] + 1
-            new_solved = analytics["total_problems_solved"] + (1 if solved else 0)
-            new_success_rate = (new_solved / new_attempted) * 100
+            # Update existing analytics using $addToSet for uniqueness
+            update_ops = {
+                "$addToSet": {"attempted_problem_ids": ObjectId(problem_id)},
+                "$set": {"last_updated": datetime.utcnow()}
+            }
             
-            # Streak tracking removed per user request
+            if solved:
+                if "$addToSet" not in update_ops:
+                    update_ops["$addToSet"] = {}
+                update_ops["$addToSet"]["solved_problem_ids"] = ObjectId(problem_id)
+            
+            # Perform the set updates first
+            await db.coding_analytics.update_one(
+                {"user_id": ObjectId(user_id)},
+                update_ops
+            )
+            
+            # Recalculate total counts from the sets
+            # This is more robust than simple incrementing
+            updated_analytics = await db.coding_analytics.find_one({"user_id": ObjectId(user_id)})
+            
+            attempted_count = len(updated_analytics.get("attempted_problem_ids", []))
+            solved_count = len(updated_analytics.get("solved_problem_ids", []))
+            success_rate = (solved_count / attempted_count * 100) if attempted_count > 0 else 0
             
             await db.coding_analytics.update_one(
                 {"user_id": ObjectId(user_id)},
                 {
                     "$set": {
-                        "total_problems_solved": new_solved,
-                        "total_problems_attempted": new_attempted,
-                        "success_rate": new_success_rate,
-                        "last_updated": datetime.utcnow()
+                        "total_problems_attempted": attempted_count,
+                        "total_problems_solved": solved_count,
+                        "success_rate": success_rate
                     }
                 }
             )

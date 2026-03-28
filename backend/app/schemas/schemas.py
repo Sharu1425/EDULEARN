@@ -50,14 +50,16 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
     profile_picture: Optional[str] = None
     bio: Optional[str] = None
     preferences: Optional[Dict[str, Any]] = None
 
 class UserResponse(UserBase):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    full_name: Optional[str] = None
     is_active: bool = True
-    created_at: datetime
+    created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     last_login: Optional[datetime] = None
     profile_picture: Optional[str] = None
@@ -198,6 +200,7 @@ class CodingQuestionResponse(BaseModel):
     time_limit: int
     memory_limit: int
     test_cases: List[Dict[str, Any]]
+    reference_solution: Optional[str] = None
 
 class CodingSubmission(BaseModel):
     question_id: str
@@ -260,6 +263,7 @@ class StudentNotification(BaseModel):
 class CodingProblemCreate(BaseModel):
     title: str
     description: str
+    reference_solution: Optional[str] = None
 
 class CodingSolutionSubmit(BaseModel):
     problem_id: str

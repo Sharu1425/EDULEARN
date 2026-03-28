@@ -585,6 +585,7 @@ class GeminiCodingService:
                     "time": "O(n)",
                     "space": "O(1)"
                 }},
+                "reference_solution": "Full correct implementation here",
                 "code_templates": {{
                     "python": "# Complete the solve function below\\n# Input will be automatically parsed and passed to your function\\ndef solve(input_data):\\n    # TODO: Implement your solution here\\n    # input_data contains the parsed input (array, string, number, etc.)\\n    # Return the result as specified in the problem\\n    pass\\n\\n# DO NOT MODIFY BELOW THIS LINE\\n# The code below handles input parsing and output printing automatically\\nimport sys\\nimport json\\n\\nif __name__ == '__main__':\\n    # Read input from stdin\\n    input_str = sys.stdin.read().strip()\\n    \\n    # Parse input based on format\\n    try:\\n        input_data = json.loads(input_str)\\n    except:\\n        input_data = input_str\\n    \\n    # Call your function\\n    result = solve(input_data)\\n    \\n    # Print result\\n    print(json.dumps(result) if not isinstance(result, str) else result)",
                     "javascript": "// Complete the solve function below\\n// Input will be automatically parsed and passed to your function\\nfunction solve(inputData) {{\\n    // TODO: Implement your solution here\\n    // inputData contains the parsed input (array, string, number, etc.)\\n    // Return the result as specified in the problem\\n}}\\n\\n// DO NOT MODIFY BELOW THIS LINE\\n// The code below handles input parsing and output printing automatically\\nconst fs = require('fs');\\nconst input = fs.readFileSync(0, 'utf-8').trim();\\n\\nlet inputData;\\ntry {{\\n    inputData = JSON.parse(input);\\n}} catch {{\\n    inputData = input;\\n}}\\n\\nconst result = solve(inputData);\\nconsole.log(typeof result === 'string' ? result : JSON.stringify(result));",
@@ -667,6 +668,7 @@ class GeminiCodingService:
                 problem_data.setdefault('hints', ["Try to solve it step by step"])
                 problem_data.setdefault('tags', [topic.lower()])
                 problem_data.setdefault('expected_complexity', {"time": "O(n)", "space": "O(1)"})
+                problem_data.setdefault('reference_solution', "// Solution unavailable")
                 problem_data.setdefault('code_templates', self._get_default_templates())
                 
                 # Ensure test_cases and hidden_test_cases are not empty

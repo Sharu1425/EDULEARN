@@ -92,6 +92,8 @@ export interface CodingSolutionResponse {
   problem_title: string;
   problem_topic: string;
   problem_difficulty: string;
+  problem_description?: string;
+  reference_solution?: string;
   code: string;
   language: string;
   status: string;

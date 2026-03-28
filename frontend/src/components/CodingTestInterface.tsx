@@ -3,11 +3,13 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Code, Play, CheckCircle, XCircle, Clock, Lightbulb } from "lucide-react"
+import { Code, Play, CheckCircle, Clock, Lightbulb } from "lucide-react"
 import { useToast } from "../contexts/ToastContext"
 import { useTheme } from "../contexts/ThemeContext"
 import { Editor } from "@monaco-editor/react"
 import api from "../utils/api"
+import { useProctoring } from "../hooks/useProctoring"
+import ProctoringOverlay from "./ui/ProctoringOverlay"
 
 interface TestCase {
   input: string | any
@@ -43,6 +45,19 @@ interface CodingTestInterfaceProps {
 const CodingTestInterface: React.FC<CodingTestInterfaceProps> = ({ assessmentId, question, onComplete }) => {
   const { success, error: showError, info } = useToast()
   const { colorScheme } = useTheme()
+
+  // ── Proctoring ──────────────────────────────────────────────────────────
+  const { violationCount, isWarningVisible, dismissWarning, lastViolationType } = useProctoring({
+    maxViolations: 3,
+    onAutoSubmit: () => {
+      // Automatically triggers handleSubmit without waiting for user action
+      if (!submitting) {
+        handleSubmit()
+      }
+    },
+    enabled: true,
+  })
+  const MAX_VIOLATIONS = 3;
   const [code, setCode] = useState("")
   const [language, setLanguage] = useState("python")
   const [executing, setExecuting] = useState(false)
@@ -59,34 +74,6 @@ const CodingTestInterface: React.FC<CodingTestInterfaceProps> = ({ assessmentId,
     { value: "java", label: "Java (OpenJDK)", template: "// Write your solution here\npublic class Main {\n    public static void main(String[] args) {\n        // Your code here\n    }\n}" },
   ]
 
-  const defaultCode = {
-    python: `# Write your solution here
-def solution():
-    # Your code here
-    pass`,
-    c: `// Write your solution here
-#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-    // Your code here
-    return 0;
-}`,
-    cpp: `// Write your solution here
-#include <iostream>
-using namespace std;
-
-int main() {
-    // Your code here
-    return 0;
-}`,
-    java: `// Write your solution here
-public class Main {
-    public static void main(String[] args) {
-        // Your code here
-    }
-}`,
-  }
 
   const getMonacoLanguage = (lang: string) => {
     const languageMap: { [key: string]: string } = {
@@ -245,13 +232,15 @@ public class Main {
         return
       }
 
-      const passedTests = (exec.results || []).filter((r: any) => r.passed).length
-      const totalTests = (exec.results || []).length
-
-      if (passedTests < totalTests) {
-        showError(`Only ${passedTests}/${totalTests} test cases passed. Fix your solution before submitting.`)
-        setTestResults(exec.results || [])
-        return
+      // We now allow submission even if some test cases fail
+      const results = exec.results || []
+      const passedCount = results.filter((r: any) => r.passed).length
+      const totalCount = results.length
+      
+      setTestResults(results)
+      
+      if (passedCount < totalCount) {
+        info(`Submitted with ${passedCount}/${totalCount} test cases passed.`)
       }
 
       // Now submit to teacher assessment
@@ -314,6 +303,15 @@ public class Main {
 
   return (
     <div className="min-h-screen pt-20 px-4">
+      {/* Proctoring Warning Overlay */}
+      <ProctoringOverlay
+        isVisible={isWarningVisible}
+        violationCount={violationCount}
+        maxViolations={MAX_VIOLATIONS}
+        lastViolationType={lastViolationType}
+        onDismiss={dismissWarning}
+      />
+
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -492,7 +490,16 @@ public class Main {
                 theme={colorScheme === "dark" ? "vs-dark" : "light"}
                 value={code}
                 onChange={(value) => setCode(value || "")}
+                onMount={(editor, monaco) => {
+                  // ── Proctoring constraints for Monaco ──
+                  editor.updateOptions({ contextmenu: false })
+                  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => showError('Copying is disabled during the assessment.'))
+                  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV, () => showError('Pasting is disabled during the assessment.'))
+                  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX, () => showError('Cutting is disabled during the assessment.'))
+                }}
                 options={{
+                  dragAndDrop: false,
+                  dropIntoEditor: { enabled: false },
                   minimap: { enabled: false },
                   fontSize: 14,
                   wordWrap: "on",

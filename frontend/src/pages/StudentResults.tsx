@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import type { TestResult } from "../types"
 import { useAuth } from "../hooks/useAuth"
 import Card from "../components/ui/Card"
@@ -30,7 +30,8 @@ interface ThinkTraceSession {
 
 const StudentResults: React.FC = () => {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState<Tab>("mcq")
+  const location = useLocation()
+  const [activeTab, setActiveTab] = useState<Tab>(location.state?.activeTab || "mcq")
 
   // MCQ data
   const [mcqResults, setMcqResults] = useState<TestResult[]>([])
@@ -41,6 +42,10 @@ const StudentResults: React.FC = () => {
   const [ttSessions, setTtSessions] = useState<ThinkTraceSession[]>([])
   const [ttLoading, setTtLoading] = useState(true)
   const [ttError, setTtError] = useState<string | null>(null)
+  // Coding data
+  const [codingResults, setCodingResults] = useState<any[]>([])
+  const [codingLoading, setCodingLoading] = useState(true)
+  const [codingError, setCodingError] = useState<string | null>(null)
 
   // Stats (MCQ-based)
   const [stats, setStats] = useState({ averageScore: 0, totalAttempts: 0, topicsStudied: 0, bestScore: 0 })
@@ -49,6 +54,7 @@ const StudentResults: React.FC = () => {
     if (user?._id || user?.id) {
       fetchMcqResults()
       fetchThinkTraceSessions()
+      fetchCodingHistory()
     }
   }, [user?._id, user?.id])
 
@@ -63,15 +69,20 @@ const StudentResults: React.FC = () => {
         const results = response.data.results || []
         setMcqResults(results)
         if (results.length > 0) {
-          const totalScore = results.reduce((sum: number, r: TestResult) => sum + (r.score / r.total_questions) * 100, 0)
-          const uniqueTopics = new Set(results.map((r: TestResult) => r.topic))
-          const best = Math.max(...results.map((r: TestResult) => (r.score / r.total_questions) * 100))
+          const validResults = results.filter((r: TestResult) => r.total_questions > 0);
+          
+          const totalScore = validResults.reduce((sum: number, r: TestResult) => sum + (r.score / r.total_questions) * 100, 0);
+          const uniqueTopics = new Set(results.map((r: TestResult) => r.topic));
+          
+          const scores = validResults.map((r: TestResult) => (r.score / r.total_questions) * 100);
+          const best = scores.length > 0 ? Math.max(...scores) : 0;
+          
           setStats({
-            averageScore: Math.round(totalScore / results.length),
+            averageScore: validResults.length > 0 ? Math.round(totalScore / validResults.length) : 0,
             totalAttempts: results.length,
             topicsStudied: uniqueTopics.size,
             bestScore: Math.round(best),
-          })
+          });
         }
       } else {
         throw new Error(response.data.error || "Failed to fetch results")
@@ -96,10 +107,25 @@ const StudentResults: React.FC = () => {
     }
   }
 
+  const fetchCodingHistory = async () => {
+    try {
+      setCodingLoading(true)
+      setCodingError(null)
+      const response = await api.get("/api/coding/submissions/user")
+      if (response.data.success) {
+        setCodingResults(response.data.submissions || [])
+      }
+    } catch (err: any) {
+      setCodingError(err.response?.data?.detail || err.message || "Failed to fetch coding history")
+    } finally {
+      setCodingLoading(false)
+    }
+  }
+
   const tabs = [
     { id: "mcq" as Tab, label: "MCQ Assessment", icon: <BookOpen className="w-4 h-4" />, count: mcqResults.length },
     { id: "thinktrace" as Tab, label: "ThinkTrace", icon: <Brain className="w-4 h-4" />, count: ttSessions.length },
-    { id: "coding" as Tab, label: "Coding", icon: <Code2 className="w-4 h-4" />, count: 0 },
+    { id: "coding" as Tab, label: "Coding", icon: <Code2 className="w-4 h-4" />, count: codingResults.length },
   ]
 
   const statCards = [
@@ -308,14 +334,74 @@ const StudentResults: React.FC = () => {
                 <Code2 className="w-6 h-6 text-blue-500" />
                 Coding Challenge History
               </h3>
-              <div className="text-center py-12">
-                <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">💻</div>
-                <h4 className="text-lg font-semibold text-foreground mb-2">Coding results coming soon</h4>
-                <p className="text-muted-foreground mb-6">Your coding challenge history will appear here once you complete coding problems.</p>
-                <Link to="/coding/problems">
-                  <Button variant="primary" className="!bg-gradient-to-r !from-blue-600 !to-cyan-600">Browse Coding Problems</Button>
-                </Link>
-              </div>
+
+              {codingLoading ? (
+                <div className="flex justify-center py-16"><LoadingSpinner size="lg" text="Loading coding history..." /></div>
+              ) : codingError ? (
+                <ErrorState title="Failed to Load" message={codingError} onRetry={fetchCodingHistory} retryText="Retry" />
+              ) : codingResults.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">💻</div>
+                  <h4 className="text-lg font-semibold text-foreground mb-2">No coding challenges yet</h4>
+                  <p className="text-muted-foreground mb-6">Solve a coding problem to see your results here.</p>
+                  <Link to="/coding">
+                    <Button variant="primary" className="!bg-gradient-to-r !from-blue-600 !to-cyan-600">Browse Coding problems</Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {codingResults.map((sol, index) => {
+                    const isAccepted = sol.status === "accepted"
+                    const statusText = sol.status.replace(/_/g, " ").toUpperCase()
+                    
+                    return (
+                      <Link key={sol.id} to={`/coding-results`} state={{ ...sol, isHistory: true }} className="block">
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.04 }}
+                          className="p-5 rounded-xl bg-card border border-border/50 hover:bg-muted/30 hover:shadow-md transition-all duration-300 flex items-center justify-between"
+                        >
+                          <div className="flex-1 min-w-0 pr-4">
+                            <h4 className="text-base font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                              {sol.problem_title}
+                            </h4>
+                            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5" />
+                                {new Date(sol.submitted_at).toLocaleDateString()}
+                              </span>
+                              <span className="w-1 h-1 rounded-full bg-border" />
+                              <span className="capitalize">{sol.problem_difficulty}</span>
+                              <span className="w-1 h-1 rounded-full bg-border" />
+                              <span>{sol.language}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 shrink-0">
+                            <div className="text-right hidden sm:block">
+                              <p className={`text-xs font-bold uppercase tracking-wider ${
+                                isAccepted ? "text-green-500" : "text-red-500"
+                              }`}>
+                                {statusText}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground uppercase font-semibold">
+                                Attempt {sol.attempts}
+                              </p>
+                            </div>
+                            <div className={`flex items-center justify-center w-12 h-12 rounded-lg border ${
+                              isAccepted 
+                                ? "text-green-600 dark:text-green-400 bg-green-500/10 border-green-500/20" 
+                                : "text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/20"
+                            }`}>
+                              {isAccepted ? "✓" : "✗"}
+                            </div>
+                          </div>
+                        </motion.div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
             </Card>
           )}
         </motion.div>

@@ -6,7 +6,7 @@ import { CheckCircle, XCircle, Clock, Trophy, Target, TrendingUp } from "lucide-
 
 interface QuestionResult {
   question: string
-  options: string[]
+  options?: string[]
   correct_answer: number
   user_answer: number
   explanation?: string
@@ -148,7 +148,7 @@ const AssessmentResults: React.FC<AssessmentResultsProps> = ({ result, onClose }
                   </h4>
 
                   <div className="space-y-2">
-                    {question.options.map((option, optIndex) => (
+                    {question.options?.map((option, optIndex) => (
                       <div
                         key={optIndex}
                         className={`p-2 rounded text-sm ${

@@ -268,6 +268,14 @@ class AssessmentService {
     const response = await api.post(`/api/assessments/notifications/${notificationId}/read`);
     return response.data;
   }
+
+  /**
+   * Get specific assessment result by ID
+   */
+  async getAssessmentResult(resultId: string): Promise<any> {
+    const response = await api.get(`/api/teacher/assessments/results/${resultId}`);
+    return response.data;
+  }
 }
 
 export default new AssessmentService();

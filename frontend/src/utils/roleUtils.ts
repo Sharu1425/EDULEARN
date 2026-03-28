@@ -209,8 +209,6 @@ export const getSidebarNavItems = (user: User | null): SidebarNavItem[] => {
       { path: "/teacher-dashboard", label: "Dashboard", icon: "LayoutDashboard", exact: true },
       { path: "/teacher/assessment-management", label: "Assessments", icon: "ClipboardList" },
       { path: "/teacher/student-management", label: "Students", icon: "Users" },
-      { path: "/teacher/create-schedule", label: "Schedule", icon: "CalendarDays" },
-      { path: "/teacher/batch-analytics", label: "Analytics", icon: "BarChart3" },
       { path: "/teacher/results-dashboard", label: "Results", icon: "Trophy" },
       { path: "/profile", label: "Profile", icon: "User" },
       { path: "/settings", label: "Settings", icon: "Settings" },

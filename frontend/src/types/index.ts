@@ -4,6 +4,8 @@ export interface User {
   username?: string;
   email: string;
   name?: string;
+  full_name?: string;
+  bio?: string;
   profile_picture?: string;
   is_admin?: boolean;
   role?: string;
@@ -12,13 +14,15 @@ export interface User {
 
 export interface Question {
   question: string;
-  options: string[];
+  options?: string[]; // Optional for coding questions
   answer: string | number;
   correct_answer?: number; // Index of correct answer
   explanation?: string;
   id?: string;
   difficulty?: string;
   topic?: string;
+  type?: string; // e.g. 'mcq' or 'coding'
+  reference_solution?: string;
 }
 
 export interface AssessmentConfig {
@@ -63,6 +67,7 @@ export interface QuestionReview {
   user_answer: string;
   is_correct: boolean;
   explanation?: string;
+  reference_solution?: string;
 }
 
 export interface DetailedResultResponse {

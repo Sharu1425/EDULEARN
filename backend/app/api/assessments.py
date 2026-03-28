@@ -709,6 +709,21 @@ async def get_class_performance_overview(user: UserModel = Depends(require_teach
         # Get all students
         students = await db.users.find({"role": "student"}).to_list(length=None)
         
+        def parse_date(date_val):
+            if isinstance(date_val, datetime):
+                return date_val
+            if isinstance(date_val, str):
+                try:
+                    # Handle Z notation
+                    clean_date = date_val.replace('Z', '+00:00')
+                    # Handle missing timezone offset length
+                    if '+' in clean_date and len(clean_date.split('+')[1]) == 4:
+                        clean_date = clean_date[:-2] + ':' + clean_date[-2:]
+                    return datetime.fromisoformat(clean_date)
+                except ValueError:
+                    return datetime.min
+            return datetime.min
+            
         class_performance = []
         total_students = len(students)
         
@@ -766,7 +781,7 @@ async def get_class_performance_overview(user: UserModel = Depends(require_teach
             total_assessments = len(all_results)
             if total_assessments > 0:
                 average_score = sum([r["percentage"] for r in all_results]) / total_assessments
-                recent_scores = [r["percentage"] for r in sorted(all_results, key=lambda x: x.get("submitted_at", datetime.min), reverse=True)[:5]]
+                recent_scores = [r["percentage"] for r in sorted(all_results, key=lambda x: parse_date(x.get("submitted_at")), reverse=True)[:5]]
                 recent_average = sum(recent_scores) / len(recent_scores) if recent_scores else 0
                 
                 # Subject breakdown
@@ -782,16 +797,20 @@ async def get_class_performance_overview(user: UserModel = Depends(require_teach
                     subject_averages[subject] = sum(scores) / len(scores)
                 
                 class_performance.append({
+                    "id": student_id,
                     "student_id": student_id,
+                    "name": student.get("name") or student.get("username", student.get("email", "Unknown")),
                     "student_name": student.get("name") or student.get("username", ""),
+                    "email": student.get("email", ""),
                     "student_email": student.get("email", ""),
-                    "batch": student.get("batch_name", ""),
+                    "batch": student.get("batch_name", "No Batch"),
+                    "batch_id": student.get("batch_ids", [None])[0] if student.get("batch_ids") else "",
                     "batch_ids": student.get("batch_ids", []),
                     "total_assessments": total_assessments,
                     "average_score": round(average_score, 2),
                     "recent_average": round(recent_average, 2),
                     "subject_averages": subject_averages,
-                    "last_activity": max([r.get("submitted_at", datetime.min) for r in all_results]) if all_results else None,
+                    "last_activity": max([parse_date(r.get("submitted_at")) for r in all_results]).isoformat() if all_results else None,
                     "performance_trend": "improving" if recent_average > average_score else "declining" if recent_average < average_score else "stable"
                 })
         
@@ -808,6 +827,17 @@ async def get_class_performance_overview(user: UserModel = Depends(require_teach
             top_performers = []
             struggling_students = []
         
+        # Count students active in the last 7 days
+        active_students = 0
+        for s in class_performance:
+            if s.get("last_activity"):
+                try:
+                    last_dt = parse_date(s.get("last_activity"))
+                    if last_dt != datetime.min and (datetime.utcnow() - last_dt.replace(tzinfo=None)).days <= 7:
+                        active_students += 1
+                except Exception:
+                    pass
+        
         return {
             "success": True,
             "class_statistics": {
@@ -815,7 +845,7 @@ async def get_class_performance_overview(user: UserModel = Depends(require_teach
                 "class_average": round(class_average, 2),
                 "top_performers": top_performers,
                 "struggling_students": struggling_students,
-                "students_with_recent_activity": len([s for s in class_performance if s.get("last_activity") and (datetime.utcnow() - s["last_activity"]).days <= 7])
+                "students_with_recent_activity": active_students
             },
             "student_performance": class_performance
         }
@@ -944,7 +974,23 @@ async def get_student_detailed_results(
                 })
         
         # Sort by submission date (most recent first)
-        all_results.sort(key=lambda x: x.get("submitted_at", datetime.min), reverse=True)
+        def parse_date_local(date_val):
+            if isinstance(date_val, datetime):
+                return date_val
+            if isinstance(date_val, str):
+                try:
+                    clean_date = date_val.replace('Z', '+00:00')
+                    return datetime.fromisoformat(clean_date)
+                except ValueError:
+                    return datetime.min
+            return datetime.min
+        
+        # Convert all submitted_at to strings for JSON serialization
+        for r in all_results:
+            if isinstance(r.get("submitted_at"), datetime):
+                r["submitted_at"] = r["submitted_at"].isoformat()
+        
+        all_results.sort(key=lambda x: parse_date_local(x.get("submitted_at")), reverse=True)
         
         # Calculate performance insights
         total_assessments = len(all_results)
@@ -1053,6 +1099,11 @@ async def get_assessment_analytics(
                     "questions": submission.get("questions", [])
                 })
         
+        # Convert all submitted_at to strings for JSON serialization
+        for r in all_submissions:
+            if isinstance(r.get("submitted_at"), datetime):
+                r["submitted_at"] = r["submitted_at"].isoformat()
+                
         if not all_submissions:
             return {
                 "success": True,
