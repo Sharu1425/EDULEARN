@@ -1037,7 +1037,8 @@ async def get_assessment_results_list(
                     "total_questions": sub.get("total_questions", 0),
                     "percentage": sub.get("percentage", 0),
                     "time_taken": sub.get("time_taken", 0),
-                    "submitted_at": submitted_at_str
+                    "submitted_at": submitted_at_str,
+                    "is_malpractice": sub.get("is_malpractice", False)
                 })
             except Exception as e:
                 print(f"⚠️ [RESULTS] Error formatting submission: {e}")
@@ -1115,7 +1116,8 @@ async def get_assigned_students_with_results(
                 "score": sub.get("score", 0),
                 "percentage": sub.get("percentage", 0.0),
                 "time_taken": sub.get("time_taken", 0),
-                "submitted_at": sub.get("submitted_at")
+                "submitted_at": sub.get("submitted_at"),
+                "is_malpractice": sub.get("is_malpractice", False)
             }
             submissions_by_student[sid_str] = submission_data
             if ObjectId.is_valid(sid_str):
@@ -1132,7 +1134,8 @@ async def get_assigned_students_with_results(
                     "score": sub.get("score", 0),
                     "percentage": sub.get("percentage", 0.0),
                     "time_taken": sub.get("time_taken", 0),
-                    "submitted_at": sub.get("submitted_at")
+                    "submitted_at": sub.get("submitted_at"),
+                    "is_malpractice": sub.get("is_malpractice", False)
                 }
                 submissions_by_student[sid_str] = submission_data
                 if ObjectId.is_valid(sid_str):
@@ -1167,6 +1170,7 @@ async def get_assigned_students_with_results(
                                     "total_questions": assessment.get("question_count", len(assessment.get("questions", []))),
                                     "percentage": submission.get("percentage", 0) if submission else 0,
                                     "time_taken": submission.get("time_taken", 0) if submission else 0,
+                                    "is_malpractice": submission.get("is_malpractice", False) if submission else False,
                                     "submitted_at": (submission.get("submitted_at").isoformat() if hasattr(submission.get("submitted_at"), "isoformat") else submission.get("submitted_at")) if submission and submission.get("submitted_at") else None,
                                 })
                         except Exception as e:

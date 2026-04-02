@@ -232,4 +232,19 @@ class ThinkTraceSessionModel(BaseModel):
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str}
     )
+
+class ActiveSessionModel(BaseModel):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    assessment_id: str
+    student_id: str
+    session_token: str
+    started_at: datetime = Field(default_factory=datetime.utcnow)
+    last_heartbeat: datetime = Field(default_factory=datetime.utcnow)
+    is_active: bool = True
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
 

@@ -19,6 +19,7 @@ from .notifications import create_assessment_completion_notification
 
 # Added import for logging
 import logging
+import random
 logger = logging.getLogger(__name__)
 
 
@@ -453,6 +454,51 @@ async def submit_assessment(
         questions = assessment.get("questions", [])
         if not questions:
             raise HTTPException(status_code=400, detail="Assessment has no questions")
+            
+        # Check active session heartbeat
+        session = await db.active_sessions.find_one({
+             "student_id": str(user.id), 
+             "assessment_id": assessment_id, 
+             "is_active": True
+        })
+        if session:
+             time_diff = (datetime.utcnow() - session.get("last_heartbeat", datetime.utcnow())).total_seconds()
+             if time_diff > 90:
+                 logger.warning(f"Student {user.id} heartbeat missing for {time_diff}s!")
+                 # Mark submission as suspicious (add to violations)
+                 if not hasattr(submission_data, 'violations'):
+                     submission_data.violations = []
+                 submission_data.violations.append({
+                     "type": "heartbeat_timeout",
+                     "detail": f"No heartbeat for {time_diff}s",
+                     "strike_number": 1,
+                     "timestamp": datetime.utcnow().isoformat()
+                 })
+             
+             # Deactivate session
+             await db.active_sessions.update_one(
+                 {"_id": session["_id"]},
+                 {"$set": {"is_active": False}}
+             )
+
+        # Re-apply the deterministic shuffle for grading
+        pool_size = assessment.get("pool_size", 10)
+        random.seed(f"{user.id}_{assessment_id}")
+        random.shuffle(questions)
+        if len(questions) > pool_size:
+            questions = questions[:pool_size]
+            
+        for q in questions:
+            if q.get("type") in ["mcq", "multiple_choice"] and "options" in q:
+                options = q["options"]
+                correct_ans = q.get("correct_answer")
+                if isinstance(correct_ans, int) and 0 <= correct_ans < len(options):
+                    correct_text = options[correct_ans]
+                    # Shuffle options using the same seed state
+                    random.shuffle(options)
+                    # Find new index of the correct answer
+                    q["correct_answer"] = options.index(correct_text)
+                    q["options"] = options
 
         # Calculate score
         correct_answers = 0
@@ -507,6 +553,9 @@ async def submit_assessment(
             "total_questions": total_questions,
             "questions": questions,
             "user_answers": user_answers_text, # Text answers
+            "is_malpractice": submission_data.is_malpractice,
+            "violations": submission_data.violations if hasattr(submission_data, 'violations') else [],
+            "answers_timing": submission_data.answers_timing if hasattr(submission_data, 'answers_timing') else []
         }
         if not is_teacher_assessment:
              submission_doc["attempt_number"] = 1 # Only for regular assessments?
@@ -723,7 +772,7 @@ async def get_assessment_leaderboard(assessment_id: str, user: UserModel = Depen
 
 async def execute_code(code: str, language: str, test_cases: List[Dict]) -> Dict:
     """Execute code and return results (placeholder implementation)"""
-    # Replace with your actual code execution service logic (e.g., Judge0 call)
+    # Replace with your actual code execution service logic (e.g., HackerEarth call)
     logger.warning("Using placeholder execute_code function.")
     passed_count = 0
     results = []

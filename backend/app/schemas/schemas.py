@@ -3,7 +3,7 @@ Pydantic schemas for request/response validation
 Contains all API request and response models
 """
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 from bson import ObjectId
 from enum import Enum
@@ -133,12 +133,15 @@ class AssessmentResponse(BaseModel):
 class AssessmentSubmission(BaseModel):
     assessment_id: str
     student_id: str
-    answers: List[int]
+    answers: List[Union[int, str]]
     score: int
     percentage: float
     time_taken: int
     submitted_at: datetime
     is_completed: bool = True
+    violations: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+    answers_timing: Optional[List[int]] = Field(default_factory=list)
+    is_malpractice: bool = False
 
 class AssessmentSubmissionResponse(BaseModel):
     id: str
@@ -151,6 +154,7 @@ class AssessmentSubmissionResponse(BaseModel):
     time_taken: int
     submitted_at: str
     total_questions: int
+    is_malpractice: bool = False
 
 # Student Assessment Access
 class StudentAssessment(BaseModel):

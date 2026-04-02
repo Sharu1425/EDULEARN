@@ -20,7 +20,7 @@ Before you begin, ensure you have the following installed:
 - **Python 3.8+** (Python 3.10+ recommended)
 - **MongoDB 4.4+** (Local installation or MongoDB Atlas account)
 - **Google Gemini API Key** (for AI question generation)
-- **Judge0 API Key** (Optional, for code execution - can use RapidAPI)
+- **HackerEarth API Key** (Optional, for code execution)
 
 ### System Requirements
 
@@ -145,10 +145,9 @@ GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 # Get OAuth credentials from: https://console.cloud.google.com/apis/credentials
 
-# Code Execution - Judge0 API (Optional)
-JUDGE0_API_KEY=your-judge0-api-key
-JUDGE0_API_HOST=judge0-ce.p.rapidapi.com
-# Get API key from: https://rapidapi.com/judge0-official/api/judge0-ce
+# Code Execution - HackerEarth API (Optional)
+HACKEREARTH_CLIENT_SECRET=your-hackerearth-client-secret
+# Get API secret from: https://www.hackerearth.com/docs/wiki/developers/v4/
 
 # Application Settings
 DEBUG=false
@@ -164,10 +163,9 @@ APP_VERSION=1.0.0
    - Create new API key
    - Copy and paste into `.env`
 
-2. **Judge0 API Key** (for code execution):
-   - Visit [RapidAPI Judge0](https://rapidapi.com/judge0-official/api/judge0-ce)
-   - Sign up/login to RapidAPI
-   - Subscribe to Judge0 API
+2. **HackerEarth API Key** (for code execution):
+   - Visit [HackerEarth API v4](https://www.hackerearth.com/docs/wiki/developers/v4/)
+   - Subscribe and get your Client Secret
    - Copy API key to `.env`
 
 3. **Google OAuth Credentials** (optional):
@@ -240,7 +238,7 @@ backend/
 │   ├── schemas/              # Pydantic schemas
 │   ├── services/             # Business logic
 │   │   ├── gemini_coding_service.py
-│   │   ├── judge0_execution_service.py
+│   │   ├── hackerearth_execution_service.py
 │   │   └── ...
 │   ├── utils/                # Utility functions
 │   └── main.py               # FastAPI app instance
@@ -434,8 +432,8 @@ Ensure all production environment variables are set:
    - Ensure internet connection
 
 7. **Code Execution Errors**
-   - Verify `JUDGE0_API_KEY` is set
-   - Check Judge0 API status
+   - Verify `HACKEREARTH_CLIENT_SECRET` is set
+   - Check HackerEarth API status
    - Verify API host configuration
 
 ### Debug Mode

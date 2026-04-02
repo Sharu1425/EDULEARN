@@ -11,9 +11,16 @@ from ...schemas.schemas import (
     AssessmentCreate, AssessmentResponse, QuestionCreate, QuestionResponse,
     CodingQuestionCreate, CodingQuestionResponse
 )
+from pydantic import BaseModel
 from ...dependencies import require_teacher, get_current_user
 from ...models.models import UserModel
 from .notifications import send_assessment_notifications
+import random
+import uuid
+
+class HeartbeatRequest(BaseModel):
+    session_id: str
+    student_id: str
 
 router = APIRouter(prefix="/assessments", tags=["assessments-core"])
 
@@ -209,6 +216,51 @@ async def get_assessment_details(assessment_id: str, user: UserModel = Depends(g
             if assessment.get("created_by") != str(user.id) and assessment.get("teacher_id") != str(user.id):
                 raise HTTPException(status_code=403, detail="Access denied")
         
+        
+        # --- SHUFFLING & POOLING LOGIC ---
+        questions_list = assessment.get("questions", [])
+        pool_size = assessment.get("pool_size", 10) # default to 10 if not specified
+        
+        if user.role == "student":
+            # Seed the random number generator with student_id and assessment_id for reproducibility per student
+            random.seed(f"{user.id}_{assessment_id}")
+            
+            # 1. Shuffle question order
+            random.shuffle(questions_list)
+            
+            # 2. Select a subset (pool) if needed
+            if len(questions_list) > pool_size:
+                questions_list = questions_list[:pool_size]
+                
+            # 3. Shuffle options for MCQs
+            for q in questions_list:
+                if q.get("type") in ["mcq", "multiple_choice"] and "options" in q:
+                    options = q["options"]
+                    correct_ans = q.get("correct_answer")
+                    
+                    if isinstance(correct_ans, int) and 0 <= correct_ans < len(options):
+                        correct_text = options[correct_ans]
+                        # Shuffle options
+                        random.shuffle(options)
+                        # Find new index of the correct answer
+                        new_correct_ans = options.index(correct_text)
+                        q["correct_answer"] = new_correct_ans
+                        q["options"] = options
+            
+            # 4. Create Active Session
+            session_token = str(uuid.uuid4())
+            await db.active_sessions.update_one(
+                {"student_id": str(user.id), "assessment_id": assessment_id},
+                {"$set": {
+                    "session_token": session_token,
+                    "started_at": datetime.utcnow(),
+                    "last_heartbeat": datetime.utcnow(),
+                    "is_active": True
+                }},
+                upsert=True
+            )
+            # End student specific modifications
+        
         # Format response based on assessment type
         if "teacher_id" in assessment:
             # Teacher-created assessment
@@ -217,16 +269,15 @@ async def get_assessment_details(assessment_id: str, user: UserModel = Depends(g
                 "title": assessment["title"],
                 "topic": assessment.get("topic", assessment.get("subject", "General")),
                 "difficulty": assessment["difficulty"],
-                "question_count": assessment["question_count"],
-                "questions": assessment.get("questions", []),
+                "question_count": len(questions_list),
+                "questions": questions_list,
                 "batches": assessment.get("batches", []),
                 "teacher_id": str(assessment["teacher_id"]),
                 "type": assessment["type"],
                 "status": assessment["status"],
                 "is_active": assessment["is_active"],
-                "created_at": assessment["created_at"].isoformat(),
-                "created_by": str(assessment.get("teacher_id", assessment.get("created_by", "unknown"))),
                 "created_at": assessment.get("created_at", datetime.utcnow()).isoformat(),
+                "created_by": str(assessment.get("teacher_id", assessment.get("created_by", "unknown")))
             }
         else:
             # Regular assessment
@@ -238,20 +289,37 @@ async def get_assessment_details(assessment_id: str, user: UserModel = Depends(g
                 "description": assessment["description"],
                 "time_limit": assessment["time_limit"],
                 "max_attempts": assessment["max_attempts"],
-                "question_count": assessment["question_count"],
-                "questions": assessment.get("questions", []),
+                "question_count": len(questions_list),
+                "questions": questions_list,
                 "assigned_batches": assessment.get("assigned_batches", []),
                 "created_by": assessment["created_by"],
-                "created_at": assessment["created_at"].isoformat(),
+                "created_at": assessment.get("created_at", datetime.utcnow()).isoformat(),
                 "status": assessment["status"],
                 "type": assessment["type"],
                 "is_active": assessment["is_active"],
-                "total_questions": assessment["question_count"]
+                "total_questions": len(questions_list)
             }
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/heartbeat")
+async def update_heartbeat(payload: HeartbeatRequest, user: UserModel = Depends(get_current_user)):
+    """Keep the assessment session alive via heartbeat"""
+    try:
+        if str(user.id) != payload.student_id:
+            raise HTTPException(status_code=403, detail="Unauthorized")
+            
+        db = await get_db()
+        result = await db.active_sessions.update_one(
+            {"student_id": payload.student_id, "assessment_id": payload.session_id, "is_active": True},
+            {"$set": {"last_heartbeat": datetime.utcnow()}}
+        )
+        if result.matched_count == 0:
+            return {"status": "error", "message": "No active session found"}
+        return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 @router.post("/{assessment_id}/publish")
 async def publish_assessment(assessment_id: str, user: UserModel = Depends(get_current_user)):
     """Publish an assessment to make it available to students"""

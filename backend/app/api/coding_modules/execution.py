@@ -136,8 +136,8 @@ async def test_code_against_problem(
         print(f"🧪 [CODING] Testing code against problem '{problem['title']}' for user {current_user.id}")
         
         # Execute code against test cases
-        from app.services.judge0_execution_service import Judge0ExecutionService
-        execution_service = Judge0ExecutionService()
+        from app.services.hackerearth_execution_service import HackerEarthExecutionService
+        execution_service = HackerEarthExecutionService()
         
         test_results = []
         total_score = 0

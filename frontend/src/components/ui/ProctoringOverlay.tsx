@@ -11,7 +11,7 @@ interface ProctoringOverlayProps {
     maxViolations: number
     lastViolationType: string | null
     onDismiss: () => void
-    willAutoSubmit?: boolean
+    isFrozen?: boolean
 }
 
 const ProctoringOverlay: React.FC<ProctoringOverlayProps> = ({
@@ -20,7 +20,7 @@ const ProctoringOverlay: React.FC<ProctoringOverlayProps> = ({
     maxViolations,
     lastViolationType,
     onDismiss,
-    willAutoSubmit = false,
+    isFrozen = false,
 }) => {
     const remaining = maxViolations - violationCount
     const isFinal = remaining <= 0
@@ -105,10 +105,13 @@ const ProctoringOverlay: React.FC<ProctoringOverlayProps> = ({
                                     </p>
                                     <button
                                         onClick={onDismiss}
-                                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+                                        disabled={isFrozen}
+                                        className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity ${
+                                            isFrozen ? "bg-muted cursor-not-allowed opacity-50" : "bg-primary hover:opacity-90"
+                                        }`}
                                     >
                                         <X className="h-4 w-4" />
-                                        I understand, continue exam
+                                        {isFrozen ? "Frozen (wait 5s)..." : "I understand, continue exam"}
                                     </button>
                                 </>
                             )}

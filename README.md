@@ -37,7 +37,7 @@ A comprehensive full-stack educational platform that combines modern web technol
 
 - **Interactive Coding Platform**
   - Multi-language support (Python, JavaScript, Java, C++, etc.)
-  - Real-time code execution with Judge0 integration
+  - Real-time code execution with HackerEarth integration
   - Sandboxed execution environment
   - Syntax highlighting with Monaco Editor
   - Code submission and evaluation
@@ -177,7 +177,7 @@ A comprehensive full-stack educational platform that combines modern web technol
 
 #### AI & Code Execution
 - **Google Gemini AI 0.3.2** - AI question generation
-- **Judge0 API** - Multi-language code execution
+- **HackerEarth API** - Multi-language code execution
 - **Sandboxed Execution** - Secure code running environment
 
 #### Data Validation & Serialization
@@ -397,7 +397,7 @@ EDULEARN/
 │       │   ├── 📄 batch_service.py        # Batch operations
 │       │   ├── 📄 code_execution_service.py  # Code execution
 │       │   ├── 📄 gemini_coding_service.py   # Gemini AI integration
-│       │   ├── 📄 judge0_execution_service.py  # Judge0 integration
+│       │   ├── 📄 hackerearth_execution_service.py  # HackerEarth integration
 │       │   ├── 📄 notification_service.py    # Notifications
 │       │   ├── 📄 enhanced_notification_service.py  # Enhanced notifications
 │       │   ├── 📄 background_task_service.py  # Background tasks
@@ -625,9 +625,8 @@ Before you begin, ensure you have the following installed:
    GOOGLE_CLIENT_ID=your-google-client-id
    GOOGLE_CLIENT_SECRET=your-google-client-secret
    
-   # Judge0 (Optional)
-   JUDGE0_API_KEY=your-judge0-api-key
-   JUDGE0_API_HOST=judge0-ce.p.rapidapi.com
+   # HackerEarth (Optional)
+   HACKEREARTH_CLIENT_SECRET=your-hackerearth-client-secret
    ```
 
 6. **Initialize database**
@@ -726,8 +725,7 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 # Code Execution
 CODE_EXECUTION_TIMEOUT=5
 CODE_MEMORY_LIMIT=256
-JUDGE0_API_KEY=your-judge0-api-key
-JUDGE0_API_HOST=judge0-ce.p.rapidapi.com
+HACKEREARTH_CLIENT_SECRET=your-hackerearth-client-secret
 
 # CORS Origins (comma-separated)
 CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000

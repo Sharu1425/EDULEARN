@@ -29,6 +29,7 @@ interface AssessmentStudentResult {
   time_taken: number
   submitted_at: string
   total_questions: number
+  is_malpractice?: boolean
 }
 
 interface TeacherStudentResultItem {
@@ -275,8 +276,8 @@ const TeacherAssessmentResults: React.FC = () => {
                       <div className="text-foreground font-semibold">{s.student_name || "Unknown"}</div>
                       <div className="text-muted-foreground text-sm">{s.student_email || ""}</div>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded border ${s.present ? "bg-green-600/20 border-green-500/30 text-green-600 dark:text-green-400" : "bg-red-600/20 border-red-500/30 text-red-600 dark:text-red-400"}`}>
-                      {s.present ? "Present" : "Absent"}
+                    <span className={`text-xs px-2 py-1 rounded border ${s.is_malpractice ? "bg-red-600/20 border-red-500/30 text-red-600 dark:text-red-400" : s.present ? "bg-green-600/20 border-green-500/30 text-green-600 dark:text-green-400" : "bg-amber-600/20 border-amber-500/30 text-amber-600 dark:text-amber-400"}`}>
+                      {s.is_malpractice ? "Malpractice" : s.present ? "Present" : "Absent"}
                     </span>
                   </div>
                   {s.present && (
@@ -328,7 +329,10 @@ const TeacherAssessmentResults: React.FC = () => {
                       transition={{ delay: idx * 0.03 }}
                       className="border-b border-border"
                     >
-                      <td className="py-3 px-4 text-foreground">{r.student_name || "Unknown"}</td>
+                      <td className="py-3 px-4 text-foreground">
+                        {r.student_name || "Unknown"}
+                        {r.is_malpractice && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-red-600/20 text-red-600 dark:text-red-400 border border-red-500/30 font-semibold uppercase tracking-wide">Malpractice</span>}
+                      </td>
                       <td className="py-3 px-4 text-muted-foreground">{r.student_email || ""}</td>
                       <td className="py-3 px-4">
                         <span className={`${(r.percentage||0) >= 80 ? "text-green-600 dark:text-green-400" : (r.percentage||0) >= 60 ? "text-yellow-600 dark:text-yellow-400" : "text-red-600 dark:text-red-400"} font-semibold`}>

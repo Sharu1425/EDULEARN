@@ -1,27 +1,26 @@
 """
 Test script to verify the coding platform setup
-Run this to ensure Judge0 integration and coding endpoints work correctly
+Run this to ensure HackerEarth integration and coding endpoints work correctly
 """
 import asyncio
 import os
 from dotenv import load_dotenv
-from services.judge0_execution_service import judge0_execution_service
+from services.hackerearth_execution_service import hackerearth_execution_service
 
 load_dotenv()
 
-async def test_judge0_connection():
-    """Test basic Judge0 API connection"""
-    print("🧪 Testing Judge0 API Connection...")
-    print(f"API Host: {os.getenv('JUDGE0_API_HOST')}")
-    print(f"API Key configured: {'✅ Yes' if os.getenv('JUDGE0_API_KEY') else '❌ No'}")
+async def test_hackerearth_connection():
+    """Test basic HackerEarth API connection"""
+    print("🧪 Testing HackerEarth API Connection...")
+    print(f"API Secret configured: {'✅ Yes' if os.getenv('HACKEREARTH_CLIENT_SECRET') else '❌ No'}")
     
-    if not os.getenv('JUDGE0_API_KEY') or os.getenv('JUDGE0_API_KEY') == 'your-judge0-api-key':
-        print("\n⚠️  WARNING: Judge0 API key not configured!")
-        print("Please update JUDGE0_API_KEY in your .env file")
-        print("Get your key from: https://rapidapi.com/judge0-official/api/judge0-ce")
+    if not os.getenv('HACKEREARTH_CLIENT_SECRET') or os.getenv('HACKEREARTH_CLIENT_SECRET') == 'your-hackerearth-client-secret':
+        print("\n⚠️  WARNING: HackerEarth API secret not configured!")
+        print("Please update HACKEREARTH_CLIENT_SECRET in your .env file")
+        print("Get your key from: https://www.hackerearth.com/docs/wiki/developers/v4/")
         return False
     
-    print("\n✅ Judge0 configuration looks good!")
+    print("\n✅ HackerEarth configuration looks good!")
     return True
 
 def test_python_execution():
@@ -43,7 +42,7 @@ print(result)
     ]
     
     try:
-        results = judge0_execution_service.run_tests("python", code, test_cases)
+        results = hackerearth_execution_service.run_tests("python", code, test_cases)
         
         print(f"\nTotal test cases: {len(results)}")
         passed = sum(1 for r in results if r.get('passed'))
@@ -83,7 +82,7 @@ console.log(solution([1, 2, 3, 4, 5]));
     ]
     
     try:
-        results = judge0_execution_service.run_tests("javascript", code, test_cases)
+        results = hackerearth_execution_service.run_tests("javascript", code, test_cases)
         passed = sum(1 for r in results if r.get('passed'))
         print(f"Passed: {passed}/{len(results)}")
         return passed == len(results)
@@ -99,13 +98,13 @@ async def main():
     print("=" * 60)
     
     # Test 1: Check configuration
-    config_ok = await test_judge0_connection()
+    config_ok = await test_hackerearth_connection()
     
     if not config_ok:
         print("\n" + "=" * 60)
         print("❌ SETUP INCOMPLETE")
         print("=" * 60)
-        print("\nPlease configure Judge0 API key before testing execution.")
+        print("\nPlease configure HackerEarth API key before testing execution.")
         return
     
     # Test 2: Python execution
@@ -133,10 +132,9 @@ async def main():
     else:
         print("\n⚠️  Some tests failed. Please check the errors above.")
         print("\nTroubleshooting:")
-        print("1. Verify JUDGE0_API_KEY in .env file")
-        print("2. Check your RapidAPI subscription status")
+        print("1. Verify HACKEREARTH_CLIENT_SECRET in .env file")
+        print("2. Check your API subscription status")
         print("3. Ensure you have internet connectivity")
-        print("4. Check if you've exceeded free tier limits (50 requests/day)")
     
     print("=" * 60)
 
@@ -149,4 +147,3 @@ if __name__ == "__main__":
         print(f"\n\n❌ Unexpected error: {str(e)}")
         import traceback
         traceback.print_exc()
-

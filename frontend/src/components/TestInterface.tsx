@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle, AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { CheckCircle, AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Editor } from '@monaco-editor/react';
 import api from '../utils/api';
 import { useToast } from '../contexts/ToastContext';
@@ -116,11 +116,12 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
   const [autocompleteEnabled, setAutocompleteEnabled] = useState(true);
   const [codingStartTime] = useState(Date.now());
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [timeSpentPerQuestion, setTimeSpentPerQuestion] = useState<number[]>([]);
 
   // ── Proctoring ──────────────────────────────────────────────────────────
-  const { violationCount, isWarningVisible, dismissWarning, lastViolationType } = useProctoring({
+  const { violationCount, isWarningVisible, dismissWarning, lastViolationType, violations, isFrozen } = useProctoring({
     maxViolations: 3,
-    onAutoSubmit: () => handleSubmit(),
+    onAutoSubmit: (isMalpractice) => handleSubmit(isMalpractice),
     enabled: !!assessment,
   })
 
@@ -231,6 +232,47 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
       handleSubmit();
     }
   }, [timeLeft, assessment]);
+
+  // Fullscreen enforcement
+  useEffect(() => {
+    if (assessment && document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.warn("Fullscreen request failed: ", err);
+      });
+    }
+  }, [assessment]);
+
+  // Heartbeat ping
+  useEffect(() => {
+    if (!assessmentId || !user?.id) return;
+    const interval = setInterval(() => {
+      api.post('/api/assessments/heartbeat', {
+        session_id: assessmentId,
+        student_id: user.id
+      }).catch(err => console.debug('Heartbeat failed', err));
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [assessmentId, user]);
+
+  // Track time spent per question
+  useEffect(() => {
+    if (assessment && timeSpentPerQuestion.length === 0) {
+      setTimeSpentPerQuestion(new Array(assessment.questions.length).fill(0));
+    }
+  }, [assessment]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeSpentPerQuestion(prev => {
+        const next = [...prev];
+        if (next[currentQuestionIndex] !== undefined && !isFrozen) {
+          next[currentQuestionIndex] += 1;
+        }
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [currentQuestionIndex, isFrozen]);
 
   // Initialize code template when question changes or language changes
   useEffect(() => {
@@ -401,8 +443,6 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
   };
 
   const submitCodeSolution = async () => {
-    const currentQ = assessment!.questions[currentQuestionIndex];
-
     if (!code.trim()) {
       showError('Please write some code first');
       return;
@@ -528,9 +568,10 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (isMalpractice: boolean = false) => {
     try {
       setSubmitting(true);
+      setShowSubmitConfirm(false);
 
       // Calculate score locally first (for MCQ questions)
       let score = 0;
@@ -568,7 +609,13 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
         score: score,
         percentage: percentage,
         submitted_at: new Date().toISOString(),
-        is_completed: true
+        is_completed: true,
+        is_malpractice: isMalpractice || violationCount >= 3,
+        violations: violations.map(v => ({
+          ...v,
+          question_number: currentQuestionIndex + 1
+        })),
+        answers_timing: timeSpentPerQuestion // Optional extra field for tracking
       });
 
       // Get response data - it may have question_reviews
@@ -577,7 +624,6 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
 
       // Use backend score if available, otherwise use local score
       const finalScore = responseData.score !== undefined ? responseData.score : score;
-      const finalPercentage = responseData.percentage !== undefined ? responseData.percentage : percentage;
 
       success('Success', 'Assessment submitted successfully!');
 
@@ -587,7 +633,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
         totalQuestions: responseData.total_questions || assessment!.questions.length,
         topic: assessment!.topic,
         difficulty: assessment!.difficulty,
-        questions: assessment!.questions.map((q, idx) => ({
+        questions: assessment!.questions.map((q) => ({
           id: q.id,
           question: q.question,
           options: q.options,
@@ -677,6 +723,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
         maxViolations={MAX_VIOLATIONS}
         lastViolationType={lastViolationType}
         onDismiss={dismissWarning}
+        isFrozen={isFrozen}
       />
 
       <div className="max-w-4xl mx-auto">
@@ -1396,7 +1443,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
           {currentQuestionIndex === assessment.questions.length - 1 ? (
             !isCodingProblem ? (
               <button
-                onClick={handleSubmit}
+                onClick={() => handleSubmit(false)}
                 disabled={submitting}
                 className="flex items-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-600/50 text-white rounded-lg transition-colors font-medium"
               >
