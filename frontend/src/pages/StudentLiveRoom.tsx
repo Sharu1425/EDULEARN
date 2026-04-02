@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { JaaSMeeting } from '@jitsi/react-sdk';
+import { JitsiMeeting } from '@jitsi/react-sdk';
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../contexts/ToastContext'
 import api from '../utils/api'
@@ -296,8 +296,8 @@ const StudentLiveRoom: React.FC = () => {
 
             {/* Teacher Video Feed (Floating) */}
             <div className="absolute top-4 right-4 w-72 h-48 bg-black rounded-xl shadow-2xl z-50 overflow-hidden border border-gray-700/50 backdrop-blur-sm">
-                <JaaSMeeting
-                    appId="vpaas-magic-cookie-c8a22146480e4905b6b6eac514a04cdc"
+                <JitsiMeeting
+                    domain="meet.jit.si"
                     roomName={`edulearn-live-${batchId}`}
                     configOverwrite={{
                         startWithAudioMuted: true,

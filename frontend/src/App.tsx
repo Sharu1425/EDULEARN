@@ -54,7 +54,9 @@ const FULLSCREEN_ROUTES = [
 ]
 
 const isFullscreenPath = (pathname: string) =>
-  FULLSCREEN_ROUTES.some(r => pathname === r || pathname.startsWith(r))
+  FULLSCREEN_ROUTES.some(r => 
+    pathname === r || (pathname.startsWith(r) && (r.endsWith("/") || pathname.charAt(r.length) === "/"))
+  )
 
 // ─── Helper ─────────────────────────────────────────────────────────────────
 const getDashboardPath = (user: any) => {

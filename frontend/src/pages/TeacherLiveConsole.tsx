@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
-import { JaaSMeeting } from '@jitsi/react-sdk';
+import { JitsiMeeting } from '@jitsi/react-sdk';
 import {
     BarChart,
     Bar,
@@ -335,8 +335,8 @@ const TeacherLiveConsole: React.FC = () => {
             <main className="flex-1 flex overflow-hidden">
                 {/* LEFT: Jitsi Video (30%) */}
                 <div className="w-[30%] bg-black border-r border-gray-800 relative flex flex-col">
-                    <JaaSMeeting
-                        appId="vpaas-magic-cookie-c8a22146480e4905b6b6eac514a04cdc"
+                    <JitsiMeeting
+                        domain="meet.jit.si"
                         roomName={`edulearn-live-${batchId}`}
                         configOverwrite={{
                             startWithAudioMuted: true,

@@ -39,10 +39,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     return (
         <header
             className={cn(
-                "fixed top-0 left-0 z-40 w-full transition-all duration-300",
+                "fixed top-0 left-0 z-[60] w-full transition-all duration-300",
                 scrolled
-                    ? "bg-background/80 backdrop-blur-xl border-b border-border/40 shadow-sm"
-                    : "bg-transparent border-b border-transparent"
+                    ? "bg-background/80 backdrop-blur-xl border-b border-border/40 shadow-md"
+                    : "bg-background/40 backdrop-blur-md border-b border-border/10 shadow-sm"
             )}
         >
             <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">

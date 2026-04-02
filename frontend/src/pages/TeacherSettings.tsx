@@ -18,7 +18,7 @@ import {
 
 const TeacherSettings: React.FC = () => {
   const { user } = useAuth()
-  const { mode, colorScheme, setMode, setColorScheme } = useTheme()
+  const { colorScheme, setColorScheme } = useTheme()
   const { success, error: showError } = useToast()
   
   const [saving, setSaving] = useState(false)
@@ -52,7 +52,6 @@ const TeacherSettings: React.FC = () => {
       const settingsData = {
         userId: user?._id || user?.id,
         theme: {
-          mode,
           colorScheme
         },
         notifications,
@@ -90,32 +89,6 @@ const TeacherSettings: React.FC = () => {
         <Card className="p-6 mb-6">
           <h2 className="text-2xl font-bold text-foreground mb-4">Appearance</h2>
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Theme Mode</label>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setMode("casual")}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
-                    mode === "casual"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                >
-                  Casual
-                </button>
-                <button
-                  onClick={() => setMode("professional")}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
-                    mode === "professional"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                >
-                  Professional
-                </button>
-              </div>
-            </div>
-
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">Color Scheme</label>
               <div className="flex items-center space-x-2">
