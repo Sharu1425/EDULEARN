@@ -302,8 +302,10 @@ const Dashboard: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="p-4 rounded-lg bg-muted/20 border border-muted/30 hover:bg-muted/30 hover:border-muted/50 transition-all duration-300 cursor-pointer group"
+                        className="relative p-5 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-md hover:bg-white/10 hover:border-white/15 transition-all duration-500 cursor-pointer group overflow-hidden"
                       >
+                        {/* Decorative glow background */}
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-700"></div>
                         <div className="flex justify-between items-center">
                           <div>
                             <p className="text-foreground font-medium group-hover:text-foreground/80 transition-colors">
@@ -379,8 +381,10 @@ const Dashboard: React.FC = () => {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className="p-4 rounded-lg bg-muted/20 border border-muted/30 hover:bg-muted/30 hover:border-muted/50 transition-all duration-300 cursor-pointer group"
+                          className="relative p-5 rounded-2xl bg-[rgba(255,255,255,0.03)] border border-white/5 backdrop-blur-md hover:bg-white/10 hover:border-white/15 transition-all duration-500 cursor-pointer group overflow-hidden"
                         >
+                          {/* Decorative glow background */}
+                          <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
                           <div className="flex justify-between items-center">
                             <div>
                               <p className="text-foreground font-medium group-hover:text-foreground/80 transition-colors">
@@ -398,11 +402,11 @@ const Dashboard: React.FC = () => {
                             </div>
                             <div className="text-right">
                               <div
-                                className={`text-lg font-bold ${(test.percentage || (test.score / test.total_questions) * 100) >= 80
-                                  ? "text-emerald-600 dark:text-emerald-400"
+                                className={`text-xl font-black transition-all duration-400 ${(test.percentage || (test.score / test.total_questions) * 100) >= 80
+                                  ? "text-emerald-400 filter drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]"
                                   : (test.percentage || (test.score / test.total_questions) * 100) >= 60
-                                    ? "text-amber-600 dark:text-amber-400"
-                                    : "text-rose-600 dark:text-rose-400"
+                                    ? "text-amber-400 filter drop-shadow-[0_0_8px_rgba(251,191,36,0.3)]"
+                                    : "text-rose-400 filter drop-shadow-[0_0_8px_rgba(251,113,133,0.4)]"
                                   }`}
                               >
                                 {Math.round(test.percentage || (test.score / test.total_questions) * 100)}%

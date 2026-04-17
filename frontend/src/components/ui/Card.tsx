@@ -1,37 +1,57 @@
 "use client"
 
-import type React from "react"
-import { motion } from "framer-motion"
+import React from "react"
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-export function cn(...inputs: ClassValue[]) {
+function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
 interface CardProps {
   children: React.ReactNode
   className?: string
+  glow?: boolean
   hover?: boolean
-  glass?: boolean
+  onClick?: () => void
 }
 
-const Card: React.FC<CardProps> = ({ children, className = "", hover = false, glass = false }) => {
+const Card: React.FC<CardProps> = ({
+  children,
+  className = "",
+  glow = false,
+  hover = true,
+  onClick,
+}) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.98, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={hover ? { y: -4, scale: 1.01 } : {}}
+    <div
+      onClick={onClick}
       className={cn(
-        "relative rounded-3xl overflow-hidden text-card-foreground transition-all duration-500",
-        glass ? "glass-card" : "border border-border/60 bg-card shadow-2xl shadow-black/5 dark:shadow-black/40",
-        hover ? "hover:shadow-2xl hover:shadow-black/10 dark:hover:shadow-cyan-500/10 hover:border-foreground/10" : "",
+        // Base glass morphism styling
+        "relative rounded-2xl border backdrop-blur-xl transition-all duration-300",
+        // Light mode
+        "bg-white/70 border-white/60 shadow-[0_8px_32px_rgba(31,38,135,0.08)]",
+        // Dark mode
+        "dark:bg-[rgba(2,6,23,0.45)] dark:border-white/5 dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
+        // Hover effects
+        hover && [
+          "hover:shadow-[0_16px_48px_rgba(31,38,135,0.12)]",
+          "dark:hover:shadow-[0_16px_48px_rgba(0,0,0,0.6)]",
+          "dark:hover:border-white/10",
+          "dark:hover:bg-[rgba(2,6,23,0.6)]",
+          "hover:-translate-y-0.5",
+        ],
+        // Optional glow
+        glow && [
+          "dark:shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_rgba(34,211,238,0.15)]",
+          "dark:hover:shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_0_1px_rgba(34,211,238,0.3),0_0_30px_rgba(34,211,238,0.1)]",
+        ],
+        onClick && "cursor-pointer",
         className
       )}
     >
-      <div className="relative h-full w-full">{children}</div>
-    </motion.div>
+      {children}
+    </div>
   )
 }
 

@@ -9,8 +9,8 @@ import { useAuth } from "../hooks/useAuth"
 import api from "../utils/api"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
-import AnimatedBackground from "../components/AnimatedBackground"
 import { ANIMATION_VARIANTS } from "../utils/constants"
+import { Sparkles, Users, BookOpen, Video, BarChart3 } from "lucide-react"
 
 interface Student {
   id: string
@@ -135,15 +135,13 @@ const TeacherDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <>
-        <AnimatedBackground />
-        <div className="min-h-screen pt-20 px-4 flex items-center justify-center relative z-10">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-4">Loading Teacher Dashboard...</h1>
-            <p className="text-muted-foreground">Please wait while we load your data.</p>
-          </div>
+      <div className="min-h-screen pt-20 px-4 flex items-center justify-center relative z-10">
+        <div className="text-center">
+          <Sparkles className="h-8 w-8 mx-auto mb-4 text-cyan-400 animate-pulse" />
+          <h1 className="text-2xl font-bold gradient-text mb-2">Loading Teacher Dashboard...</h1>
+          <p className="text-muted-foreground">Please wait while we load your data.</p>
         </div>
-      </>
+      </div>
     )
   }
 
@@ -151,138 +149,135 @@ const TeacherDashboard: React.FC = () => {
 
   return (
     <>
-      <AnimatedBackground />
-      <div className="min-h-screen pt-16 px-4 relative z-10">
+      <div className="min-h-screen pt-16 px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           variants={ANIMATION_VARIANTS.fadeIn}
           initial="initial"
           animate="animate"
-          className="max-w-6xl mx-auto"
+          className="max-w-6xl mx-auto py-8"
         >
-          <Card className="p-6 mb-6">
-            {/* Header */}
-            <motion.div variants={ANIMATION_VARIANTS.slideDown} className="text-center mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-foreground mb-2">Teacher Dashboard</h1>
-                  <p className="text-muted-foreground text-base">
-                    Welcome back, {user?.name || user?.email || "Teacher"}!
-                  </p>
-                </div>
-              </div>
-            </motion.div>
+          {/* Header */}
+          <motion.div variants={ANIMATION_VARIANTS.slideDown} className="mb-8">
+            <h1 className="text-3xl sm:text-4xl font-black gradient-text mb-1">Teacher Dashboard</h1>
+            <p className="text-muted-foreground">
+              Welcome back, {user?.name || user?.email || "Teacher"}!
+            </p>
+          </motion.div>
 
             {/* Quick Stats */}
             <motion.div
-              variants={ANIMATION_VARIANTS.slideUp}
+              variants={ANIMATION_VARIANTS.stagger}
               initial="initial"
               animate="animate"
-              className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"
+              className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10"
             >
               {[
                 {
                   label: "Total Students", value: students.length,
-                  color: "blue",
-                  icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                  gradient: "from-cyan-400 to-blue-500",
+                  glow: "rgba(34,211,238,0.3)",
+                  Icon: Users,
                 },
                 {
                   label: "Active Batches", value: selectableBatches.length,
-                  color: "purple",
-                  icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  gradient: "from-violet-400 to-purple-500",
+                  glow: "rgba(139,92,246,0.3)",
+                  Icon: BookOpen,
                 },
                 {
                   label: "Assessments", value: 12,
-                  color: "green",
-                  icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  gradient: "from-emerald-400 to-teal-500",
+                  glow: "rgba(52,211,153,0.3)",
+                  Icon: BarChart3,
                 },
                 {
                   label: "Avg. Progress",
                   value: students.length > 0 ? `${Math.round(students.reduce((a, s) => a + s.progress, 0) / students.length)}%` : "0%",
-                  color: "orange",
-                  icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                  gradient: "from-orange-400 to-rose-500",
+                  glow: "rgba(249,115,22,0.3)",
+                  Icon: BarChart3,
                 },
               ].map((stat) => (
-                <div key={stat.label} className={`bg-gradient-to-r from-${stat.color}-500/10 to-${stat.color}-600/10 dark:from-${stat.color}-500/20 dark:to-${stat.color}-600/20 border border-${stat.color}-500/30 rounded-lg p-3`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-xs font-medium">{stat.label}</p>
-                      <p className="text-xl font-bold text-foreground">{stat.value}</p>
+                <motion.div key={stat.label} variants={ANIMATION_VARIANTS.slideUp}>
+                  <Card className="p-6 relative overflow-hidden group">
+                    <div className="flex items-start justify-between relative z-10">
+                      <div>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">{stat.label}</p>
+                        <p className="text-3xl font-black text-foreground tabular-nums tracking-tight">{stat.value}</p>
+                      </div>
+                      <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg shadow-black/10 transition-transform group-hover:scale-110 duration-300`}>
+                        <stat.Icon className="h-5 w-5 text-white" />
+                      </div>
                     </div>
-                    <div className={`w-6 h-6 bg-${stat.color}-500/20 rounded-full flex items-center justify-center`}>
-                      <svg className={`w-3 h-3 text-${stat.color}-600 dark:text-${stat.color}-400`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={stat.icon} />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
+                    {/* Background glow blob */}
+                    <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-500"
+                      style={{ background: stat.glow, filter: "blur(20px)" }} />
+                  </Card>
+                </motion.div>
               ))}
             </motion.div>
 
-            {/* Management Cards */}
-            <motion.div
-              variants={ANIMATION_VARIANTS.slideUp}
-              initial="initial"
-              animate="animate"
-              className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
-            >
-              <Card className="p-5 h-full">
-                <div className="flex items-center mb-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center mr-3">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground">Student Management</h3>
-                </div>
-                <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
-                  View and manage all your students, track their progress, and provide feedback.
-                </p>
-                <Button variant="primary" size="sm" className="w-full" onClick={handleNavigateToStudentManagement}>
-                  Manage Students
-                </Button>
-              </Card>
-
-              <Card className="p-5 h-full">
-                <div className="flex items-center mb-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center mr-3">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground">Assessment Management</h3>
-                </div>
-                <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
-                  Create custom assessments and coding challenges for your students.
-                </p>
-                <Button variant="primary" size="sm" className="w-full" onClick={handleNavigateToAssessmentManagement}>
-                  Manage Assessments
-                </Button>
-              </Card>
-
-              <Card className="p-5 h-full">
-                <div className="flex items-center mb-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-red-500 to-rose-500 flex items-center justify-center mr-3">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground">Live Sessions</h3>
-                </div>
-                <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
-                  Launch an AI-powered live classroom assessment room for one of your batches.
-                </p>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="w-full bg-red-600 hover:bg-red-700"
-                  onClick={() => setShowBatchModal(true)}
-                >
-                   Start Live Room
-                </Button>
-              </Card>
-            </motion.div>
-
-          </Card>
+          {/* Management Cards */}
+          <motion.div
+            variants={ANIMATION_VARIANTS.stagger}
+            initial="initial"
+            animate="animate"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          >
+            {[
+              {
+                gradient: "from-cyan-400 to-blue-500",
+                glow: "rgba(34,211,238,0.3)",
+                Icon: Users,
+                title: "Student Management",
+                desc: "View and manage all your students, track their progress, and provide feedback.",
+                btnLabel: "Manage Students",
+                onClick: handleNavigateToStudentManagement,
+              },
+              {
+                gradient: "from-emerald-400 to-teal-500",
+                glow: "rgba(52,211,153,0.3)",
+                Icon: BookOpen,
+                title: "Assessment Management",
+                desc: "Create custom AI-generated assessments and coding challenges for your students.",
+                btnLabel: "Manage Assessments",
+                onClick: handleNavigateToAssessmentManagement,
+              },
+              {
+                gradient: "from-red-400 to-rose-500",
+                glow: "rgba(239,68,68,0.3)",
+                Icon: Video,
+                title: "Live Sessions",
+                desc: "Launch an AI-powered live classroom assessment room for one of your batches.",
+                btnLabel: "Start Live Room",
+                onClick: () => setShowBatchModal(true),
+                specialBtn: true,
+              },
+            ].map((item) => (
+              <motion.div key={item.title} variants={ANIMATION_VARIANTS.slideUp}>
+                <Card className="p-8 h-full flex flex-col group relative overflow-hidden">
+                   <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                   
+                   <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-6 shadow-lg shadow-black/10 group-hover:scale-110 transition-transform duration-300 relative z-10`}>
+                     <item.Icon className="h-6 w-6 text-white" />
+                   </div>
+                   
+                   <h3 className="text-xl font-bold text-foreground mb-3 relative z-10">{item.title}</h3>
+                   <p className="text-muted-foreground text-sm leading-relaxed mb-8 flex-1 relative z-10">
+                     {item.desc}
+                   </p>
+                   
+                   <Button
+                     onClick={item.onClick}
+                     variant={item.specialBtn ? "primary" : "outline"}
+                     className={item.specialBtn ? "w-full bg-gradient-to-r from-red-500 to-rose-600 border-none shadow-lg shadow-red-500/25" : "w-full"}
+                   >
+                     {item.btnLabel}
+                   </Button>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
         </motion.div>
       </div>
 
@@ -303,30 +298,28 @@ const TeacherDashboard: React.FC = () => {
 
             {/* Modal */}
             <motion.div
-              className="relative bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+              className="relative bg-background/80 border border-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
             >
               {/* Header */}
-              <div className="px-6 pt-6 pb-4 border-b border-gray-800">
+              <div className="px-8 pt-8 pb-6 border-b border-foreground/5">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500/20 to-rose-600/20 flex items-center justify-center shrink-0 shadow-inner">
+                      <Video className="w-6 h-6 text-red-500" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold text-white">Start Live Session</h2>
-                      <p className="text-sm text-gray-400">Select a batch to begin</p>
+                      <h2 className="text-xl font-bold text-foreground tracking-tight">Start Live Session</h2>
+                      <p className="text-sm text-muted-foreground mt-0.5">Select a batch to begin your session</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setShowBatchModal(false)}
                     disabled={sessionStarting}
-                    className="text-gray-500 hover:text-white transition-colors"
+                    className="w-9 h-9 flex items-center justify-center rounded-full bg-foreground/5 text-muted-foreground hover:bg-foreground/10 hover:text-foreground transition-all duration-300"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -336,14 +329,16 @@ const TeacherDashboard: React.FC = () => {
               </div>
 
               {/* Batch List */}
-              <div className="p-6 space-y-3 max-h-80 overflow-y-auto">
+              <div className="p-8 space-y-4 max-h-96 overflow-y-auto">
                 {selectableBatches.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <svg className="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                    <p className="text-sm">No batches found.</p>
-                    <p className="text-xs mt-1">Create a batch via Student Management first.</p>
+                  <div className="text-center py-10">
+                    <div className="w-16 h-16 rounded-full bg-foreground/5 flex items-center justify-center mx-auto mb-4">
+                       <Users className="w-8 h-8 text-muted-foreground/30" />
+                    </div>
+                    <p className="text-foreground font-medium">No batches found</p>
+                    <p className="text-sm text-muted-foreground mt-1 px-10">
+                      You need to create a batch via Student Management before starting a session.
+                    </p>
                   </div>
                 ) : (
                   selectableBatches.map((batch) => (
@@ -351,24 +346,26 @@ const TeacherDashboard: React.FC = () => {
                       key={batch.id}
                       onClick={() => handleStartLiveSession(batch.id)}
                       disabled={sessionStarting}
-                      className="w-full flex items-center justify-between p-4 rounded-xl bg-gray-800/60 border border-gray-700 hover:border-red-500/50 hover:bg-red-900/10 transition-all group disabled:opacity-50 disabled:cursor-not-allowed text-left"
+                      className="w-full flex items-center justify-between p-5 rounded-2xl bg-foreground/5 border border-transparent hover:border-red-500/30 hover:bg-red-500/5 transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed text-left"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500/20 to-rose-600/20 flex items-center justify-center shrink-0">
-                          <span className="text-sm font-bold text-red-400">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shrink-0 shadow-lg shadow-red-500/20">
+                          <span className="text-sm font-black text-white">
                             {(batch.name || "?").charAt(0).toUpperCase()}
                           </span>
                         </div>
                         <div>
-                          <p className="font-semibold text-white group-hover:text-red-300 transition-colors">{batch.name}</p>
-                          <p className="text-xs text-gray-400">{batch.studentCount} student{batch.studentCount !== 1 ? 's' : ''}</p>
+                          <p className="font-bold text-foreground group-hover:text-red-500 transition-colors">{batch.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{batch.studentCount} active student{batch.studentCount !== 1 ? 's' : ''}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         {sessionStarting ? (
-                          <span className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                          <span className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
                         ) : (
-                          <span className="text-xs font-bold text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">Launch →</span>
+                          <div className="w-8 h-8 rounded-full bg-red-500/0 group-hover:bg-red-500/10 flex items-center justify-center transition-all duration-300">
+                             <span className="text-lg font-bold text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-1 group-hover:translate-x-0">→</span>
+                          </div>
                         )}
                       </div>
                     </button>
@@ -377,9 +374,9 @@ const TeacherDashboard: React.FC = () => {
               </div>
 
               {/* Footer hint */}
-              <div className="px-6 py-4 border-t border-gray-800 bg-gray-950/50">
-                <p className="text-xs text-gray-500 text-center">
-                  A live console will open in a new tab. Students will be able to join using the session code.
+              <div className="px-8 py-5 border-t border-foreground/5 bg-foreground/[0.02]">
+                <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                  A live console will open in a new tab. Your students in the selected batch will receive a notification to join.
                 </p>
               </div>
             </motion.div>

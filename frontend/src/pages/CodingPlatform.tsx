@@ -225,23 +225,26 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
           {analytics && (
             <motion.div variants={ANIMATION_VARIANTS.stagger} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <motion.div variants={ANIMATION_VARIANTS.slideUp}>
-                <Card className="p-6 text-center !bg-gradient-to-br from-green-100 to-green-50 dark:from-green-900/80 dark:to-green-800/80 !border-green-300 dark:!border-green-500 !border-2">
-                  <div className="text-3xl font-extrabold text-green-700 dark:text-green-100 mb-2">{analytics.total_problems_solved}</div>
-                  <div className="text-sm font-semibold text-green-800 dark:text-green-200">Problems Solved</div>
+                <Card className="p-6 text-center group relative overflow-hidden">
+                  <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="text-3xl font-black text-emerald-400 mb-1 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">{analytics.total_problems_solved}</div>
+                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Solved</div>
                 </Card>
               </motion.div>
-
+              
               <motion.div variants={ANIMATION_VARIANTS.slideUp}>
-                <Card className="p-6 text-center !bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/80 dark:to-blue-800/80 !border-blue-300 dark:!border-blue-500 !border-2">
-                  <div className="text-3xl font-extrabold text-blue-700 dark:text-blue-100 mb-2">{Math.round(analytics.success_rate)}%</div>
-                  <div className="text-sm font-semibold text-blue-800 dark:text-blue-200">Success Rate</div>
+                <Card className="p-6 text-center group relative overflow-hidden">
+                  <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="text-3xl font-black text-blue-400 mb-1 drop-shadow-[0_0_10px_rgba(56,189,248,0.3)]">{Math.round(analytics.success_rate)}%</div>
+                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Rate</div>
                 </Card>
               </motion.div>
-
+              
               <motion.div variants={ANIMATION_VARIANTS.slideUp}>
-                <Card className="p-6 text-center !bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/80 dark:to-purple-800/80 !border-purple-300 dark:!border-purple-500 !border-2">
-                  <div className="text-3xl font-extrabold text-purple-700 dark:text-purple-100 mb-2">{analytics.total_problems_attempted || 0}</div>
-                  <div className="text-sm font-semibold text-purple-800 dark:text-purple-200">Total Attempted</div>
+                <Card className="p-6 text-center group relative overflow-hidden">
+                  <div className="absolute inset-0 bg-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="text-3xl font-black text-purple-400 mb-1 drop-shadow-[0_0_10px_rgba(139,92,246,0.3)]">{analytics.total_problems_attempted || 0}</div>
+                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Attempted</div>
                 </Card>
               </motion.div>
             </motion.div>
@@ -378,7 +381,7 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
                     className="cursor-pointer"
                     onClick={() => (window.location.href = `/coding/problem/${problem.id}`)}
                   >
-                    <Card className="p-6 h-full hover:border-purple-400/50 transition-all duration-300">
+                    <Card className="p-6 h-full hover:border-purple-500/30 transition-all duration-500 group">
                       <div className="flex items-start justify-between mb-3">
                         <h3 className="font-semibold text-foreground text-lg line-clamp-2">{problem.title}</h3>
                         <span
@@ -391,7 +394,7 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
                       <p className="text-muted-foreground text-sm mb-4 line-clamp-3">{problem.description}</p>
 
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground bg-purple-500/20 px-2 py-1 rounded">
+                        <span className="text-[10px] font-bold tracking-wider text-purple-400 bg-purple-400/10 border border-purple-400/20 px-2.5 py-1 rounded-full uppercase">
                           {problem.topic}
                         </span>
 
@@ -407,9 +410,17 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
                         )}
                       </div>
 
-                      <div className="mt-4 pt-4 border-t border-purple-500/20 flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Success Rate: {Math.round(problem.success_rate)}%</span>
-                        {problem.average_time && <span>Avg Time: {Math.round(problem.average_time / 1000)}s</span>}
+                      <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-medium text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></span>
+                          Success: {Math.round(problem.success_rate)}%
+                        </span>
+                        {problem.average_time && (
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50"></span>
+                            {Math.round(problem.average_time / 1000)}s
+                          </span>
+                        )}
                       </div>
                     </Card>
                   </motion.div>

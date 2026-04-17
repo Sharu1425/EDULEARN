@@ -12,6 +12,9 @@ import Sidebar from "./components/ui/Sidebar"
 import ToastContainer from "./components/ui/ToastContainer"
 import LoadingState from "./components/LoadingState"
 import ProtectedRoute from "./components/ProtectedRoute"
+import AnimatedOrbs from "./components/ui/AnimatedOrbs"
+import ParticleField from "./components/ui/ParticleField"
+import CursorGlow from "./components/ui/CursorGlow"
 import { cn } from "./lib/utils"
 
 import LandingPage from "./pages/LandingPage"
@@ -82,6 +85,9 @@ const AppLayout: React.FC<{
   return (
     <>
       <div className="app-bg" aria-hidden="true" />
+      <AnimatedOrbs />
+      <ParticleField />
+      <CursorGlow />
       <ToastContainer toasts={toasts} onClose={removeToast} />
 
       <div className="flex flex-col min-h-screen relative overflow-hidden">
@@ -91,10 +97,7 @@ const AppLayout: React.FC<{
         )}
 
         {/* Content Area flex container under Header */}
-        <div className={cn(
-          "flex flex-1 overflow-hidden",
-          showSidebarAndHeader && "pt-16"
-        )}>
+        <div className={showSidebarAndHeader ? "flex flex-1 overflow-hidden" : "flex flex-1"}>
 
           {/* Sidebar sits below header */}
           {showSidebarAndHeader && <Sidebar user={user} />}
@@ -104,7 +107,8 @@ const AppLayout: React.FC<{
             "flex-1 overflow-y-auto w-full relative",
             showSidebarAndHeader && "bg-background/40"
           )}>
-            {/* The spacer below is now redundant since we added pt-16 to the parent container */}
+            {/* If Header is fixed, we might need a top spacer. Let's see if Header uses fixed. Yes it does in Header.tsx. So add pt-16. */}
+            {showSidebarAndHeader && <div className="h-16 w-full shrink-0" />}
             <div className={cn(
               "mx-auto w-full",
               !fullscreen && "pb-12"

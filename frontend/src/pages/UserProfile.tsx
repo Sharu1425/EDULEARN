@@ -237,8 +237,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="p-4 rounded-lg bg-foreground/20 border border-foreground/30 hover:bg-foreground/30 hover:border-foreground/40 transition-all duration-300 cursor-pointer group"
+                        className="relative p-5 rounded-2xl bg-[rgba(255,255,255,0.03)] border border-white/5 backdrop-blur-md hover:bg-white/10 hover:border-white/15 transition-all duration-500 cursor-pointer group overflow-hidden"
                       >
+                        {/* Decorative glow background */}
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
                         <div className="flex justify-between items-center">
                           <div>
                             <p className="text-foreground font-medium group-hover:text-foreground-inverted transition-colors">
@@ -256,12 +258,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                           </div>
                           <div className="text-right">
                             <div
-                              className={`text-lg font-bold ${
+                              className={`text-xl font-black transition-all duration-400 ${
                                 (test.percentage || (test.score / test.total_questions) * 100) >= 80
-                                  ? "text-green-400"
+                                  ? "text-emerald-400 filter drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]"
                                   : (test.percentage || (test.score / test.total_questions) * 100) >= 60
-                                    ? "text-yellow-400"
-                                    : "text-red-400"
+                                    ? "text-amber-400 filter drop-shadow-[0_0_8px_rgba(251,191,36,0.3)]"
+                                    : "text-rose-400 filter drop-shadow-[0_0_8px_rgba(251,113,133,0.4)]"
                               }`}
                             >
                               {Math.round(test.percentage || (test.score / test.total_questions) * 100)}%

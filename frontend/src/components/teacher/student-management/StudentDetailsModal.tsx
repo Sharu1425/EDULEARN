@@ -212,9 +212,9 @@ const StudentDetailsModal: React.FC<StudentDetailsModalProps> = ({
                 Change Batch
               </Button>
               <Button
-                variant="danger"
+                variant="ghost"
                 onClick={() => onRemoveStudent(student.id)}
-                className="flex-1"
+                className="flex-1 text-destructive hover:bg-destructive/10"
               >
                 Remove Student
               </Button>
