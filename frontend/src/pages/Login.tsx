@@ -143,6 +143,48 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
                 </Link>
               </p>
             </div>
+
+            <div className="mt-8 pt-6 border-t border-border relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-card px-4 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                Or continue with
+              </div>
+              <Button 
+                type="button" 
+                onClick={async () => {
+                  setLoading(true);
+                  try {
+                    let wallet = localStorage.getItem("my_web3_wallet");
+                    if (!wallet) {
+                      const uuid = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36);
+                      wallet = "0xEDU" + uuid.replace(/-/g, "").substring(0, 35).toUpperCase();
+                      localStorage.setItem("my_web3_wallet", wallet);
+                    }
+                    const response = await api.post("/web3/connect", { wallet_address: wallet });
+                    if (response.data.success) {
+                      const userData = { ...response.data.user, role: response.data.user.role || "student" };
+                      localStorage.setItem("user", JSON.stringify(userData));
+                      localStorage.setItem("access_token", response.data.access_token);
+                      setUser(userData);
+                      switch (userData.role) {
+                        case "teacher": navigate("/teacher-dashboard", { replace: true }); break;
+                        case "admin": navigate("/admin-dashboard", { replace: true }); break;
+                        default: navigate("/dashboard", { replace: true }); break;
+                      }
+                      success("Web3 Connected!", `Wallet: ${wallet.substring(0, 8)}...`);
+                    }
+                  } catch(e: any) {
+                    error("Web3 Error", "Failed to connect wallet");
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading} 
+                className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                variant="primary"
+              >
+                💎 Connect Custom Wallet
+              </Button>
+            </div>
           </Card>
         </motion.div>
       </div>

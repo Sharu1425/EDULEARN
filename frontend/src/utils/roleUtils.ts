@@ -12,6 +12,8 @@ export interface User {
   name?: string
   role?: UserRole
   is_admin?: boolean
+  wallet_address?: string
+  credits?: number
 }
 
 // Role hierarchy: admin > teacher > student

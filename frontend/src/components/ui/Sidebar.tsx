@@ -8,7 +8,7 @@ import {
     Users, CalendarDays, Trophy, ShieldCheck, ChevronLeft,
     ChevronRight, Menu, X
 } from "lucide-react"
-import { cn } from "../../lib/utils"
+import { cn } from "../../utils/cn"
 import { getSidebarNavItems } from "../../utils/roleUtils"
 import type { User as UserType } from "../../types"
 

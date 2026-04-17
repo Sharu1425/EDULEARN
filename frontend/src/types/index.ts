@@ -10,6 +10,8 @@ export interface User {
   is_admin?: boolean;
   role?: string;
   has_face_descriptor?: boolean;
+  wallet_address?: string;
+  credits?: number;
 }
 
 export interface Question {

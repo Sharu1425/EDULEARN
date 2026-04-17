@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BrainCircuit, Activity, CheckCircle2, AlertCircle, BarChart3, ArrowLeft } from 'lucide-react';
 import api from '../utils/api';
-import { cn } from '../lib/utils';
+import { cn } from '../utils/cn';
 import { motion } from 'framer-motion';
 
 type Question = {

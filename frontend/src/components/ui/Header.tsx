@@ -4,7 +4,7 @@ import { Bell, Menu, LogOut, Settings, User as UserIcon, Moon, Sun } from "lucid
 import { useAuth } from "../../hooks/useAuth"
 import { useTheme } from "../../contexts/ThemeContext"
 import { useNavigate, useLocation } from "react-router-dom"
-import { cn } from "../../lib/utils"
+import { cn } from "../../utils/cn"
 
 interface HeaderProps {
     onMenuClick?: () => void
@@ -83,6 +83,15 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     </button>
 
                     <div className="h-6 w-[1px] bg-border/50 mx-1 hidden sm:block" />
+
+                    {/* Web3 Credits */}
+                    {user?.wallet_address && (
+                        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
+                            <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                                💎 {user.credits || 1000} EduCr
+                            </span>
+                        </div>
+                    )}
 
                     {/* Profile Dropdown */}
                     <div className="relative">

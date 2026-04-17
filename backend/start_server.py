@@ -45,7 +45,7 @@ def main():
             "app.main:app", 
             "--host", "0.0.0.0", 
             "--port", "5001",
-            "--reload",
+            #"--reload",
             "--log-level", "info"
         ], check=True)
     except KeyboardInterrupt:

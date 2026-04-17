@@ -1,5 +1,5 @@
 # FastAPI and ASGI server
-fastapi==0.104.1
+fastapi>=0.115.0
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
 
@@ -53,7 +53,7 @@ python-magic==0.4.27
 python-dateutil==2.8.2
 
 # JSON handling
-orjson==3.9.10
+orjson>=3.10.10
 
 # Background tasks
 celery==5.3.4
@@ -64,7 +64,7 @@ fastapi-mail==1.4.1
 
 # File upload and processing
 aiofiles==23.2.1
-pandas==2.2.2
+pandas>=2.2.3
 openpyxl==3.1.2
 
 # Rate limiting
@@ -74,3 +74,6 @@ slowapi==0.1.9
 psutil==5.9.6
 PyPDF2==3.0.1
 python-pptx==0.6.23
+pymupdf>=1.25.0
+
+prometheus-client

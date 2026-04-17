@@ -273,7 +273,9 @@ async def auth_status(user_id: Optional[str] = Depends(get_current_user_id)):
                 "name": user.get("name"),
                 "profile_picture": user.get("profile_picture"),
                 "role": user.get("role", "student"),
-                "is_admin": user.get("is_admin", False)
+                "is_admin": user.get("is_admin", False),
+                "wallet_address": user.get("wallet_address", None),
+                "credits": user.get("credits", 0.0)
             }
         }
     except Exception as e:

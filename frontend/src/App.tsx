@@ -12,7 +12,7 @@ import Sidebar from "./components/ui/Sidebar"
 import ToastContainer from "./components/ui/ToastContainer"
 import LoadingState from "./components/LoadingState"
 import ProtectedRoute from "./components/ProtectedRoute"
-import { cn } from "./lib/utils"
+import { cn } from "./utils/cn"
 
 import LandingPage from "./pages/LandingPage"
 import Dashboard from "./pages/Dashboard"

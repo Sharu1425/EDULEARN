@@ -21,6 +21,7 @@ from .bulk_teachers import router as bulk_teachers_router
 from .test import router as test_router
 from .thinktrace import router as thinktrace_router
 from .livesession import router as livesession_router
+from .web3 import router as web3_router
 
 # Create main API router
 api_router = APIRouter(prefix="/api")
@@ -41,5 +42,6 @@ api_router.include_router(bulk_teachers_router, prefix="/bulk-teachers", tags=["
 api_router.include_router(test_router, tags=["Test"])
 api_router.include_router(thinktrace_router, prefix="/thinktrace", tags=["ThinkTrace"])
 api_router.include_router(livesession_router, prefix="/livesession", tags=["LiveSession"])
+api_router.include_router(web3_router, prefix="/web3", tags=["Web3 Ledger"])
 
 __all__ = ["api_router"]
