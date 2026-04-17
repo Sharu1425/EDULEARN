@@ -40,14 +40,17 @@ class Settings(BaseSettings):
             "https://13.60.212.110",
             "https://modlrn.vercel.app",
             "https://modlrn.onrender.com",
+            "https://edulearn-omega.vercel.app",
             "https://accounts.google.com",
             "https://oauth2.googleapis.com",
         ]
         
-        # Add frontend URL from environment configuration
+        # Add frontend URL from environment configuration and ensure no trailing slash
         frontend_url = os.getenv("FRONTEND_URL")
-        if frontend_url and frontend_url not in origins:
-            origins.append(frontend_url)
+        if frontend_url:
+            frontend_url = frontend_url.rstrip("/")
+            if frontend_url not in origins:
+                origins.append(frontend_url)
             
         return origins
 
