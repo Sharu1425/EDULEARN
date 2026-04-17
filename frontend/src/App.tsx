@@ -91,7 +91,10 @@ const AppLayout: React.FC<{
         )}
 
         {/* Content Area flex container under Header */}
-        <div className={showSidebarAndHeader ? "flex flex-1 overflow-hidden" : "flex flex-1"}>
+        <div className={cn(
+          "flex flex-1 overflow-hidden",
+          showSidebarAndHeader && "pt-16"
+        )}>
 
           {/* Sidebar sits below header */}
           {showSidebarAndHeader && <Sidebar user={user} />}
@@ -101,8 +104,7 @@ const AppLayout: React.FC<{
             "flex-1 overflow-y-auto w-full relative",
             showSidebarAndHeader && "bg-background/40"
           )}>
-            {/* If Header is fixed, we might need a top spacer. Let's see if Header uses fixed. Yes it does in Header.tsx. So add pt-16. */}
-            {showSidebarAndHeader && <div className="h-16 w-full shrink-0" />}
+            {/* The spacer below is now redundant since we added pt-16 to the parent container */}
             <div className={cn(
               "mx-auto w-full",
               !fullscreen && "pb-12"

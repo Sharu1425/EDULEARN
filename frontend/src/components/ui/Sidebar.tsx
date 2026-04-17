@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     LayoutDashboard, ClipboardList, Code2, BarChart3, User, Settings,
     Users, CalendarDays, Trophy, ShieldCheck, ChevronLeft,
-    ChevronRight, Menu, X
+    ChevronRight, X
 } from "lucide-react"
 import { cn } from "../../lib/utils"
 import { getSidebarNavItems } from "../../utils/roleUtils"
@@ -44,6 +44,20 @@ const Sidebar: React.FC<SidebarProps> = ({ user, className }) => {
         },
         [location.pathname]
     )
+
+    // Listen for mobile toggle events from Header
+    useEffect(() => {
+        const handleToggleMobile = () => setMobileOpen(prev => !prev)
+        const handleToggleDesktop = () => setCollapsed(prev => !prev)
+        
+        window.addEventListener('toggle-mobile-sidebar', handleToggleMobile)
+        window.addEventListener('toggle-sidebar', handleToggleDesktop)
+        
+        return () => {
+            window.removeEventListener('toggle-mobile-sidebar', handleToggleMobile)
+            window.removeEventListener('toggle-sidebar', handleToggleDesktop)
+        }
+    }, [])
 
     // ── Shared nav item renderer ──────────────────────────────────────
     const NavItem = ({
@@ -139,15 +153,6 @@ const Sidebar: React.FC<SidebarProps> = ({ user, className }) => {
         </motion.aside>
     )
 
-    // ── Mobile header button + drawer ────────────────────────────────
-    const MobileNavButton = (
-        <button
-            onClick={() => setMobileOpen(true)}
-            className="lg:hidden fixed top-4 left-4 z-50 w-9 h-9 rounded-xl glass flex items-center justify-center text-foreground shadow-lg"
-        >
-            <Menu className="w-4 h-4" />
-        </button>
-    )
 
     const MobileDrawer = (
         <AnimatePresence>
@@ -199,7 +204,6 @@ const Sidebar: React.FC<SidebarProps> = ({ user, className }) => {
     return (
         <>
             {DesktopSidebar}
-            {MobileNavButton}
             {MobileDrawer}
         </>
     )

@@ -203,8 +203,8 @@ async def get_analytics_overview(current_user: UserModel = Depends(require_admin
 async def get_users_analytics(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
-    sort_by: str = Query("activity_score", regex="^(activity_score|username|email|created_at|last_login)$"),
-    order: str = Query("desc", regex="^(asc|desc)$"),
+    sort_by: str = Query("activity_score", pattern="^(activity_score|username|email|created_at|last_login)$"),
+    order: str = Query("desc", pattern="^(asc|desc)$"),
     role: Optional[str] = Query(None),
     days: int = Query(30, ge=1, le=365),
     current_user: UserModel = Depends(require_admin)

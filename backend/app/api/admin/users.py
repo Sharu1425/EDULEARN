@@ -422,7 +422,7 @@ async def bulk_import_users(
 
 @router.get("/users/export")
 async def export_users(
-    format: str = Query("json", regex="^(json|csv)$"),
+    format: str = Query("json", pattern="^(json|csv)$"),
     role: Optional[str] = Query(None),
     current_user: UserModel = Depends(require_admin)
 ):
@@ -495,7 +495,6 @@ async def reset_user_password(
             raise HTTPException(status_code=404, detail="User not found")
         
         # Hash new password
-        from ..models.models import UserModel
         new_password_hash = UserModel.hash_password(password_data.get("new_password", ""))
         
         # Update password
