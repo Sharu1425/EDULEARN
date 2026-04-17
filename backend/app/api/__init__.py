@@ -22,6 +22,7 @@ from .test import router as test_router
 from .thinktrace import router as thinktrace_router
 from .livesession import router as livesession_router
 from .credits import router as credits_router
+from .firewall import router as firewall_router
 
 # Create main API router
 api_router = APIRouter(prefix="/api")
@@ -43,5 +44,6 @@ api_router.include_router(test_router, tags=["Test"])
 api_router.include_router(thinktrace_router, prefix="/thinktrace", tags=["ThinkTrace"])
 api_router.include_router(livesession_router, prefix="/livesession", tags=["LiveSession"])
 api_router.include_router(credits_router, prefix="/credits", tags=["Credits"])
+api_router.include_router(firewall_router, prefix="/firewall", tags=["Firewall"])
 
 __all__ = ["api_router"]
