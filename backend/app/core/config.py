@@ -28,19 +28,28 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
 
     # CORS
-    cors_origins: List[str] = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-        "http://localhost:3000",
-        "http://13.60.212.110",
-        "https://13.60.212.110",
-        "https://modlrn.vercel.app",
-        "https://modlrn.onrender.com",
-        "https://accounts.google.com",
-        "https://oauth2.googleapis.com",
-    ]
+    @property
+    def cors_origins(self) -> List[str]:
+        origins = [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5174",
+            "http://localhost:3000",
+            "http://13.60.212.110",
+            "https://13.60.212.110",
+            "https://modlrn.vercel.app",
+            "https://modlrn.onrender.com",
+            "https://accounts.google.com",
+            "https://oauth2.googleapis.com",
+        ]
+        
+        # Add frontend URL from environment configuration
+        frontend_url = os.getenv("FRONTEND_URL")
+        if frontend_url and frontend_url not in origins:
+            origins.append(frontend_url)
+            
+        return origins
 
     # AI Services
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "your-google-ai-api-key")
