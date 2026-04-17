@@ -2,13 +2,15 @@
 Gemini AI Coding Service
 Handles all AI-driven features for the coding platform
 """
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import json
 import os
 import re
 import subprocess
 import tempfile
 import time
+import asyncio
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 from dotenv import load_dotenv
@@ -23,21 +25,50 @@ class GeminiCodingService:
         self.cache = {}  # Simple in-memory cache for recent generations
         self.cache_max_size = 50  # Limit cache size
         
-        if self.api_key and self.api_key != "your-google-ai-api-key" and not self.api_key.startswith("AIzaSyCeT"):
-            genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel('gemini-3-flash-preview')
-            self.model.generation_config = {
-                "temperature": 0.7,
-                "top_p": 0.8,
-                "top_k": 40,
-                "max_output_tokens": 2048,  # Reduced for faster generation
-            }
-            self.available = True
-            print("[SUCCESS] [GEMINI_CODING] Gemini AI service initialized successfully")
+        if self.api_key and self.api_key not in ("your-google-ai-api-key", "not-set", ""):
+            try:
+                # Initialize the new SDK client
+                self.client = genai.Client(api_key=self.api_key)
+                
+                # Try the user-requested model from settings first, then fallbacks
+                preferred_models = []
+                if hasattr(settings, 'gemini_model') and settings.gemini_model:
+                     preferred_models.append(settings.gemini_model)
+                
+                # Default fallbacks if settings model is not available
+                preferred_models.extend([
+                    "gemini-3.1-flash-lite-preview", 
+                    "gemini-3-flash-preview",
+                    "gemini-2.5-flash-lite",
+                    "gemini-2.0-flash-lite",
+                    "gemini-flash-lite-latest"
+                ])
+                
+                # We'll pick the first one that exists in the models list
+                available_models = [m.name for m in self.client.models.list()]
+                self.model_name = None
+                
+                for pm in preferred_models:
+                    # The models list has "models/name" format
+                    full_name = f"models/{pm}"
+                    if full_name in available_models or pm in available_models:
+                        self.model_name = pm
+                        break
+                
+                if not self.model_name:
+                    # Fallback if none of our preferences matched
+                    self.model_name = "gemini-flash-lite-latest"
+                
+                self.available = True
+                print(f"[SUCCESS] [GEMINI_CODING] Gemini AI service initialized ({self.model_name}) using Google GenAI SDK")
+            except Exception as e:
+                self.client = None
+                self.available = False
+                print(f"[ERROR] [GEMINI_CODING] Failed to initialize Google GenAI SDK: {e}")
         else:
-            self.model = None
+            self.client = None
             self.available = False
-            print("[WARNING] [GEMINI_CODING] Gemini API key not configured, using fallback mode")
+            print("[WARNING] [GEMINI_CODING] Gemini API key not configured — fallback mode active")
 
     def _get_cache_key(self, topic: str, difficulty: str, count: int = 1) -> str:
         """Generate cache key for requests"""
@@ -114,12 +145,17 @@ class GeminiCodingService:
             
             import asyncio
             try:
-                response = await asyncio.wait_for(
-                    self.model.generate_content_async(contents),
-                    timeout=60.0 # Increased timeout for file processing
+                # Use new SDK client.aio.models.generate_content for async
+                response = await self.client.aio.models.generate_content(
+                    model=self.model_name,
+                    contents=contents,
+                    config=types.GenerateContentConfig(
+                        temperature=0.7,
+                        max_output_tokens=4096
+                    )
                 )
-            except asyncio.TimeoutError:
-                print("[TIMEOUT] [GEMINI_CODING] Handout processing timed out")
+            except Exception as e:
+                print(f"[ERROR] [GEMINI_CODING] Handout processing failed: {e}")
                 return []
                 
             if not response.text:
@@ -182,15 +218,17 @@ class GeminiCodingService:
             ]
             """
             
-            # Add timeout handling for Gemini API calls
-            import asyncio
             try:
-                response = await asyncio.wait_for(
-                    self.model.generate_content_async(prompt),
-                    timeout=20.0  # 20 second timeout for MCQ
+                response = await self.client.aio.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.7,
+                        max_output_tokens=4096
+                    )
                 )
-            except asyncio.TimeoutError:
-                print("[TIMEOUT] [GEMINI_CODING] MCQ generation timed out after 20 seconds")
+            except Exception as e:
+                print(f"[ERROR] [GEMINI_CODING] MCQ generation failed: {e}")
                 return self._generate_fallback_mcq_questions(topic, difficulty, count)
             
             questions_text = response.text.strip()
@@ -262,31 +300,36 @@ class GeminiCodingService:
         return True
     
     def _clean_json_response(self, json_text: str) -> str:
-        """Clean and fix common JSON issues in AI responses"""
-        # Remove any text before the first '[' or '{'
-        start_idx = max(json_text.find('['), json_text.find('{'))
-        if start_idx > 0:
-            json_text = json_text[start_idx:]
-        
-        # Remove any text after the last ']' or '}'
-        end_idx = max(json_text.rfind(']'), json_text.rfind('}'))
-        if end_idx > 0:
-            json_text = json_text[:end_idx + 1]
-        
-        # Fix common issues with newlines in strings
-        json_text = json_text.replace('\n', '\\n')
-        
-        # Fix unterminated strings by adding quotes
-        lines = json_text.split('\n')
-        cleaned_lines = []
-        for line in lines:
-            # Count unescaped quotes
-            quote_count = line.count('"') - line.count('\\"')
-            if quote_count % 2 == 1 and not line.strip().endswith('"'):
-                line = line.rstrip() + '"'
-            cleaned_lines.append(line)
-        
-        return '\n'.join(cleaned_lines)
+        """Strip markdown fences and locate the JSON array/object boundaries."""
+        # Remove markdown code fences first
+        if "```json" in json_text:
+            json_text = json_text.split("```json", 1)[1]
+        if "```" in json_text:
+            json_text = json_text.rsplit("```", 1)[0]
+        json_text = json_text.strip()
+
+        # Locate the outermost [ or { (whichever comes first)
+        start_bracket = json_text.find('[')
+        start_brace = json_text.find('{')
+
+        if start_bracket == -1 and start_brace == -1:
+            return json_text  # Nothing to trim
+
+        if start_bracket == -1:
+            start = start_brace
+            end = json_text.rfind('}') + 1
+        elif start_brace == -1:
+            start = start_bracket
+            end = json_text.rfind(']') + 1
+        else:
+            if start_bracket < start_brace:
+                start = start_bracket
+                end = json_text.rfind(']') + 1
+            else:
+                start = start_brace
+                end = json_text.rfind('}') + 1
+
+        return json_text[start:end] if end > start else json_text
     
     def _generate_fallback_mcq_questions(self, topic: str, difficulty: str, count: int) -> List[Dict[str, Any]]:
         """Generate fallback MCQ questions when AI is not available"""
@@ -360,14 +403,17 @@ class GeminiCodingService:
             }}
             """
             
-            import asyncio
             try:
-                response = await asyncio.wait_for(
-                    self.model.generate_content_async(prompt),
-                    timeout=30.0 
+                response = await self.client.aio.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.7,
+                        max_output_tokens=4096
+                    )
                 )
-            except asyncio.TimeoutError:
-                print("[TIMEOUT] [GEMINI_CODING] Live Content generation timed out")
+            except Exception as e:
+                print(f"[ERROR] [GEMINI_CODING] Live Content generation failed: {e}")
                 return {"quizzes": [], "polls": [], "flashcards": []}
             
             if not response.text:
@@ -504,13 +550,18 @@ class GeminiCodingService:
             
             import asyncio
             try:
-                response = await asyncio.wait_for(
-                    self.model.generate_content_async(contents),
-                    timeout=60.0 # Increased timeout for large files
+                # Use new SDK client.aio.models.generate_content for async
+                response = await self.client.aio.models.generate_content(
+                    model=self.model_name,
+                    contents=contents,
+                    config=types.GenerateContentConfig(
+                        temperature=0.7,
+                        max_output_tokens=4096
+                    )
                 )
-            except asyncio.TimeoutError:
-                print("[TIMEOUT] [GEMINI_CODING] File processing timed out")
-                return {"quizzes": [], "polls": [], "flashcards": [], "fillups": [], "summary": "Error: Analysis timed out."}
+            except Exception as e:
+                print(f"[ERROR] [GEMINI_CODING] File processing failed: {e}")
+                return {"quizzes": [], "polls": [], "flashcards": [], "fillups": [], "summary": "Error: Analysis failed."}
                 
             if not response.text:
                 return {"quizzes": [], "polls": [], "flashcards": [], "fillups": [], "summary": "Empty response from AI."}
@@ -625,12 +676,17 @@ class GeminiCodingService:
             # Add timeout handling for Gemini API calls
             import asyncio
             try:
-                response = await asyncio.wait_for(
-                    self.model.generate_content_async(prompt),
-                    timeout=30.0  # 30 second timeout for coding problems
+                # Use new SDK client.aio.models.generate_content for async
+                response = await self.client.aio.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.7,
+                        max_output_tokens=4096
+                    )
                 )
-            except asyncio.TimeoutError:
-                print("[TIMEOUT] [GEMINI_CODING] Gemini API call timed out after 30 seconds")
+            except Exception as e:
+                print(f"[ERROR] [GEMINI_CODING] Coding problem generation failed: {e}")
                 return self._get_fallback_coding_problem(topic, difficulty)
             
             if not response or not response.text:
@@ -768,7 +824,14 @@ class GeminiCodingService:
             5. Learning opportunities and growth areas
             """
             
-            response = await self.model.generate_content_async(prompt)
+            response = await self.client.aio.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.7,
+                    max_output_tokens=4096
+                )
+            )
             
             if not response or not response.text:
                 return self._get_fallback_feedback(code, test_results)
@@ -875,7 +938,14 @@ class GeminiCodingService:
             5. Address identified weaknesses
             """
             
-            response = await self.model.generate_content_async(prompt)
+            response = await self.client.aio.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.7,
+                    max_output_tokens=4096
+                )
+            )
             
             if not response or not response.text:
                 return self._get_fallback_learning_path()
@@ -2384,7 +2454,14 @@ int main() {
             5. Personalized learning suggestions
             """
             
-            response = await self.model.generate_content_async(prompt)
+            response = await self.client.aio.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.7,
+                    max_output_tokens=4096
+                )
+            )
             
             if not response or not response.text:
                 return self._get_fallback_student_report(performance_data)
@@ -2459,7 +2536,14 @@ int main() {
             5. Focus on practical application of concepts
             """
             
-            response = await self.model.generate_content_async(prompt)
+            response = await self.client.aio.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.7,
+                    max_output_tokens=4096
+                )
+            )
             
             if not response or not response.text:
                 return self._get_fallback_smart_assessment(assessment_data)
@@ -2518,7 +2602,14 @@ int main() {
             6. Alignment with learning outcomes
             """
             
-            response = await self.model.generate_content_async(prompt)
+            response = await self.client.aio.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.7,
+                    max_output_tokens=4096
+                )
+            )
             
             if not response or not response.text:
                 return self._get_fallback_content_audit(content_data)
@@ -2649,25 +2740,20 @@ IMPORTANT:
 - Do not provide generic explanations that could apply to multiple options
 - Return ONLY the JSON array, no other text or formatting."""
             
-            response = await self.model.generate_content_async(prompt)
+            response = await self.client.aio.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.7,
+                    max_output_tokens=4096
+                )
+            )
             content = response.text.strip()
             
             # Parse JSON response
             try:
-                # Clean up the response content
-                content = content.strip()
-                
-                # Extract JSON from response if it's wrapped in markdown
-                if "```json" in content:
-                    content = content.split("```json")[1].split("```")[0].strip()
-                elif "```" in content:
-                    content = content.split("```")[1].split("```")[0].strip()
-                
-                # Remove any leading/trailing text that's not JSON
-                if content.startswith("```"):
-                    content = content[3:]
-                if content.endswith("```"):
-                    content = content[:-3]
+                # Use centralized cleaning logic
+                content = self._clean_json_response(content)
                 
                 # Find the first [ and last ] to extract array
                 start_idx = content.find('[')

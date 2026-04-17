@@ -7,6 +7,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional, List
 from datetime import datetime
 
+from .core.config import settings
 from .core.security import security_manager
 from .db import get_db
 from .models.models import UserModel
@@ -18,11 +19,7 @@ async def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depend
     """Get current user ID from JWT token"""
     try:
         import jwt
-        import os
-        SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
-        ALGORITHM = "HS256"
-        
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(credentials.credentials, settings.secret_key, algorithms=[settings.algorithm])
         user_id = payload.get("sub")
         if user_id is None:
             return None
@@ -34,46 +31,34 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     """Get current authenticated user"""
     try:
         import jwt
-        import os
-        SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
-        ALGORITHM = "HS256"
-        
-        print(f"[DEBUG] [DEPENDENCIES] Verifying token...")
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(credentials.credentials, settings.secret_key, algorithms=[settings.algorithm])
         user_id = payload.get("sub")
-        print(f"[DEBUG] [DEPENDENCIES] User ID from token: {user_id}")
-        
+
         if not user_id:
-            print("[ERROR] [DEPENDENCIES] No user_id in token payload")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials"
             )
-        
+
         db = await get_db()
-        
-        # Convert string user_id to ObjectId for MongoDB query
+
         from bson import ObjectId
         try:
             user_doc = await db.users.find_one({"_id": ObjectId(user_id)})
         except Exception:
-            # If ObjectId conversion fails, try with string
             user_doc = await db.users.find_one({"_id": user_id})
-            
+
         if not user_doc:
-            print(f"[ERROR] [DEPENDENCIES] User not found in database: {user_id}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
             )
-        
-        print(f"[SUCCESS] [DEPENDENCIES] User authenticated: {user_doc.get('email', 'Unknown')}")
+
         return UserModel(**user_doc)
-        
+
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[ERROR] [DEPENDENCIES] Authentication failed: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials"
@@ -171,8 +156,8 @@ async def require_student(current_user: UserModel = Depends(get_current_user)) -
         )
     return current_user
 
-async def require_assessment_creation(current_user: UserModel = Depends(get_current_user)) -> UserModel:
-    """Require permission to create assessments"""
+async def require_assessment_creation_dep(current_user: UserModel = Depends(get_current_user)) -> UserModel:
+    """Require permission to create assessments (Teacher/Admin)"""
     if current_user.role not in ["teacher", "admin"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

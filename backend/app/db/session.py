@@ -104,6 +104,11 @@ async def create_indexes():
         # Batches collection indexes
         await db.batches.create_index([("student_ids", 1)])
         await db.batches.create_index([("created_at", 1)])
+
+        # Credits transactions collection indexes
+        await db.transactions.create_index([("user_id", 1)])
+        await db.transactions.create_index([("created_at", -1)])
+        await db.transactions.create_index([("user_id", 1), ("created_at", -1)])
         
         print(f"[DB] Database indexes created successfully")
         

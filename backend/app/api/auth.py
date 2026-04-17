@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import os
 from typing import Optional, Dict, Any
 import jwt
 from jwt import InvalidTokenError
@@ -10,60 +9,43 @@ from ..db import get_db
 from ..schemas.schemas import UserCreate, UserLogin, UserResponse
 from ..models.models import UserModel
 from ..utils.auth_utils import create_access_token, verify_token
+from ..core.config import settings
 
 router = APIRouter()
 security = HTTPBearer()
 
-# JWT settings
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
 # In-memory session storage (in production, use Redis or database)
 sessions = {}
+
 
 async def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Optional[str]:
     """Get current user ID from JWT token"""
     try:
-        print(f"[DEBUG] Verifying token...")
         payload = verify_token(credentials.credentials)
         user_id = payload.get("sub")
         if user_id is None:
-            print("[ERROR] No user_id in token payload")
             raise HTTPException(status_code=401, detail="Invalid token")
-        print(f"[SUCCESS] Token verified for user: {user_id}")
-        return str(user_id)  # Ensure it's a string
+        return str(user_id)
     except (jwt.InvalidTokenError, ValueError) as e:
-        print(f"[ERROR] JWT verification failed: {str(e)}")
         raise HTTPException(status_code=401, detail="Invalid token")
-    except Exception as e:
-        print(f"[ERROR] Unexpected error in token verification: {str(e)}")
+    except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
     """Get current user information from JWT token"""
     try:
-        print(f"[DEBUG] Getting current user from token...")
         payload = verify_token(credentials.credentials)
         user_id = payload.get("sub")
         email = payload.get("email")
         role = payload.get("role", "student")
-        
+
         if user_id is None:
-            print("[ERROR] No user_id in token payload")
             raise HTTPException(status_code=401, detail="Invalid token")
-        
-        print(f"[SUCCESS] User info retrieved: {user_id}, role: {role}")
-        return {
-            "id": user_id,
-            "email": email,
-            "role": role
-        }
-    except (jwt.InvalidTokenError, ValueError) as e:
-        print(f"[ERROR] JWT verification failed: {str(e)}")
+
+        return {"id": user_id, "email": email, "role": role}
+    except (jwt.InvalidTokenError, ValueError):
         raise HTTPException(status_code=401, detail="Invalid token")
-    except Exception as e:
-        print(f"[ERROR] Unexpected error in token verification: {str(e)}")
+    except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 @router.post("/register")
@@ -125,15 +107,22 @@ async def register_user(user_data: UserCreate):
         except Exception as insert_error:
             print(f"[ERROR] [REGISTER] Database insert failed: {str(insert_error)}")
             raise HTTPException(
-                status_code=500, 
+                status_code=500,
                 detail="Unable to save your account. Please try again."
             )
-        
+
+        # Grant signup bonus credits (non-blocking — registration succeeds even if this fails)
+        try:
+            from ..services import credits_service
+            await credits_service.add_credits(str(result.inserted_id), 200, "signup_bonus")
+        except Exception as credits_error:
+            print(f"[WARNING] [REGISTER] Signup bonus failed (non-fatal): {str(credits_error)}")
+
         # Create access token with role information
         try:
             access_token = create_access_token(
                 data={
-                    "sub": str(result.inserted_id), 
+                    "sub": str(result.inserted_id),
                     "email": user_data.email,
                     "role": user_data.role or "student"
                 }
@@ -142,11 +131,12 @@ async def register_user(user_data: UserCreate):
         except Exception as token_error:
             print(f"[ERROR] [REGISTER] Token creation failed: {str(token_error)}")
             raise HTTPException(
-                status_code=500, 
+                status_code=500,
                 detail="Account created but unable to log you in. Please try logging in."
             )
-        
+
         print(f"[SUCCESS] [REGISTER] Registration successful for user: {user_data.email}")
+
         return {
             "success": True,
             "message": "User registered successfully",

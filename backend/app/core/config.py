@@ -9,7 +9,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings"""
 
-    # Pydantic v2 settings config
+    # Pydantic v2 settings config — reads from .env automatically
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     # Application
@@ -18,12 +18,12 @@ class Settings(BaseSettings):
     app_version: str = "1.0.0"
     debug: bool = False
 
-    # Database
-    mongo_uri: str = os.getenv("MONGO_URI", "mongodb://127.0.0.1:27017/edulearn")
-    db_name: str = os.getenv("DB_NAME", "edulearn")
+    # Database — loaded from .env: MONGO_URI, DB_NAME
+    mongo_uri: str = "mongodb://127.0.0.1:27017/edulearn"
+    db_name: str = "edulearn"
 
-    # Security
-    secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-here")
+    # Security — loaded from .env: SECRET_KEY
+    secret_key: str = "change-me-not-set-in-env"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
 
@@ -44,36 +44,32 @@ class Settings(BaseSettings):
             "https://accounts.google.com",
             "https://oauth2.googleapis.com",
         ]
-        
-        # Add frontend URL from environment configuration and ensure no trailing slash
+
+        # Add FRONTEND_URL from .env if set
         frontend_url = os.getenv("FRONTEND_URL")
         if frontend_url:
             frontend_url = frontend_url.rstrip("/")
             if frontend_url not in origins:
                 origins.append(frontend_url)
-            
+
         return origins
 
-    # AI Services
-    gemini_api_key: str = os.getenv("GEMINI_API_KEY", "your-google-ai-api-key")
+    # AI Services — loaded from .env: GEMINI_API_KEY, GEMINI_MODEL
+    gemini_api_key: str = "not-set"
+    gemini_model: str = "gemini-3.1-flash-lite-preview"
 
-    # Google OAuth
-    google_client_id: str = os.getenv(
-        "GOOGLE_CLIENT_ID",
-        "390673176588-srmffm0pi2t4u4qs4o7kdelh72vj47fq.apps.googleusercontent.com",
-    )
-
-    google_client_secret: str = os.getenv(
-        "GOOGLE_CLIENT_SECRET", "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"
-    )
+    # Google OAuth — loaded from .env
+    google_client_id: str = "not-set"
+    google_client_secret: str = "not-set"
 
     code_execution_timeout: int = 5
     code_memory_limit: int = 256
 
-    hackerearth_client_secret: str = os.getenv("HACKEREARTH_CLIENT_SECRET", "")
+    # HackerEarth — loaded from .env
+    hackerearth_client_secret: str = ""
 
-    session_secret: str = os.getenv(
-        "SESSION_SECRET", "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"
-    )
+    # Session — loaded from .env: SESSION_SECRET
+    session_secret: str = "change-me-not-set-in-env"
+
 
 settings = Settings()

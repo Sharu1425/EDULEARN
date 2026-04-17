@@ -1,4 +1,4 @@
-﻿"""
+"""
 FastAPI application entry point
 Main application configuration and startup
 """
@@ -6,14 +6,8 @@ Main application configuration and startup
 from dotenv import load_dotenv
 import os
 
-# Load .env file - must be called before importing any modules that use environment variables
+# Load .env file — must be called before importing any modules that use environment variables
 load_dotenv(override=True)
-
-# Debug: Print HackerEarth secret to verify it's loaded (remove in production)
-client_secret = os.getenv("HACKEREARTH_CLIENT_SECRET")
-print(f"DEBUG SECRET: {'Set' if client_secret else 'Not set'}")
-if client_secret:
-    print(f"DEBUG SECRET (first 10 chars): {client_secret[:10]}...")
 
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,28 +22,37 @@ from .db import init_db, get_db
 from .api import api_router
 from .utils.error_handler import register_exception_handlers
 from .middleware import LoggingMiddleware, AuditMiddleware, PerformanceMiddleware
+from .middleware.metrics import MetricsMiddleware, generate_latest, CONTENT_TYPE_LATEST
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     # Startup
     try:
-        print("[STARTUP] Starting FastAPI Backend...")
-        print(f"[ENV] Environment check:")
-        print(f"   - MONGO_URI: {'Set' if settings.mongo_uri else 'Not set'}")
-        print(f"   - DB_NAME: {'Set' if settings.db_name else 'Not set'}")
-        print(f"   - SECRET_KEY: {'Set' if settings.secret_key else 'Not set'}")
-        
+        print("[STARTUP] FastAPI Backend starting...")
+        # Compact env variable check — shows ✓ if set, ✗ if missing/placeholder
+        env_checks = {
+            "MONGO_URI":               bool(settings.mongo_uri and "change-me" not in settings.mongo_uri),
+            "DB_NAME":                 bool(settings.db_name),
+            "SECRET_KEY":             bool(settings.secret_key and "change-me" not in settings.secret_key),
+            "GEMINI_API_KEY":         bool(settings.gemini_api_key and settings.gemini_api_key != "not-set"),
+            "GOOGLE_CLIENT_ID":       bool(settings.google_client_id and settings.google_client_id != "not-set"),
+            "HACKEREARTH_SECRET":     bool(settings.hackerearth_client_secret),
+            "FRONTEND_URL":           bool(os.getenv("FRONTEND_URL")),
+        }
+        for key, ok in env_checks.items():
+            print(f"  [ENV] {'✓' if ok else '✗'} {key}")
+
         await init_db()
-        print("[SUCCESS] FastAPI Backend Started Successfully")
+        print("[STARTUP] Backend ready")
     except Exception as e:
-        print(f"[ERROR] Startup Error: {str(e)}")
+        print(f"[ERROR] Startup failed: {str(e)}")
         import traceback
-        print(f"[ERROR] Startup Traceback: {traceback.format_exc()}")
+        traceback.print_exc()
         raise e
     yield
     # Shutdown
-    print("[SHUTDOWN] FastAPI Backend Shutdown")
+    print("[SHUTDOWN] FastAPI Backend stopped")
 
 # Create FastAPI application
 app = FastAPI(
@@ -63,6 +66,9 @@ app = FastAPI(
 
 # Register exception handlers
 # register_exception_handlers(app)
+
+# Prometheus metrics middleware (must be added before CORS for full coverage)
+app.add_middleware(MetricsMiddleware)
 
 # Add logging and monitoring middleware
 # app.add_middleware(LoggingMiddleware)
@@ -79,40 +85,21 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
-# Manual CORS handler for additional safety
+# Request logging middleware — compact single-line log per request
 @app.middleware("http")
-async def add_cors_headers(request: Request, call_next):
+async def request_logger(request: Request, call_next):
+    import time
+    start = time.time()
     try:
         response = await call_next(request)
     except Exception as e:
-        # Log the actual error for debugging
-        print(f" [CORS MIDDLEWARE] Error: {e}")
-        import traceback
-        traceback.print_exc()
-        # If there's an error, create a response with CORS headers
+        print(f"[ERROR] {request.method} {request.url.path} → 500 ({e})")
         from fastapi.responses import JSONResponse
-        response = JSONResponse(
-            status_code=500,
-            content={"detail": f"Internal server error: {str(e)}"}
-        )
-    
-    # Get the origin from the request
-    origin = request.headers.get("origin")
-    allowed_origins = settings.cors_origins
-    
-    # Always set CORS headers, even for errors
-    if origin in allowed_origins:
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-    else:
-        # For development, allow localhost even if not in the list
-        if origin and ("localhost" in origin or "127.0.0.1" in origin):
-            response.headers["Access-Control-Allow-Origin"] = origin
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-    
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "authorization, content-type, accept, origin, x-requested-with"
-    response.headers["Access-Control-Expose-Headers"] = "*"
+        response = JSONResponse(status_code=500, content={"detail": f"Internal server error: {str(e)}"})
+    elapsed = round((time.time() - start) * 1000)
+    # Skip logging for /metrics and /health to reduce noise
+    if request.url.path not in ("/metrics", "/health", "/api/health"):
+        print(f"[API] {request.method} {request.url.path} → {response.status_code} ({elapsed}ms)")
     return response
 
 # Global exception handler to ensure CORS headers are always set
@@ -278,6 +265,12 @@ async def root():
         "version": settings.app_version,
         "status": "healthy"
     }
+
+@app.get("/metrics", include_in_schema=False)
+async def metrics():
+    """Prometheus metrics endpoint — scraped by Prometheus at /metrics"""
+    from fastapi.responses import Response as FastAPIResponse
+    return FastAPIResponse(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 @app.get("/health")
 async def health_check():

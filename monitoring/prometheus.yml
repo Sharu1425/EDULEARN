@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 15s      # How often to scrape targets
+  evaluation_interval: 15s  # How often to evaluate rules
+
+scrape_configs:
+  # EDULEARN FastAPI Backend
+  - job_name: 'edulearn-backend'
+    static_configs:
+      # When running via Docker Compose, use the service name:
+      - targets: ['backend:5001']
+      # For local testing without Docker (uncomment the line below and comment out above):
+      # - targets: ['localhost:5001']
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

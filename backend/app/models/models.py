@@ -48,6 +48,10 @@ class NotificationPriority(str, Enum):
     high = "high"
     urgent = "urgent"
 
+class TransactionType(str, Enum):
+    credit = "credit"
+    debit = "debit"
+
 # User Model
 class UserModel(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
@@ -63,12 +67,14 @@ class UserModel(BaseModel):
     last_login: Optional[datetime] = None
     settings: Optional[Dict[str, Any]] = None
     batch_ids: List[str] = Field(default_factory=list)
+    credits: int = Field(default=0)  # Virtual currency balance
 
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str}
     )
+
     
     @staticmethod
     def hash_password(password: str) -> str:
@@ -241,6 +247,24 @@ class ActiveSessionModel(BaseModel):
     started_at: datetime = Field(default_factory=datetime.utcnow)
     last_heartbeat: datetime = Field(default_factory=datetime.utcnow)
     is_active: bool = True
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
+
+
+# Credits / Ledger Transaction Model
+class TransactionModel(BaseModel):
+    """Immutable ledger record for every credits change."""
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    user_id: str
+    type: TransactionType                   # "credit" or "debit"
+    amount: int                             # Always positive
+    reason: str                             # e.g. "signup_bonus", "quiz_attempt"
+    balance_after: int                      # Snapshot of balance after this transaction
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
     model_config = ConfigDict(
         populate_by_name=True,

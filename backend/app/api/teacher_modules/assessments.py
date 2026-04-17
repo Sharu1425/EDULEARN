@@ -356,6 +356,15 @@ async def submit_teacher_assessment(
         
         result = await db.teacher_assessment_results.insert_one(result_doc)
         
+        # Award bonus credits for good performance (> 75%)
+        if percentage >= 75.0:
+            try:
+                from ...services import credits_service
+                await credits_service.add_credits(str(user.id), 10, f"assessment_performance_bonus_{assessment_id}")
+                print(f"💰 [CREDITS] Awarded performance bonus to student {user.id} for {percentage:.1f}% score")
+            except Exception as credits_err:
+                print(f"⚠️ [CREDITS] Failed to award performance bonus: {credits_err}")
+                
         # Create notification for student about result
         notification = {
             "student_id": user.id,

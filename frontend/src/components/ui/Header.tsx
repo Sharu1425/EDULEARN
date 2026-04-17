@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Bell, Menu, LogOut, Settings, User as UserIcon, Moon, Sun } from "lucide-react"
+import { Bell, Menu, LogOut, Settings, User as UserIcon, Moon, Sun, Coins } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
 import { useTheme } from "../../contexts/ThemeContext"
 import { useNavigate, useLocation } from "react-router-dom"
 import { cn } from "../../lib/utils"
+import { useCredits } from "../../hooks/useCredits"
 
 interface HeaderProps {
     onMenuClick?: () => void
@@ -18,6 +19,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     const [showProfileDropdown, setShowProfileDropdown] = useState(false)
     const [scrolled, setScrolled] = useState(false)
     const isDark = colorScheme === "dark"
+    const { balance: creditsBalance, loading: creditsLoading } = useCredits()
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -117,7 +119,27 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                         <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-cyan-400 border-2 border-background animate-pulse" />
                     </motion.button>
 
-                    <div className="h-5 w-[1px] bg-border/50 mx-1 hidden sm:block" />
+                    {/* Credits Badge */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.85 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1.5 border text-xs font-bold transition-all cursor-default select-none"
+                        style={{
+                            background: isDark
+                                ? "rgba(251,191,36,0.12)"
+                                : "rgba(251,191,36,0.15)",
+                            borderColor: isDark
+                                ? "rgba(251,191,36,0.3)"
+                                : "rgba(217,119,6,0.3)",
+                            color: isDark ? "#fbbf24" : "#b45309",
+                        }}
+                        title="Your credits balance"
+                    >
+                        <Coins className="h-3.5 w-3.5" />
+                        <span className={cn(creditsLoading && "opacity-50")}>
+                            {creditsLoading ? "…" : (creditsBalance ?? 0).toLocaleString()}
+                        </span>
+                    </motion.div>
 
                     {/* Profile */}
                     <div className="relative">

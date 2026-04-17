@@ -6,12 +6,13 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
-import os
 
-# JWT settings
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
+from ..core.config import settings
+
+# JWT settings — sourced from .env via settings
+SECRET_KEY = settings.secret_key
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 def get_password_hash(password: str) -> str:
     """Hash password using bcrypt"""
