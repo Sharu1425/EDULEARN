@@ -29,10 +29,15 @@ if __name__ == "__main__":
     print("API documentation at: http://0.0.0.0:5001/docs")
     print("Press Ctrl+C to stop the server")
     
+    port = int(os.environ.get("PORT", 5001))
+    
+    # Disable reload in production
+    is_prod = os.environ.get("RENDER") == "true" or os.environ.get("ENV") == "production"
+    
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=5001,
-        reload=True,
+        port=port,
+        reload=not is_prod,
         log_level="info"
     )
