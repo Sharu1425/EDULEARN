@@ -16,6 +16,9 @@ from ..dependencies import get_current_user
 from ..models.models import UserModel
 from .notifications import create_assessment_completion_notification
 import os
+import random
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["assessments"])
 security = HTTPBearer()
@@ -1664,42 +1667,33 @@ async def submit_assessment(
         
         # Grade the assessment
         questions = assessment.get("questions", [])
+
+        # Re-apply the deterministic shuffle for grading to match serving (core.py)
+        random.seed(f"{user.id}_{assessment_id}")
+        random.shuffle(questions)
+
+        # Shuffle options for each question to match serving logic
+        for q in questions:
+            if "options" in q:
+                options = q["options"]
+                correct_ans = q.get("correct_answer")
+                if isinstance(correct_ans, int) and 0 <= correct_ans < len(options):
+                    correct_text = options[correct_ans]
+                    random.shuffle(options)
+                    q["correct_answer"] = options.index(correct_text)
+                    q["options"] = options
+
         score = 0
         total_questions = len(questions)
-        
-        for i, question in enumerate(questions):
-            if i < len(submission.answers):
-                user_answer_raw = submission.answers[i]
-                correct_answer_index = question.get("correct_answer", -1)
-                correct_answer = ""
+
+        for j, question in enumerate(questions):
+            if j < len(submission.answers):
+                user_answer_idx = submission.answers[j]
+                correct_answer_idx = question.get("correct_answer", -1)
                 options = question.get("options", [])
-                
-                # Handle both string and integer correct answers
-                if isinstance(correct_answer_index, int) and correct_answer_index >= 0:
-                    if correct_answer_index < len(options):
-                        correct_answer = options[correct_answer_index]
-                else:
-                    correct_answer = question.get("answer", "")
-                
-                # If correct answer is just a letter (A, B, C, D), find the matching option
-                if len(correct_answer) == 1 and correct_answer.isalpha():
-                    letter = correct_answer.upper()
-                    for option in options:
-                        if option.startswith(f"{letter})"):
-                            correct_answer = option
-                            break
-                
-                # Convert user answer to text if it's an index for comparison
-                user_answer_text = ""
-                if isinstance(user_answer_raw, int) and 0 <= user_answer_raw < len(options):
-                    user_answer_text = options[user_answer_raw]
-                else:
-                    user_answer_text = str(user_answer_raw)
-                
-                # Compare text answers
-                if user_answer_text == correct_answer:
-                    score += question.get("points", 1)
-        
+                if isinstance(user_answer_idx, int) and 0 <= user_answer_idx < len(options):
+                    if user_answer_idx == correct_answer_idx:
+                        score += question.get("points", 1)
         percentage = (score / sum(q.get("points", 1) for q in questions)) * 100 if questions else 0
         
         # Convert user answers to text format for question review
@@ -1752,10 +1746,26 @@ async def submit_assessment(
         await create_assessment_completion_notification(
             db, 
             str(user.id), 
-            assessment['title'], 
+            assessment.get('title', 'Assessment'), 
             percentage, 
             teacher_id
         )
+        # Award bonus credits for good performance (> 75%)
+        if percentage >= 75.0:
+            try:
+                from ..services import credits_service
+                # Determine if it was teacher-created or self-generated
+                is_teacher = bool(assessment.get("teacher_id") or assessment.get("created_by"))
+                reward_amount = 10 if is_teacher else 5
+                await credits_service.add_credits(
+                    str(user.id), 
+                    reward_amount, 
+                    f"assessment_bonus_{assessment_id}"
+                )
+                logger.info(f"💰 [CREDITS] Awarded {reward_amount} performance bonus to student {user.id} for regular assessment {assessment.get('title')}")
+            except Exception as credits_err:
+                logger.error(f"⚠️ [CREDITS] Failed to award assessment bonus: {credits_err}")
+
         
         # Generate question reviews for immediate display
         question_reviews = []
@@ -2524,59 +2534,82 @@ async def submit_teacher_assessment(
         if existing_submission:
             raise HTTPException(status_code=400, detail="Assessment already submitted")
         
-        # Calculate score
+        # Authoritative Scoring & Review Pass (Synced with results.py logic)
         questions = assessment.get("questions", [])
-        answers = submission_data.get("answers", [])
         score = 0
-        
-        for i, question in enumerate(questions):
-            if i < len(answers):
-                user_answer = answers[i]
-                correct_answer_index = question.get("correct_answer", -1)
-                correct_answer = ""
-                options = question.get("options", [])
-                
-                # Handle both string and integer correct answers
-                if isinstance(correct_answer_index, int) and correct_answer_index >= 0:
-                    if correct_answer_index < len(options):
-                        correct_answer = options[correct_answer_index]
-                else:
-                    correct_answer = question.get("answer", "")
-                
-                # If correct answer is just a letter (A, B, C, D), find the matching option
-                if len(correct_answer) == 1 and correct_answer.isalpha():
-                    letter = correct_answer.upper()
-                    for option in options:
-                        if option.startswith(f"{letter})"):
-                            correct_answer = option
-                            break
-                
-                # Convert user answer to text if it's an index
-                if isinstance(user_answer, int) and 0 <= user_answer < len(options):
-                    user_answer_text = options[user_answer]
-                else:
-                    user_answer_text = str(user_answer)
-                
-                if user_answer_text == correct_answer:
-                    score += 1
-        
-        percentage = (score / len(questions)) * 100 if questions else 0
-        time_taken = submission_data.get("time_taken", 0)
-        
-        # Convert user answers to text format for question review
+        question_reviews = []
         user_answers_text = []
+        answers = submission_data.get("answers", [])
+        total_q = len(questions)
+        
+        print(f"📊 [ASSESSMENT] Autorative grading for {total_q} questions (Student: {user.id})")
+        
         for i, question in enumerate(questions):
-            if i < len(answers):
-                user_answer_raw = answers[i]
-                options = question.get("options", [])
-                
-                # Convert to text if it's an index
-                if isinstance(user_answer_raw, int) and 0 <= user_answer_raw < len(options):
-                    user_answers_text.append(options[user_answer_raw])
-                else:
-                    user_answers_text.append(str(user_answer_raw))
+            options = question.get("options", [])
+            user_answer_idx = answers[i] if i < len(answers) else -1
+            
+            # Robust Retrieval of expected answer (The "Results.py" way)
+            correct_idx = question.get("correct_answer")
+            expected_text = question.get("answer", "")
+            
+            # 1. Derive expected answer text
+            derived_expected = str(expected_text).strip()
+            if isinstance(correct_idx, int) and 0 <= correct_idx < len(options):
+                derived_expected = options[correct_idx]
+            
+            # 2. Letter normalization (handle A/B/C/D stored in DB)
+            if not derived_expected or derived_expected.upper() in ["A", "B", "C", "D"]:
+                letter = str(expected_text).upper() if expected_text else ""
+                if letter in ["A", "B", "C", "D"]:
+                    idx = ord(letter) - ord("A")
+                    if idx < len(options): 
+                        derived_expected = options[idx]
+
+            # 3. Derive user answer text
+            user_text = ""
+            if isinstance(user_answer_idx, int) and 0 <= user_answer_idx < len(options):
+                user_text = options[user_answer_idx]
             else:
-                user_answers_text.append("")
+                user_text = str(user_answer_idx) if user_answer_idx != -1 else ""
+
+            # 4. Normalized Comparison
+            is_correct = False
+            if user_answer_idx != -1:
+                clean_user = str(user_text).strip().lower()
+                clean_expected = str(derived_expected).strip().lower()
+                
+                # Check 1: Text match
+                if clean_user == clean_expected and clean_user != "":
+                    is_correct = True
+                
+                # Check 2: Index match (fallback)
+                if not is_correct:
+                    try:
+                        if correct_idx is not None and int(user_answer_idx) == int(correct_idx):
+                            is_correct = True
+                    except (ValueError, TypeError):
+                        pass
+            
+            if is_correct:
+                score += 1
+
+            # 5. Record Review
+            user_answers_text.append(user_text)
+            question_reviews.append({
+                "question_index": i,
+                "question": question.get("question", ""),
+                "options": options,
+                "correct_answer": derived_expected,
+                "user_answer": user_text,
+                "is_correct": is_correct,
+                "explanation": question.get("explanation", "")
+            })
+            
+            status = "✓ CORRECT" if is_correct else "✗ WRONG"
+            print(f"   [Q{i+1}: {status}] User: '{user_text}', Expected: '{derived_expected}'")
+
+        percentage = (score / total_q) * 100 if total_q > 0 else 0
+        time_taken = submission_data.get("time_taken", 0)
         
         # Create result record
         result_doc = {
@@ -2584,90 +2617,45 @@ async def submit_teacher_assessment(
             "student_id": user.id,
             "student_name": user.username or user.email,
             "score": score,
-            "total_questions": len(questions),
+            "total_questions": total_q,
             "percentage": percentage,
             "time_taken": time_taken,
-            "answers": answers,  # Keep original format
-            "user_answers": user_answers_text,  # Add text format for review
-            "questions": questions,  # Store questions for review
+            "answers": answers,
+            "user_answers": user_answers_text,
+            "questions": questions,
             "submitted_at": datetime.utcnow(),
             "created_at": datetime.utcnow()
         }
         
-        result = await db.teacher_assessment_results.insert_one(result_doc)
+        result_insert = await db.teacher_assessment_results.insert_one(result_doc)
         
-        # Create notification for student about result
+        # Notify student
         notification = {
             "student_id": user.id,
             "type": "teacher_assessment_result",
-            "title": f"Assessment Result: {assessment['title']}",
-            "message": f"Your assessment result is available. Score: {score}/{len(questions)} ({percentage:.1f}%)",
+            "title": f"Assessment Completed: {assessment.get('title', 'Assessment')}",
+            "message": f"You scored {score}/{total_q} ({percentage:.1f}%)",
             "assessment_id": assessment_id,
             "created_at": datetime.utcnow(),
             "is_read": False
         }
         await db.notifications.insert_one(notification)
         
-        # Create assessment completion notifications
-        teacher_id = assessment.get("created_by")
-        await create_assessment_completion_notification(
-            db, 
-            str(user.id), 
-            assessment['title'], 
-            percentage, 
-            teacher_id
-        )
-        
-        # Generate question reviews for immediate display
-        question_reviews = []
-        for i, question in enumerate(questions):
-            if i < len(answers):
-                user_answer_raw = answers[i]
-                options = question.get("options", [])
-                correct_answer_index = question.get("correct_answer", -1)
-                correct_answer = ""
-                
-                # Handle both string and integer correct answers
-                if isinstance(correct_answer_index, int) and correct_answer_index >= 0:
-                    if correct_answer_index < len(options):
-                        correct_answer = options[correct_answer_index]
-                else:
-                    correct_answer = question.get("answer", "")
-                
-                # If correct answer is just a letter (A, B, C, D), find the matching option
-                if len(correct_answer) == 1 and correct_answer.isalpha():
-                    letter = correct_answer.upper()
-                    for option in options:
-                        if option.startswith(f"{letter})"):
-                            correct_answer = option
-                            break
-                
-                # Convert user answer to text if it's an index
-                if isinstance(user_answer_raw, int) and 0 <= user_answer_raw < len(options):
-                    user_answer_text = options[user_answer_raw]
-                else:
-                    user_answer_text = str(user_answer_raw)
-                
-                is_correct = user_answer_text == correct_answer
-                
-                question_reviews.append({
-                    "question_index": i,
-                    "question": question["question"],
-                    "options": options,
-                    "correct_answer": correct_answer,
-                    "user_answer": user_answer_text,
-                    "is_correct": is_correct,
-                    "explanation": question.get("explanation", "")
-                })
+        # Reward credits
+        if percentage >= 75.0:
+            try:
+                from ..services import credits_service
+                await credits_service.add_credits(str(user.id), 10, f"teacher_assess_bonus_{assessment_id}")
+            except Exception: pass
         
         return {
             "success": True,
-            "result_id": str(result.inserted_id),
+            "result_id": str(result_insert.inserted_id),
             "score": score,
-            "total_questions": len(questions),
+            "total_questions": total_q,
             "percentage": percentage,
             "question_reviews": question_reviews,
-            "message": f"Assessment submitted successfully! Score: {score}/{len(questions)} ({percentage:.1f}%)"
+            "message": f"Submitted! authoritative score: {score}/{total_q}"
         }
         
     except Exception as e:
@@ -2676,23 +2664,89 @@ async def submit_teacher_assessment(
 
 @router.post("/submit")
 async def submit_assessment(submission_data: dict, user: UserModel = Depends(get_current_user)):
-    """Submit an assessment"""
+    """Submit a regular assessment with authoritative server-side scoring"""
     try:
         db = await get_db()
+        assessment_id = submission_data.get("assessment_id")
         
-        # Create submission record
+        # 1. Fetch the original assessment
+        assessment = await db.assessments.find_one({"_id": ObjectId(assessment_id)})
+        if not assessment:
+            raise HTTPException(status_code=404, detail="Assessment not found")
+            
+        questions = assessment.get("questions", [])
+        answers = submission_data.get("answers", [])
+        total_q = len(questions)
+        
+        # 2. Authoritative Grading (Matches Results.py)
+        score = 0
+        user_answers_text = []
+        
+        for i, question in enumerate(questions):
+            options = question.get("options", [])
+            user_answer_idx = answers[i] if i < len(answers) else -1
+            
+            correct_idx = question.get("correct_answer")
+            expected_text = question.get("answer", "")
+            
+            # Derive expected answer
+            derived_expected = str(expected_text).strip()
+            if isinstance(correct_idx, int) and 0 <= correct_idx < len(options):
+                derived_expected = options[correct_idx]
+            
+            # Letter Fallback
+            if not derived_expected or derived_expected.upper() in ["A", "B", "C", "D"]:
+                letter = str(expected_text).upper() if expected_text else ""
+                if letter in ["A", "B", "C", "D"]:
+                    idx = ord(letter) - ord("A")
+                    if idx < len(options): derived_expected = options[idx]
+
+            # Derive user answer
+            user_text = ""
+            if isinstance(user_answer_idx, int) and 0 <= user_answer_idx < len(options):
+                user_text = options[user_answer_idx]
+
+            # Compare
+            is_correct = False
+            if user_answer_idx != -1:
+                clean_user = str(user_text).strip().lower()
+                clean_expected = str(derived_expected).strip().lower()
+                if clean_user == clean_expected and clean_user != "":
+                    is_correct = True
+                elif not is_correct:
+                    try:
+                        if correct_idx is not None and int(user_answer_idx) == int(correct_idx):
+                            is_correct = True
+                    except Exception: pass
+            
+            if is_correct: score += 1
+            user_answers_text.append(user_text)
+
+        percentage = (score / total_q) * 100 if total_q > 0 else 0
+        time_taken = submission_data.get("time_taken", 0)
+        
+        # 3. Create submission record
         submission_doc = {
-            "assessment_id": submission_data["assessment_id"],
-            "student_id": submission_data["student_id"],
-            "answers": submission_data["answers"],
-            "score": submission_data["score"],
-            "percentage": submission_data["percentage"],
-            "time_taken": submission_data["time_taken"],
+            "assessment_id": assessment_id,
+            "student_id": str(user.id),
+            "answers": answers,
+            "user_answers": user_answers_text,
+            "score": score,
+            "total_questions": total_q,
+            "percentage": percentage,
+            "time_taken": time_taken,
             "submitted_at": datetime.utcnow(),
             "created_at": datetime.utcnow()
         }
         
         result = await db.assessment_submissions.insert_one(submission_doc)
+        
+        # Bonus credits
+        if percentage >= 75.0:
+            try:
+                from ..services import credits_service
+                await credits_service.add_credits(str(user.id), 10, f"assess_bonus_{assessment_id}")
+            except Exception: pass
         
         # Update student's progress
         await db.users.update_one(
@@ -2700,7 +2754,7 @@ async def submit_assessment(submission_data: dict, user: UserModel = Depends(get
             {
                 "$inc": {
                     "completed_assessments": 1,
-                    "total_score": submission_data["score"]
+                    "total_score": score
                 },
                 "$set": {
                     "last_assessment_date": datetime.utcnow()
@@ -2711,8 +2765,9 @@ async def submit_assessment(submission_data: dict, user: UserModel = Depends(get
         return {
             "success": True,
             "submission_id": str(result.inserted_id),
-            "score": submission_data["score"],
-            "percentage": submission_data["percentage"]
+            "score": score,
+            "percentage": percentage,
+            "total_questions": total_q
         }
         
     except Exception as e:
@@ -3287,39 +3342,34 @@ async def submit_assessment_answers(
         
         # Calculate score
         questions = assessment.get("questions", [])
-        answers = submission_data.get("answers", [])
+        
+        # Re-apply the deterministic shuffle for grading to match serving (core.py)
+        random.seed(f"{user.id}_{assessment_id}")
+        random.shuffle(questions)
+        
+        # Shuffle options for each question to match serving logic
+        for q in questions:
+            if "options" in q:
+                options = q["options"]
+                correct_ans = q.get("correct_answer")
+                if isinstance(correct_ans, int) and 0 <= correct_ans < len(options):
+                    correct_text = options[correct_ans]
+                    random.shuffle(options)
+                    q["correct_answer"] = options.index(correct_text)
+                    q["options"] = options
+
         score = 0
+        answers = submission_data.get("answers", [])
         
         for i, question in enumerate(questions):
             if i < len(answers):
-                user_answer = answers[i]
-                correct_answer_index = question.get("correct_answer", -1)
-                correct_answer = ""
+                user_answer_idx = answers[i]
+                correct_answer_idx = question.get("correct_answer", -1)
                 options = question.get("options", [])
                 
-                # Handle both string and integer correct answers
-                if isinstance(correct_answer_index, int) and correct_answer_index >= 0:
-                    if correct_answer_index < len(options):
-                        correct_answer = options[correct_answer_index]
-                else:
-                    correct_answer = question.get("answer", "")
-                
-                # If correct answer is just a letter (A, B, C, D), find the matching option
-                if len(correct_answer) == 1 and correct_answer.isalpha():
-                    letter = correct_answer.upper()
-                    for option in options:
-                        if option.startswith(f"{letter})"):
-                            correct_answer = option
-                            break
-                
-                # Convert user answer to text if it's an index
-                if isinstance(user_answer, int) and 0 <= user_answer < len(options):
-                    user_answer_text = options[user_answer]
-                else:
-                    user_answer_text = str(user_answer)
-                
-                if user_answer_text == correct_answer:
-                    score += 1
+                if isinstance(user_answer_idx, int) and 0 <= user_answer_idx < len(options):
+                    if user_answer_idx == correct_answer_idx:
+                        score += 1
         
         percentage = (score / len(questions)) * 100 if questions else 0
         time_taken = submission_data.get("time_taken", 0)
@@ -3354,6 +3404,19 @@ async def submit_assessment_answers(
         }
         
         result = await db.assessment_submissions.insert_one(submission_doc)
+        # Award bonus credits for good performance (> 75%)
+        if percentage >= 75.0:
+            try:
+                from ..services import credits_service
+                await credits_service.add_credits(
+                    str(user.id), 
+                    10, 
+                    f"assessment_bonus_{assessment_id}"
+                )
+                logger.info(f"💰 [CREDITS] Awarded 10 performance bonus to student {user.id} for assessment {assessment.get('title')}")
+            except Exception as credits_err:
+                logger.error(f"⚠️ [CREDITS] Failed to award assessment bonus: {credits_err}")
+
         
         # Update student's progress
         await db.users.update_one(

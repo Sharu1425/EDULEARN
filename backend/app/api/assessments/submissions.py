@@ -481,64 +481,71 @@ async def submit_assessment(
                  {"$set": {"is_active": False}}
              )
 
-        # Re-apply the deterministic shuffle for grading
-        pool_size = assessment.get("pool_size", 10)
-        random.seed(f"{user.id}_{assessment_id}")
-        random.shuffle(questions)
-        if len(questions) > pool_size:
-            questions = questions[:pool_size]
-            
-        for q in questions:
-            if q.get("type") in ["mcq", "multiple_choice"] and "options" in q:
-                options = q["options"]
-                correct_ans = q.get("correct_answer")
-                if isinstance(correct_ans, int) and 0 <= correct_ans < len(options):
-                    correct_text = options[correct_ans]
-                    # Shuffle options using the same seed state
-                    random.shuffle(options)
-                    # Find new index of the correct answer
-                    q["correct_answer"] = options.index(correct_text)
-                    q["options"] = options
-
-        # Calculate score
-        correct_answers = 0
+        # --- AUTHORITATIVE GRADING (Strategy 1/2/3 from results.py) ---
+        # Note: We REMOVED the server-side shuffle here. Server-side shuffling during submission
+        # is dangerous as it may mismatch the student's frontend order.
+        # Instead, we grade based on the original question order and Authoritative Answer Texts.
+        
+        score = 0
         total_questions = len(questions)
-        user_answers_text = [] # Store text answers for review
+        user_answers_text = []
 
+        print(f"📊 [SUBMISSION] Autorative grading for {total_questions} questions (User: {user.id})")
+        
         for i, question in enumerate(questions):
-             user_answer_provided = i < len(submission_data.answers)
-             user_answer_index = submission_data.answers[i] if user_answer_provided else None
-             correct_answer_index = question.get("correct_answer", -1)
-             options = question.get("options", [])
-             is_correct = False
-             user_answer_t = "" # User answer text
+            options = question.get("options", [])
+            user_answer_idx = submission_data.answers[i] if i < len(submission_data.answers) else -1
+            
+            # Ground Truth Retrieval
+            correct_idx = question.get("correct_answer")
+            expected_text = question.get("answer", "")
+            
+            # 1. Derive Expected Text (Authoritative)
+            derived_expected = str(expected_text).strip()
+            if isinstance(correct_idx, int) and 0 <= correct_idx < len(options):
+                derived_expected = options[correct_idx]
+            
+            # 2. Letter normalization (handle A/B/C/D stored in DB)
+            if not derived_expected or derived_expected.upper() in ["A", "B", "C", "D"]:
+                letter = str(expected_text).upper() if expected_text else ""
+                if letter in ["A", "B", "C", "D"]:
+                    idx = ord(letter) - ord("A")
+                    if idx < len(options): 
+                        derived_expected = options[idx]
 
-             if user_answer_provided and isinstance(user_answer_index, int) and 0 <= user_answer_index < len(options):
-                 user_answer_t = options[user_answer_index]
-                 # Compare indices first
-                 if isinstance(correct_answer_index, int) and user_answer_index == correct_answer_index:
-                     is_correct = True
-                 # Fallback: Compare text if index is string or wrong
-                 elif not is_correct:
-                     correct_answer_text = ""
-                     if isinstance(correct_answer_index, int) and 0 <= correct_answer_index < len(options):
-                        correct_answer_text = options[correct_answer_index]
-                     elif isinstance(question.get("answer"), str): # Handle legacy 'answer' field
-                        correct_answer_text = question["answer"]
-                     if user_answer_t == correct_answer_text:
-                         is_correct = True
-             elif user_answer_provided: # Handle non-index answers if applicable
-                 user_answer_t = str(user_answer_index)
-                 # Compare against text answer directly if that's the format
-                 if isinstance(question.get("answer"), str) and user_answer_t == question["answer"]:
-                     is_correct = True
+            # 3. Derive User Answer Text
+            user_text = ""
+            if isinstance(user_answer_idx, int) and 0 <= user_answer_idx < len(options):
+                user_text = options[user_answer_idx]
+            else:
+                user_text = str(user_answer_idx) if user_answer_idx != -1 else ""
 
-             user_answers_text.append(user_answer_t)
-             if is_correct:
-                 correct_answers += 1
+            # 4. Normalized Comparison
+            is_correct = False
+            if user_answer_idx != -1:
+                clean_user = str(user_text).strip().lower()
+                clean_expected = str(derived_expected).strip().lower()
+                
+                # Check 1: Text match
+                if clean_user == clean_expected and clean_user != "":
+                    is_correct = True
+                
+                # Check 2: Index match (fallback)
+                if not is_correct:
+                    try:
+                        if correct_idx is not None and int(user_answer_idx) == int(correct_idx):
+                            is_correct = True
+                    except (ValueError, TypeError):
+                        pass
+            
+            if is_correct:
+                score += 1
+            
+            user_answers_text.append(user_text)
+            status = "✓" if is_correct else "✗"
+            print(f"   [Q{i+1}: {status}] User Index: {user_answer_idx} ('{user_text}'), Expected: '{derived_expected}'")
 
-        score = correct_answers
-        percentage = (correct_answers / total_questions) * 100 if total_questions > 0 else 0
+        percentage = (score / total_questions) * 100 if total_questions > 0 else 0
 
         # Create submission record in the correct collection
         submission_doc = {
@@ -569,6 +576,21 @@ async def submit_assessment(
         await create_assessment_completion_notification(
             db, str(user.id), assessment_title, percentage, teacher_id_str
         )
+
+        # Award bonus credits for good performance (> 75%)
+        # This applies to all assessments submitted through this main endpoint
+        if percentage >= 75.0:
+            try:
+                from ...services import credits_service
+                reward_amount = 10 if is_teacher_assessment else 5
+                await credits_service.add_credits(
+                    str(user.id), 
+                    reward_amount, 
+                    f"assessment_performance_bonus_{assessment_id}"
+                )
+                logger.info(f"💰 [CREDITS] Awarded {reward_amount} performance bonus to student {user.id} for {percentage:.1f}% score")
+            except Exception as credits_err:
+                logger.error(f"⚠️ [CREDITS] Failed to award performance bonus: {credits_err}")
 
         # Return AssessmentResult structure
         return AssessmentResult(

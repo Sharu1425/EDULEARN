@@ -649,18 +649,32 @@ async def get_assessment_analytics(
             total_attempts = 0
             
             for submission in all_submissions:
-                if i < len(submission.get("answers", [])):
-                    total_attempts += 1
-                    user_answer = submission["answers"][i]
-                    correct_answer = question.get("answer", "")
-                    correct_answer_index = question.get("correct_answer", -1)
-                    
-                    # Handle different answer formats
-                    if isinstance(correct_answer_index, int) and 0 <= correct_answer_index < len(question.get("options", [])):
-                        correct_answer = question["options"][correct_answer_index]
-                    
-                    if user_answer == correct_answer:
-                        correct_count += 1
+                total_attempts += 1
+                # Authoritative Analytics Comparison (Strategy 1/2/3)
+                user_text = submission.get("answers", [])[i] if i < len(submission.get("answers", [])) else ""
+                
+                correct_idx = question.get("correct_answer")
+                expected_text = question.get("answer", "")
+                
+                # 1. Derive Expected Text
+                derived_expected = str(expected_text).strip()
+                options = question.get("options", [])
+                if isinstance(correct_idx, int) and 0 <= correct_idx < len(options):
+                    derived_expected = options[correct_idx]
+                
+                # Letter Fallback
+                if not derived_expected or derived_expected.upper() in ["A", "B", "C", "D"]:
+                    letter = str(expected_text).upper() if expected_text else ""
+                    if letter in ["A", "B", "C", "D"]:
+                        idx = ord(letter) - ord("A")
+                        if idx < len(options): derived_expected = options[idx]
+
+                # 2. Normalized Comparison
+                clean_user = str(user_text).strip().lower()
+                clean_expected = str(derived_expected).strip().lower()
+                
+                if clean_user == clean_expected and clean_user != "":
+                    correct_count += 1
             
             accuracy = (correct_count / total_attempts * 100) if total_attempts > 0 else 0
             question_analysis.append({

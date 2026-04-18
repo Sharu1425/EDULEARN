@@ -150,6 +150,20 @@ async def submit_thinktrace_answer(
                     {"_id": ObjectId(session_id)},
                     {"$set": update_payload}
                 )
+                
+                # Award credits for good performance (> 75%)
+                accuracy = review_data.get("accuracy_percent", 0)
+                if accuracy >= 75:
+                    try:
+                        from ..services import credits_service
+                        await credits_service.add_credits(
+                            user_id_str, 
+                            5, 
+                            f"thinktrace_performance_bonus_{session_id}"
+                        )
+                        print(f"💰 [CREDITS] Awarded 5 credits to student {user_id_str} for ThinkTrace accuracy: {accuracy}%")
+                    except Exception as credits_err:
+                        print(f"⚠️ [CREDITS] Failed to award ThinkTrace bonus: {credits_err}")
             except Exception as e:
                 print(f"[ERROR] [THINKTRACE] Could not parse JSON from review: {e}")
                 # Save raw review directly if parsing fails

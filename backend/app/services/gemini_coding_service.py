@@ -23,52 +23,35 @@ class GeminiCodingService:
         from app.core.config import settings
         self.api_key = settings.gemini_api_key
         self.cache = {}  # Simple in-memory cache for recent generations
-        self.cache_max_size = 50  # Limit cache size
-        
+        self.cache_max_size = 50
+
+        # Build the ordered fallback model list.
+        # Start with the model from .env, then add known stable alternatives.
+        configured_model = getattr(settings, 'gemini_model', None) or "gemini-2.0-flash"
+        self.model_name = configured_model
+        self.fallback_models = list(dict.fromkeys([
+            configured_model,       # .env model first
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
+            "gemini-2.0-flash-lite",
+            "gemini-1.5-flash-8b",
+        ]))
+        self.active_model = configured_model  # updated when a fallback succeeds
+
         if self.api_key and self.api_key not in ("your-google-ai-api-key", "not-set", ""):
             try:
-                # Initialize the new SDK client
                 self.client = genai.Client(api_key=self.api_key)
-                
-                # Try the user-requested model from settings first, then fallbacks
-                preferred_models = []
-                if hasattr(settings, 'gemini_model') and settings.gemini_model:
-                     preferred_models.append(settings.gemini_model)
-                
-                # Default fallbacks if settings model is not available
-                preferred_models.extend([
-                    "gemini-3.1-flash-lite-preview", 
-                    "gemini-3-flash-preview",
-                    "gemini-2.5-flash-lite",
-                    "gemini-2.0-flash-lite",
-                    "gemini-flash-lite-latest"
-                ])
-                
-                # We'll pick the first one that exists in the models list
-                available_models = [m.name for m in self.client.models.list()]
-                self.model_name = None
-                
-                for pm in preferred_models:
-                    # The models list has "models/name" format
-                    full_name = f"models/{pm}"
-                    if full_name in available_models or pm in available_models:
-                        self.model_name = pm
-                        break
-                
-                if not self.model_name:
-                    # Fallback if none of our preferences matched
-                    self.model_name = "gemini-flash-lite-latest"
-                
                 self.available = True
-                print(f"[SUCCESS] [GEMINI_CODING] Gemini AI service initialized ({self.model_name}) using Google GenAI SDK")
+                print(f"[GEMINI] Service ready. Primary model: {self.model_name}")
             except Exception as e:
                 self.client = None
                 self.available = False
-                print(f"[ERROR] [GEMINI_CODING] Failed to initialize Google GenAI SDK: {e}")
+                print(f"[GEMINI] Failed to create client: {e}")
         else:
             self.client = None
             self.available = False
-            print("[WARNING] [GEMINI_CODING] Gemini API key not configured — fallback mode active")
+            print("[GEMINI] No API key configured — will serve fallback questions")
 
     def _get_cache_key(self, topic: str, difficulty: str, count: int = 1) -> str:
         """Generate cache key for requests"""
@@ -178,107 +161,6 @@ class GeminiCodingService:
             print(f" [GEMINI_CODING] Error parsing handout: {e}")
             return []
 
-    async def generate_mcq_questions(
-        self,
-        topic: str,
-        difficulty: str,
-        count: int = 10,
-        question_type: str = "mcq"
-    ) -> List[Dict[str, Any]]:
-        """Generate MCQ questions for assessments using Gemini AI"""
-        try:
-            print(f" [GEMINI_CODING] Generating {count} {difficulty} MCQ questions for topic: {topic}")
-            
-            # Check cache first
-            cache_key = self._get_cache_key(topic, difficulty, count)
-            cached_result = self._get_from_cache(cache_key)
-            if cached_result:
-                return cached_result
-            
-            if not self.available:
-                return self._generate_fallback_mcq_questions(topic, difficulty, count)
-            
-            prompt = f"""
-            Generate {count} {difficulty} MCQ questions on {topic}.
-            
-            Requirements:
-            - 4 options per question (A, B, C, D)
-            - One correct answer
-            - Include explanations
-            - Test understanding, not memorization
-            
-            Return ONLY this JSON array:
-            [
-                {{
-                    "question": "Question text?",
-                    "options": ["Option A", "Option B", "Option C", "Option D"],
-                    "correct_answer": 0,
-                    "explanation": "Why this is correct"
-                }}
-            ]
-            """
-            
-            try:
-                response = await self.client.aio.models.generate_content(
-                    model=self.model_name,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        temperature=0.7,
-                        max_output_tokens=4096
-                    )
-                )
-            except Exception as e:
-                print(f"[ERROR] [GEMINI_CODING] MCQ generation failed: {e}")
-                return self._generate_fallback_mcq_questions(topic, difficulty, count)
-            
-            questions_text = response.text.strip()
-            
-            # Clean and fix common JSON issues
-            questions_text = self._clean_json_response(questions_text)
-            
-            # Parse JSON response with error handling
-            try:
-                questions = json.loads(questions_text)
-            except json.JSONDecodeError as e:
-                print(f" [GEMINI] JSON parsing error: {str(e)}")
-                print(f" [GEMINI] Raw content that failed to parse: {questions_text[:200]}...")
-                print(f" [GEMINI] Using fallback questions for {topic} ({difficulty})")
-                return self._generate_fallback_mcq_questions(topic, difficulty, count)
-            
-            # Validate and clean questions
-            validated_questions = []
-            for i, q in enumerate(questions[:count]):
-                # Handle both "answer" (letter format) and "correct_answer" (index format)
-                if "answer" in q and "correct_answer" not in q:
-                    # Convert letter answer (A, B, C, D) to index (0, 1, 2, 3)
-                    answer_letter = q["answer"].upper()
-                    if answer_letter in ["A", "B", "C", "D"]:
-                        q["correct_answer"] = ord(answer_letter) - ord("A")
-                    else:
-                        continue  # Skip invalid answer format
-                
-                if self._validate_mcq_question(q):
-                    validated_questions.append({
-                        "question": q["question"],
-                        "options": q["options"],
-                        "correct_answer": q["correct_answer"],
-                        "explanation": q.get("explanation", ""),
-                        "difficulty": difficulty,
-                        "topic": topic,
-                        "generated_by": "gemini"
-                    })
-            
-            print(f" [GEMINI_CODING] Generated {len(validated_questions)} valid MCQ questions")
-            
-            # Cache the result
-            self._add_to_cache(cache_key, validated_questions)
-            
-            return validated_questions
-            
-        except Exception as e:
-            print(f" [GEMINI_CODING] Error generating MCQ questions: {str(e)}")
-            return self._generate_fallback_mcq_questions(topic, difficulty, count)
-    
     def _validate_mcq_question(self, question: Dict[str, Any]) -> bool:
         """Validate MCQ question structure"""
         required_fields = ["question", "options"]
@@ -349,7 +231,8 @@ class GeminiCodingService:
                 "explanation": f"This is a fallback question about {topic}",
                 "difficulty": difficulty,
                 "topic": topic,
-                "generated_by": "fallback"
+                "generated_by": "fallback",
+                "type": "mcq"
             })
         
         return fallback_questions
@@ -2686,114 +2569,151 @@ int main() {
         count: int = 10,
         store_in_db: bool = True
     ) -> List[Dict[str, Any]]:
-        """Generate unique MCQ questions using Gemini AI"""
+        """Generate MCQ questions using Gemini AI with automatic model fallback."""
+        if not self.available:
+            print(f"[GEMINI] Client unavailable — serving fallback questions for '{topic}'")
+            return self._get_fallback_mcq_questions(topic, difficulty, count)
+
+        # Get existing questions to build uniqueness hint
         try:
-            if not self.available:
-                return self._get_fallback_mcq_questions(topic, difficulty, count)
-            
-            # Get existing questions to avoid duplicates
             existing_questions = await self._get_existing_questions(topic, difficulty)
-            existing_question_texts = [q.get("question", "") for q in existing_questions]
-            
-            # Create uniqueness prompt
-            uniqueness_context = ""
-            if existing_question_texts:
-                uniqueness_context = f"""
-IMPORTANT: Avoid generating questions similar to these existing ones:
-{chr(10).join(f"- {q}" for q in existing_question_texts[:5])}
+            existing_texts = [q.get("question", "") for q in existing_questions[:5]]
+        except Exception:
+            existing_texts = []
 
-Generate completely NEW and UNIQUE questions that are different from the above."""
-            
-            prompt = f"""Generate {count} UNIQUE multiple choice questions about {topic} with {difficulty} difficulty level.
+        uniqueness_hint = ""
+        if existing_texts:
+            uniqueness_hint = "\nAvoid questions similar to:\n" + "\n".join(f"- {q}" for q in existing_texts)
 
-Requirements:
-- Each question must have exactly 4 options (A, B, C, D)
-- Questions should be educational and relevant to {topic}
-- Difficulty should be appropriate for {difficulty} level
-- Questions should be clear and unambiguous
-- Cover different aspects of {topic}
-- Questions must be COMPLETELY UNIQUE and not similar to existing questions
-- Use varied question formats (definitions, scenarios, calculations, comparisons, etc.)
-- Include questions about different subtopics within {topic}
-- CRITICAL: The explanation must clearly explain why the correct answer (the option text) is correct
+        prompt = f"""Generate {count} UNIQUE multiple choice questions about {topic} at {difficulty} difficulty.
 
-{uniqueness_context}
+Rules:
+- Exactly 4 options per question (A, B, C, D)
+- Educational, clear, and unambiguous
+- Cover varied subtopics and question formats
+- Distribute correct answers across A, B, C, D (don't always use A)
+- explanation must justify why the chosen option is correct
+{uniqueness_hint}
 
-Return ONLY a valid JSON array in this exact format:
+Return ONLY a valid JSON array:
 [
   {{
-    "question": "What is the primary purpose of variables in programming?",
-    "options": ["To store data", "To display text", "To create loops", "To define functions"],
-    "answer": "A",
-    "explanation": "To store data is correct because variables are containers that hold data values in programs."
-  }},
-  {{
-    "question": "Which keyword is used to define a function in Python?",
-    "options": ["function", "def", "define", "func"],
-    "answer": "B", 
-    "explanation": "def is correct because it is the specific keyword used to define functions in Python."
+    "question": "What does the 'def' keyword do in Python?",
+    "options": ["Defines a variable", "Defines a function", "Defines a class", "Defines a module"],
+    "answer": "B",
+    "explanation": "Defines a function is correct because 'def' is the Python keyword used to declare functions."
   }}
 ]
 
-IMPORTANT: 
-- The explanation must directly reference and justify the correct answer option text
-- Do not provide generic explanations that could apply to multiple options
-- Return ONLY the JSON array, no other text or formatting."""
-            
-            response = await self.client.aio.models.generate_content(
-                model=self.model_name,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    temperature=0.7,
-                    max_output_tokens=4096
-                )
-            )
-            content = response.text.strip()
-            
-            # Parse JSON response
+Return ONLY the JSON array, no markdown, no extra text."""
+
+        # Build model priority: active model first, then rest of fallback list
+        models_to_try = [self.active_model] + [
+            m for m in self.fallback_models if m != self.active_model
+        ]
+
+        response = None
+        last_error = None
+
+        for model in models_to_try:
             try:
-                # Use centralized cleaning logic
-                content = self._clean_json_response(content)
-                
-                # Find the first [ and last ] to extract array
-                start_idx = content.find('[')
-                end_idx = content.rfind(']')
-                if start_idx != -1 and end_idx != -1:
-                    content = content[start_idx:end_idx+1]
-                
-                print(f" [GEMINI] Parsing JSON content: {content[:200]}...")
-                
-                questions = json.loads(content)
-                
-                # Validate and format questions
-                formatted_questions = []
-                for i, q in enumerate(questions):
-                    if all(key in q for key in ["question", "options", "answer", "explanation"]):
-                        formatted_questions.append({
-                            "id": f"q{i+1}",
-                            "question": q["question"],
-                            "options": q["options"],
-                            "answer": q["answer"],
-                            "explanation": q["explanation"],
-                            "difficulty": difficulty,
-                            "topic": topic
-                        })
-                
-                # Store questions in database if requested
-                if store_in_db:
-                    await self._store_ai_questions_in_db(formatted_questions[:count], topic, difficulty)
-                
-                return formatted_questions[:count]
-                
-            except json.JSONDecodeError as e:
-                print(f" [GEMINI] JSON parsing error: {e}")
-                print(f" [GEMINI] Raw content that failed to parse: {content}")
-                return self._get_fallback_mcq_questions(topic, difficulty, count)
-                
-        except Exception as e:
-            print(f" [GEMINI] Error generating MCQ questions: {e}")
+                print(f"[GEMINI] Generating {count} questions for '{topic}' using {model}")
+                response = await self.client.aio.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.7,
+                        max_output_tokens=4096
+                    )
+                )
+                if model != self.active_model:
+                    print(f"[GEMINI] Switched active model: {self.active_model} → {model}")
+                    self.active_model = model
+                break  # success
+            except Exception as err:
+                err_str = str(err).lower()
+                is_capacity = any(kw in err_str for kw in [
+                    "429", "resource_exhausted", "quota", "rate limit",
+                    "too many requests", "overloaded", "high demand",
+                    "service unavailable", "503"
+                ])
+                if is_capacity:
+                    print(f"[GEMINI] {model} overloaded — trying next model...")
+                    last_error = err
+                    continue
+                # Unknown error on this model — try next model anyway
+                print(f"[GEMINI] {model} error: {err} — trying next model...")
+                last_error = err
+                continue
+
+        if response is None:
+            print(f"[GEMINI] All {len(models_to_try)} models failed — serving fallback questions. Last error: {last_error}")
             return self._get_fallback_mcq_questions(topic, difficulty, count)
-    
+
+        # Parse response
+        try:
+            content = self._clean_json_response(response.text.strip())
+            start = content.find('[')
+            end = content.rfind(']')
+            if start != -1 and end != -1:
+                content = content[start:end + 1]
+
+            questions = json.loads(content)
+            formatted = []
+
+            for i, q in enumerate(questions):
+                if not all(k in q for k in ["question", "options"]):
+                    continue
+
+                raw_answer = q.get("answer", q.get("correct_answer", "A"))
+                correct_idx = 0
+                if isinstance(raw_answer, int):
+                    correct_idx = max(0, min(3, raw_answer))
+                elif isinstance(raw_answer, str):
+                    clean = raw_answer.upper().strip()
+                    if clean and clean[0] in "ABCD":
+                        correct_idx = ord(clean[0]) - ord("A")
+
+                options = q.get("options", [])
+                correct_text = options[correct_idx] if 0 <= correct_idx < len(options) else ""
+
+                formatted_q = {
+                    "id": f"q{i+1}",
+                    "question": q["question"],
+                    "options": options,
+                    "answer": correct_text,
+                    "correct_answer": correct_idx,
+                    "explanation": q.get("explanation", ""),
+                    "difficulty": difficulty,
+                    "topic": topic,
+                    "generated_by": "gemini",
+                    "type": "mcq"
+                }
+
+                if self._validate_mcq_question(formatted_q):
+                    formatted.append(formatted_q)
+
+            if not formatted:
+                print(f"[GEMINI] No valid questions parsed from response — serving fallback")
+                return self._get_fallback_mcq_questions(topic, difficulty, count)
+
+            print(f"[GEMINI] Generated {len(formatted[:count])}/{count} questions for '{topic}' ✓")
+
+            if store_in_db:
+                try:
+                    await self._store_ai_questions_in_db(formatted[:count], topic, difficulty)
+                except Exception:
+                    pass  # DB storage failure is non-critical
+
+            return formatted[:count]
+
+        except (json.JSONDecodeError, Exception) as parse_err:
+            print(f"[GEMINI] JSON parse failed: {parse_err} — serving fallback questions")
+            return self._get_fallback_mcq_questions(topic, difficulty, count)
+
+
+
+
     def _get_fallback_mcq_questions(self, topic: str, difficulty: str, count: int) -> List[Dict[str, Any]]:
         """Get fallback MCQ questions when AI is not available - with enhanced variety"""
         import random
@@ -2950,7 +2870,8 @@ IMPORTANT:
                 "correct_answer": selected_question["correct"],
                 "explanation": selected_question["explanation"],
                 "difficulty": difficulty,
-                "topic": topic
+                "topic": topic,
+                "type": "mcq"
             })
         
         return fallback_questions

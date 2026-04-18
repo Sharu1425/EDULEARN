@@ -131,17 +131,18 @@ class AssessmentResponse(BaseModel):
 
 # Assessment Submission Schemas
 class AssessmentSubmission(BaseModel):
-    assessment_id: str
-    student_id: str
     answers: List[Union[int, str]]
-    score: int
-    percentage: float
     time_taken: int
-    submitted_at: datetime
-    is_completed: bool = True
+    is_malpractice: bool = False
     violations: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
     answers_timing: Optional[List[int]] = Field(default_factory=list)
-    is_malpractice: bool = False
+    # Optional fields for backward compatibility or future use
+    assessment_id: Optional[str] = None
+    student_id: Optional[str] = None
+    score: Optional[int] = None
+    percentage: Optional[float] = None
+    submitted_at: Optional[datetime] = None
+    is_completed: bool = True
 
 class AssessmentSubmissionResponse(BaseModel):
     id: str
@@ -223,9 +224,7 @@ class CodingSubmissionResponse(BaseModel):
     max_score: int
     submitted_at: str
 
-class AssessmentSubmission(BaseModel):
-    answers: List[int]
-    time_taken: int
+# Replaced by consolidated definition above
 
 class AssessmentResult(BaseModel):
     id: str

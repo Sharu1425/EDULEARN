@@ -301,24 +301,54 @@ async def submit_assessment_result(
         print(f"🔍 [RESULTS] Submission dict: {submission.__dict__ if hasattr(submission, '__dict__') else 'No dict'}")
         # Calculate score based on user answers vs correct answers
         correct_count = 0
-        for i, user_answer in enumerate(submission.user_answers):
-            if i < len(submission.questions):
-                question = submission.questions[i]
-                # Handle both string and integer correct answers
-                correct_answer = question.get("answer", "")
-                correct_answer_index = question.get("correct_answer", -1)
-                
-                # If correct_answer is an integer (index), get the actual option text
-                if isinstance(correct_answer_index, int) and correct_answer_index >= 0:
-                    options = question.get("options", [])
-                    if correct_answer_index < len(options):
-                        correct_answer = options[correct_answer_index]
-                
-                if user_answer == correct_answer:
-                    correct_count += 1
+        questions_data = submission.questions
         
-        # Use the provided score or calculate it
-        score = submission.score if submission.score > 0 else (correct_count / submission.total_questions) * 100
+        # We'll build a clean record of what actually happened
+        print(f"📊 [RESULTS] Autorative grading for {len(submission.user_answers)} answers (User: {current_user.username})")
+        
+        for i, user_answer in enumerate(submission.user_answers):
+            if i < len(questions_data):
+                question = questions_data[i]
+                options = question.get("options", [])
+                
+                # Standardized retrieval of expected answer
+                correct_idx = question.get("correct_answer")
+                expected_text = question.get("answer", "")
+                
+                # Strategy 1: Index-based text derivation
+                derived_expected = expected_text
+                if isinstance(correct_idx, int) and 0 <= correct_idx < len(options):
+                    derived_expected = options[correct_idx]
+                
+                # Strategy 2: Letter normalization (if it's A/B/C/D)
+                if not derived_expected or derived_expected in ["A", "B", "C", "D"]:
+                    if str(expected_text).upper() in ["A", "B", "C", "D"]:
+                         idx = ord(str(expected_text).upper()) - ord("A")
+                         if idx < len(options): derived_expected = options[idx]
+
+                # Strategy 3: Normalized Comparison
+                is_correct = False
+                clean_user = str(user_answer).strip().lower()
+                clean_expected = str(derived_expected).strip().lower()
+                
+                if clean_user == clean_expected and clean_user != "":
+                    is_correct = True
+                
+                if is_correct:
+                    correct_count += 1
+                    print(f"   [Q{i+1}: ✓] User: '{user_answer}' Matches Expected: '{derived_expected}'")
+                else:
+                    print(f"   [Q{i+1}: ✗] User: '{user_answer}' Expected: '{derived_expected}'")
+
+        # The backend IS the source of truth. We calculate the official score right here.
+        score = (correct_count / submission.total_questions) * 100 if submission.total_questions > 0 else 0
+        
+        # Credit Reward logic (Tiered performance rewards)
+        # Student self-practice (this endpoint) gives 5 credits for score >= 75%
+        credit_reward = 0
+        if score >= 75:
+            credit_reward = 5
+            print(f"💰 [RESULTS] Awarding {credit_reward} credits for performance (Self-Practice Score: {score:.1f}%)")
         
         # Use time_taken or time_spent
         time_spent = submission.time_spent if submission.time_spent else submission.time_taken
@@ -345,6 +375,28 @@ async def submit_assessment_result(
         
         # Save to database
         result_id = await db.results.insert_one(result_data)
+        
+        # Award credits if applicable
+        if credit_reward > 0:
+            try:
+                # Update user credits
+                await db.users.update_one(
+                    {"_id": ObjectId(current_user.id)},
+                    {"$inc": {"credits": credit_reward}}
+                )
+                
+                # Create credit notification
+                notification = {
+                    "user_id": str(current_user.id),
+                    "title": "Practice Credit Reward!",
+                    "message": f"You've been rewarded {credit_reward} credits for scoring {score:.1f}% on your {submission.topic} practice assessment.",
+                    "type": "credit",
+                    "read": False,
+                    "created_at": datetime.utcnow()
+                }
+                await db.notifications.insert_one(notification)
+            except Exception as credit_err:
+                print(f"⚠️ [RESULTS] Error awarding credits: {credit_err}")
         
         # Gamification XP removed per user request
         

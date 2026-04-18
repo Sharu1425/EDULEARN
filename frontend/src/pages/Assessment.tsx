@@ -246,7 +246,13 @@ const Assessment: React.FC = () => {
       })
 
       const percentage = Math.round((score / (assessment?.question_count || 1)) * 100)
-      console.log(`📊 [ASSESSMENT] Final score: ${score}/${assessment?.question_count} (${percentage}%)`)
+      console.log(`📊 [ASSESSMENT] Final score calculated: ${score}/${assessment?.question_count} (${percentage}%)`)
+      console.log("📊 [ASSESSMENT] Submission Payload preparation...", {
+        assessmentType,
+        score,
+        total_questions: assessment?.question_count,
+        user_answers_sample: answers.slice(0, 3)
+      })
 
       if (assessmentType === 'teacher') {
         // Submit to teacher-created assessment endpoint
@@ -264,20 +270,26 @@ const Assessment: React.FC = () => {
         try {
           // Try teacher assessment submit endpoint first
           const res = await api.post(`/api/assessments/teacher/${id}/submit`, submission)
-          success("Success", `Test completed! Your score: ${score}/${assessment?.question_count} (${percentage}%)`)
+          
+          // Use backend-calculated score (frontend score is 0 because correct_answer is hidden for security)
+          const backendScore = res.data.score ?? score
+          const backendPercentage = res.data.percentage ?? percentage
+          const backendTotal = res.data.total_questions ?? assessment?.question_count ?? 0
+          
+          success("Success", `Test completed! Your score: ${backendScore}/${backendTotal} (${Math.round(backendPercentage)}%)`)
 
-          // Prepare result state for Results page (same format as student-generated)
+          // Prepare result state for Results page
           const resultState = {
-            score: res.data.score || score,
-            totalQuestions: res.data.total_questions || assessment?.question_count || 0,
+            score: backendScore,
+            totalQuestions: backendTotal,
             topic: assessment?.subject || '',
             difficulty: assessment?.difficulty || '',
             questions: assessment?.questions.map((q, idx) => ({
               id: q.id,
               question: q.question,
               options: q.options,
-              answer: q.options[q.correct_answer], // Convert index to actual answer text
-              correct_answer: q.correct_answer, // Keep the index for backup
+              answer: q.options[q.correct_answer] ?? '', // correct_answer may be null (hidden)
+              correct_answer: q.correct_answer,
               explanation: q.explanation,
               difficulty: assessment?.difficulty || '',
               topic: assessment?.subject || ''
@@ -299,52 +311,13 @@ const Assessment: React.FC = () => {
           // Navigate to Results page with state
           navigate("/results", { state: resultState });
           return
-        } catch (error) {
-          // Fallback to regular assessment submit endpoint
-          const res = await api.post(`/api/assessments/${id}/submit`, submission)
-          success("Success", `Test completed! Your score: ${score}/${assessment?.question_count} (${percentage}%)`)
-
-          // Get response data - it may have question_reviews
-          const responseData = res.data;
-          const questionReviews = responseData.question_reviews || [];
-
-          // Use backend score if available
-          const finalScore = responseData.score !== undefined ? responseData.score : score;
-          const finalTotalQuestions = responseData.total_questions || assessment?.question_count || 0;
-
-          // Prepare result state for Results page (same format as student-generated)
-          const resultState = {
-            score: finalScore,
-            totalQuestions: finalTotalQuestions,
-            topic: assessment?.subject || '',
-            difficulty: assessment?.difficulty || '',
-            questions: assessment?.questions.map((q, idx) => ({
-              id: q.id,
-              question: q.question,
-              options: q.options,
-              answer: q.options[q.correct_answer], // Convert index to actual answer text
-              correct_answer: q.correct_answer, // Keep the index for backup
-              explanation: q.explanation,
-              difficulty: assessment?.difficulty || '',
-              topic: assessment?.subject || ''
-            })) || [],
-            userAnswers: answers.map((answerIndex, questionIndex) => {
-              const question = assessment?.questions[questionIndex];
-              return answerIndex >= 0 && question?.options[answerIndex]
-                ? question.options[answerIndex]
-                : '';
-            }),
-            timeTaken: assessment?.time_limit ? (assessment.time_limit * 60) - timeLeft : 0,
-            explanations: assessment?.questions.map((q, idx) => ({
-              questionIndex: idx,
-              explanation: q.explanation || "",
-            })) || [],
-            questionReviews: questionReviews
-          };
-
-          // Navigate to Results page with state
-          navigate("/results", { state: resultState });
-          return
+        } catch (error: any) {
+          // Do NOT fall back to generic submit - it uses a different question ordering/shuffle
+          // which would show wrong (dummy) questions in the results review.
+          // Surface the real error to the user instead.
+          console.error("[ASSESSMENT] Teacher assessment submit failed:", error)
+          const errMsg = error?.response?.data?.detail || error?.message || "Submission failed"
+          throw new Error(`Teacher assessment submission failed: ${errMsg}`)
         }
 
       } else {

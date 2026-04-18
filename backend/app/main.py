@@ -180,62 +180,47 @@ async def get_questions_from_db(
     difficulty: str = "medium", 
     count: int = 10
 ):
-    """Generate AI-powered MCQ questions - always generate unique questions"""
+    """Generate AI-powered MCQ questions for student self-practice"""
     try:
         from app.services.gemini_coding_service import gemini_coding_service
-        
-        print(f" [QUESTIONS] Generating {count} unique {difficulty} questions for topic: {topic}")
-        
-        # Always generate fresh questions using Gemini AI
         questions = await gemini_coding_service.generate_mcq_questions(
-            topic=topic,
-            difficulty=difficulty,
-            count=count
+            topic=topic, difficulty=difficulty, count=count
         )
-        
-        # Transform questions to convert letter answers to actual option text
-        transformed_questions = []
+        # Normalize answer fields so frontend always gets correct_answer as an index
         for question in questions:
-            # Convert letter answer (A, B, C, D) to actual option text
-            answer_letter = question.get("answer", "")
             options = question.get("options", [])
-            
-            # Convert letter to index (A=0, B=1, C=2, D=3)
-            if answer_letter in ["A", "B", "C", "D"]:
-                answer_index = ord(answer_letter) - ord("A")
-                if answer_index < len(options):
-                    question["answer"] = options[answer_index]
-                    question["correct_answer"] = answer_index  # Add correct_answer field for frontend
-                else:
-                    question["answer"] = options[0] if options else ""
-                    question["correct_answer"] = 0
+            existing_index = question.get("correct_answer")
+            answer_letter = question.get("answer", "")
+            if isinstance(existing_index, int) and 0 <= existing_index < len(options):
+                if not question.get("answer") or question.get("answer") in ["A", "B", "C", "D"]:
+                    question["answer"] = options[existing_index]
+            elif answer_letter in ["A", "B", "C", "D"]:
+                idx = ord(answer_letter) - ord("A")
+                question["correct_answer"] = idx if idx < len(options) else 0
+                if idx < len(options):
+                    question["answer"] = options[idx]
+            elif question.get("answer") in options:
+                question["correct_answer"] = options.index(question["answer"])
             else:
-                # If answer is already text, keep it as is
-                question["correct_answer"] = -1  # No index available
-            
-            transformed_questions.append(question)
-        
-        print(f" [QUESTIONS] Generated {len(transformed_questions)} questions successfully")
-        return transformed_questions
-        
+                if not isinstance(question.get("correct_answer"), int):
+                    question["correct_answer"] = 0
+        return questions
     except Exception as e:
-        print(f" [QUESTIONS] Error generating questions: {str(e)}")
-        # Fallback to mock data if AI fails
-        mock_questions = []
-        for i in range(count):
-            correct_index = i % 4
-            question = {
+        print(f"[QUESTIONS] Unexpected error: {e}")
+        # Absolute last-resort fallback (should rarely hit since generate_mcq_questions handles its own fallback)
+        return [
+            {
                 "id": f"q{i+1}",
                 "question": f"Sample question {i+1} about {topic}",
                 "options": ["Option A", "Option B", "Option C", "Option D"],
-                "answer": f"Option {chr(65 + correct_index)}",  # Actual option text
-                "correct_answer": correct_index,  # Index of correct answer
-                "explanation": f"This is the explanation for question {i+1}",
+                "answer": f"Option {chr(65 + i % 4)}",
+                "correct_answer": i % 4,
+                "explanation": f"Explanation for question {i+1}",
                 "difficulty": difficulty,
                 "topic": topic
             }
-            mock_questions.append(question)
-        return mock_questions
+            for i in range(count)
+        ]
 
 # CORS preflight handler
 @app.options("/{path:path}")
