@@ -208,7 +208,7 @@ export const useProctoring = ({
         }
     }, [enabled, triggerViolation])
 
-    return { violationCount, isWarningVisible, dismissWarning, lastViolationType, violations, isFrozen }
+    return { violationCount, isWarningVisible, dismissWarning, lastViolationType, violations, isFrozen, triggerViolation }
 }
 
 export { VIOLATION_MESSAGES }

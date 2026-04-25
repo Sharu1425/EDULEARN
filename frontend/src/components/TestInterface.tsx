@@ -12,7 +12,11 @@ import LoadingSpinner from './ui/LoadingSpinner';
 import Card from './ui/Card';
 import ConfirmDialog from './ui/ConfirmDialog';
 import { useProctoring } from '../hooks/useProctoring';
+import { useCameraProctoring } from '../hooks/useCameraProctoring';
+import { useAudioProctoring } from '../hooks/useAudioProctoring';
+import Webcam from 'react-webcam';
 import ProctoringOverlay from './ui/ProctoringOverlay';
+import ProctoringCalibration, { type CalibrationData } from './ui/ProctoringCalibration';
 
 interface Question {
   id: string;
@@ -119,11 +123,29 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
   const [timeSpentPerQuestion, setTimeSpentPerQuestion] = useState<number[]>([]);
 
   // ── Proctoring ──────────────────────────────────────────────────────────
-  const { violationCount, isWarningVisible, dismissWarning, lastViolationType, violations, isFrozen } = useProctoring({
+  const [calibrationData, setCalibrationData] = useState<CalibrationData | null>(null);
+  const webcamRef = React.useRef<Webcam>(null);
+
+  const { violationCount, isWarningVisible, dismissWarning, lastViolationType, violations, isFrozen, triggerViolation } = useProctoring({
     maxViolations: 3,
     onAutoSubmit: (isMalpractice) => handleSubmit(isMalpractice),
     enabled: !!assessment,
   })
+
+  // Start Camera Proctoring
+  const { isModelLoaded, modelError, warningState } = useCameraProctoring({
+    enabled: !!assessment && !!calibrationData,
+    webcamRef,
+    calibration: calibrationData,
+    onViolation: (type, detail) => triggerViolation(type, detail)
+  });
+
+  // Start Audio Proctoring
+  useAudioProctoring({
+    enabled: !!assessment && !!calibrationData,
+    baselineVolume: calibrationData?.baselineVolume,
+    onViolation: (type, detail) => triggerViolation(type, detail)
+  });
 
   const MAX_VIOLATIONS = 3;
 
@@ -702,6 +724,15 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
     );
   }
 
+  // ── Gate: Calibration must complete before the test starts ──────────────
+  if (!calibrationData) {
+    return (
+      <ProctoringCalibration
+        onComplete={(data) => setCalibrationData(data)}
+      />
+    );
+  }
+
   const currentQuestion = assessment.questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / assessment.questions.length) * 100;
 
@@ -725,6 +756,30 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
         onDismiss={dismissWarning}
         isFrozen={isFrozen}
       />
+
+      {/* Proctoring Camera (Discreet bottom-left corner) */}
+      <div className="fixed bottom-4 left-4 z-40 rounded-lg overflow-hidden border-2 border-gray-700 shadow-xl w-48 h-36 bg-black flex items-center justify-center relative">
+         {!isModelLoaded && !modelError && <span className="text-xs text-gray-400">Loading AI Proctoring...</span>}
+         {modelError && <span className="text-xs text-red-500 text-center px-2">{modelError}</span>}
+         <Webcam 
+            ref={webcamRef} 
+            muted={true} 
+            className="w-full h-full object-cover" 
+            style={{ opacity: isModelLoaded ? 1 : 0 }} 
+         />
+
+         {/* Warning Graphic Overlay */}
+         {warningState?.type && (
+            <div className="absolute inset-0 bg-red-600/95 flex flex-col items-center justify-center text-white p-2 z-50">
+                <div className="h-10 w-10 bg-black/40 rounded-full flex items-center justify-center mb-2 shadow-lg animate-pulse">
+                    <AlertCircle className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-center leading-tight mb-1">{warningState.message}</span>
+                <span className="text-[10px] text-red-100 uppercase tracking-widest mt-1">Penalty In</span>
+                <span className="text-3xl font-black leading-none">{warningState.countdown}</span>
+            </div>
+         )}
+      </div>
 
       <div className="max-w-4xl mx-auto">
         {/* Header */}

@@ -8,18 +8,18 @@ const getApiBaseUrl = () => {
         console.log('🌐 [API] Using API URL from environment:', envUrl);
         return envUrl;
     }
-    
+
     // Check if we're in production (deployed on VM)
-    const isProduction = window.location.hostname === '13.60.212.110' || 
-                        window.location.hostname.includes('13.60.212.110');
-    
+    const isProduction = window.location.hostname === '13.60.212.110' ||
+        window.location.hostname.includes('13.60.212.110');
+
     if (isProduction) {
         // Use relative path for production deployment
         const baseUrl = window.location.origin;
         console.log('🌐 [API] Using production relative URL:', baseUrl);
         return baseUrl;
     }
-    
+
     // Default to local development URL
     const localUrl = 'http://localhost:5001';
     console.log('🌐 [API] Using default local API URL:', localUrl);
@@ -40,7 +40,7 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('access_token');
-        
+
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
