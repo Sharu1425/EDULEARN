@@ -2,9 +2,9 @@
 
 import React from "react"
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from "react-router-dom"
-import { AnimatePresence } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 
-import { ThemeProvider } from "./contexts/ThemeContext"
+import { ThemeProvider, useTheme } from "./contexts/ThemeContext"
 import { ToastProvider, useToast } from "./contexts/ToastContext"
 import { useAuth } from "./hooks/useAuth"
 import Header from "./components/ui/Header"
@@ -16,6 +16,8 @@ import AnimatedOrbs from "./components/ui/AnimatedOrbs"
 import ParticleField from "./components/ui/ParticleField"
 import CursorGlow from "./components/ui/CursorGlow"
 import { cn } from "./lib/utils"
+import { useBackgroundTier } from "./hooks/useBackgroundTier"
+import { pageTransition, instant } from "./lib/motion"
 
 import LandingPage from "./pages/LandingPage"
 import Dashboard from "./pages/Dashboard"
@@ -71,12 +73,44 @@ const getDashboardPath = (user: any) => {
   }
 }
 
+// ─── Theme crossfade — subtle radial flash when switching light/dark ────────
+const ThemeFlash: React.FC = () => {
+  const { colorScheme } = useTheme()
+  const [flash, setFlash] = React.useState(false)
+  const first = React.useRef(true)
+
+  React.useEffect(() => {
+    if (first.current) { first.current = false; return }
+    setFlash(true)
+    const t = setTimeout(() => setFlash(false), 450)
+    return () => clearTimeout(t)
+  }, [colorScheme])
+
+  return (
+    <AnimatePresence>
+      {flash && (
+        <motion.div
+          key="theme-flash"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.55 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          className="pointer-events-none fixed inset-0 z-[9998]"
+          style={{ background: "radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.18), transparent 60%)" }}
+          aria-hidden="true"
+        />
+      )}
+    </AnimatePresence>
+  )
+}
+
 // ─── Inner layout component (uses useLocation, so must be inside Router) ────
 const AppLayout: React.FC<{
   user: any; setUser: any;
 }> = ({ user, setUser }) => {
   const { toasts, removeToast } = useToast()
   const location = useLocation()
+  const bgTier = useBackgroundTier()
 
   const fullscreen = isFullscreenPath(location.pathname)
   // Show Sidebar and Header on authenticated, non-fullscreen routes
@@ -85,9 +119,12 @@ const AppLayout: React.FC<{
   return (
     <>
       <div className="app-bg" aria-hidden="true" />
-      <AnimatedOrbs />
-      <ParticleField />
-      <CursorGlow />
+      {/* Ambient layers are tiered per-route for performance:
+          full = orbs + particles + cursor glow, reduced = orbs + glow, off = none */}
+      {bgTier !== "off" && <AnimatedOrbs />}
+      {bgTier === "full" && <ParticleField />}
+      {bgTier !== "off" && <CursorGlow />}
+      <ThemeFlash />
       <ToastContainer toasts={toasts} onClose={removeToast} />
 
       <div className="flex flex-col min-h-screen relative overflow-hidden">
@@ -114,7 +151,14 @@ const AppLayout: React.FC<{
               !fullscreen && "pb-12"
             )}>
               <AnimatePresence mode="wait">
-                <Routes location={location} key={location.pathname}>
+                <motion.div
+                  key={location.pathname}
+                  variants={fullscreen ? instant : pageTransition}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                >
+                <Routes location={location}>
                   {/* Public */}
                   <Route path="/" element={user ? <Navigate to={getDashboardPath(user)} replace /> : <LandingPage />} />
                   <Route path="/login" element={user ? <Navigate to={getDashboardPath(user)} replace /> : <Login setUser={setUser} />} />
@@ -169,6 +213,7 @@ const AppLayout: React.FC<{
                     </ProtectedRoute>
                   } />
                 </Routes>
+                </motion.div>
               </AnimatePresence>
             </div>
           </main>

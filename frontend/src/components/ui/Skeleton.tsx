@@ -14,7 +14,9 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     <div
         className={cn(
             "rounded-lg bg-muted/60",
-            animated && "animate-pulse",
+            // .shimmer adds a GPU-friendly sweeping highlight (see index.css);
+            // it self-disables under prefers-reduced-motion.
+            animated && "shimmer",
             className
         )}
         aria-hidden="true"

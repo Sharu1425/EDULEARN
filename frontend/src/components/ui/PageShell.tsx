@@ -3,6 +3,7 @@
 import type React from "react"
 import { motion } from "framer-motion"
 import { useTheme } from "../../contexts/ThemeContext"
+import { staggerContainer } from "../../lib/motion"
 
 export default function PageShell({
   title,
@@ -19,13 +20,7 @@ export default function PageShell({
   const isDark = colorScheme === "dark"
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="relative min-h-[100dvh]"
-    >
+    <div className="relative min-h-[100dvh]">
       {/* Page header — fully theme-aware */}
       <header
         className="sticky top-0 z-40 border-b backdrop-blur-2xl transition-all"
@@ -58,9 +53,18 @@ export default function PageShell({
         </div>
       </header>
 
-      <main className="relative z-10 w-full animate-in">
-        <div className="px-6 lg:px-8 py-8 sm:py-10">{children}</div>
+      <main className="relative z-10 w-full">
+        {/* Stagger container — page blocks using the `staggerItem` variant
+            animate in sequence; plain children simply appear. */}
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="px-6 lg:px-8 py-8 sm:py-10"
+        >
+          {children}
+        </motion.div>
       </main>
-    </motion.div>
+    </div>
   )
 }

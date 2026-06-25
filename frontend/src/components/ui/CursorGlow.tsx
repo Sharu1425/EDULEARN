@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from "react"
+import { useReducedMotion } from "framer-motion"
 
 const CursorGlow: React.FC = () => {
   const glowRef = useRef<HTMLDivElement>(null)
@@ -8,9 +9,11 @@ const CursorGlow: React.FC = () => {
   const posRef = useRef({ x: -500, y: -500 })
   const currentPos = useRef({ x: -500, y: -500 })
   const animFrame = useRef<number>(0)
+  const prefersReduced = useReducedMotion()
 
   useEffect(() => {
-    // Don't render on touch devices
+    // Don't render on touch devices or when the user prefers reduced motion.
+    if (prefersReduced) return
     if (window.matchMedia("(pointer: coarse)").matches) return
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -41,7 +44,9 @@ const CursorGlow: React.FC = () => {
       document.removeEventListener("mouseleave", handleMouseLeave)
       cancelAnimationFrame(animFrame.current)
     }
-  }, [visible])
+  }, [visible, prefersReduced])
+
+  if (prefersReduced) return null
 
   return (
     <div

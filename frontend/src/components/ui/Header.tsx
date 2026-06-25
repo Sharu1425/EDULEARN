@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Bell, Menu, LogOut, Settings, User as UserIcon, Moon, Sun, Coins } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
@@ -6,6 +6,7 @@ import { useTheme } from "../../contexts/ThemeContext"
 import { useNavigate, useLocation } from "react-router-dom"
 import { cn } from "../../lib/utils"
 import { useCredits } from "../../hooks/useCredits"
+import { useCountUp } from "../../hooks/useCountUp"
 
 interface HeaderProps {
     onMenuClick?: () => void
@@ -20,6 +21,20 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     const [scrolled, setScrolled] = useState(false)
     const isDark = colorScheme === "dark"
     const { balance: creditsBalance, loading: creditsLoading } = useCredits()
+    const displayCredits = useCountUp(creditsBalance ?? 0)
+    const [creditsPulse, setCreditsPulse] = useState(false)
+    const prevCreditsRef = useRef(creditsBalance)
+
+    // Briefly pulse the badge when the balance changes (earned/spent).
+    useEffect(() => {
+        if (prevCreditsRef.current != null && creditsBalance != null && creditsBalance !== prevCreditsRef.current) {
+            setCreditsPulse(true)
+            const t = setTimeout(() => setCreditsPulse(false), 700)
+            prevCreditsRef.current = creditsBalance
+            return () => clearTimeout(t)
+        }
+        prevCreditsRef.current = creditsBalance
+    }, [creditsBalance])
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -60,6 +75,15 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     : "none",
             }}
         >
+            {/* Gradient hairline that fades in on scroll */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-0 left-0 right-0 h-px transition-opacity duration-500"
+                style={{
+                    opacity: scrolled ? 1 : 0,
+                    background: "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.5), transparent)",
+                }}
+            />
             <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
                 {/* Left Side */}
                 <div className="flex items-center gap-4">
@@ -111,7 +135,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
                     {/* Notifications */}
                     <motion.button
-                        whileHover={{ scale: 1.1 }}
+                        whileHover={{ scale: 1.1, rotate: [0, -10, 8, -4, 0] }}
                         whileTap={{ scale: 0.9 }}
                         className="relative flex items-center justify-center h-9 w-9 rounded-full text-muted-foreground hover:bg-muted/50 hover:text-primary transition-colors"
                     >
@@ -122,8 +146,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     {/* Credits Badge */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.85 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1.5 border text-xs font-bold transition-all cursor-default select-none"
+                        animate={{ opacity: 1, scale: creditsPulse ? [1, 1.12, 1] : 1 }}
+                        transition={creditsPulse ? { duration: 0.5, ease: [0.16, 1, 0.3, 1] } : undefined}
+                        className="hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1.5 border text-xs font-bold transition-colors cursor-default select-none"
                         style={{
                             background: isDark
                                 ? "rgba(251,191,36,0.12)"
@@ -132,12 +157,13 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                                 ? "rgba(251,191,36,0.3)"
                                 : "rgba(217,119,6,0.3)",
                             color: isDark ? "#fbbf24" : "#b45309",
+                            boxShadow: creditsPulse ? "0 0 18px rgba(251,191,36,0.45)" : "none",
                         }}
                         title="Your credits balance"
                     >
                         <Coins className="h-3.5 w-3.5" />
-                        <span className={cn(creditsLoading && "opacity-50")}>
-                            {creditsLoading ? "…" : (creditsBalance ?? 0).toLocaleString()}
+                        <span className={cn("tabular", creditsLoading && "opacity-50")}>
+                            {creditsLoading ? "…" : displayCredits.toLocaleString()}
                         </span>
                     </motion.div>
 

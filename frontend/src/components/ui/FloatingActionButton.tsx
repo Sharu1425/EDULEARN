@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Plus } from 'lucide-react';
+import { spring, staggerContainer, staggerItem } from '../../lib/motion';
+import Magnetic from './Magnetic';
 
 interface FloatingAction {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
+  /** Optional override classes for the action pill background. */
   color?: string;
 }
 
@@ -17,60 +21,56 @@ interface FloatingActionButtonProps {
 const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   actions,
   mainIcon,
-  className = ''
+  className = '',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-
-  const toggleOpen = () => setIsOpen(!isOpen);
 
   return (
     <div className={`fixed bottom-6 right-6 z-50 ${className}`}>
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute bottom-16 right-0 space-y-3"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            className="absolute bottom-16 right-0 flex flex-col items-end gap-3"
           >
             {actions.map((action, index) => (
               <motion.button
                 key={index}
-                initial={{ scale: 0, x: 20 }}
-                animate={{ scale: 1, x: 0 }}
-                exit={{ scale: 0, x: 20 }}
-                transition={{ delay: index * 0.1 }}
+                variants={staggerItem}
                 onClick={() => {
                   action.onClick();
                   setIsOpen(false);
                 }}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-full shadow-lg backdrop-blur-xl border border-white/10 hover:scale-105 transition-all duration-300 ${
-                  action.color || 'bg-gradient-to-r from-blue-500 to-cyan-500'
-                } text-white`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                className={`flex items-center gap-3 rounded-full border border-white/10 px-4 py-3 text-white shadow-e3 dark:shadow-e3-dark backdrop-blur-xl ${
+                  action.color || 'bg-gradient-to-br from-primary to-accent'
+                }`}
               >
                 {action.icon}
-                <span className="text-sm font-medium whitespace-nowrap">{action.label}</span>
+                <span className="whitespace-nowrap text-sm font-medium">{action.label}</span>
               </motion.button>
             ))}
           </motion.div>
         )}
       </AnimatePresence>
 
-      <motion.button
-        onClick={toggleOpen}
-        className="w-14 h-14 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full shadow-lg flex items-center justify-center text-white hover:shadow-xl transition-all duration-300"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        animate={{ rotate: isOpen ? 45 : 0 }}
-      >
-        {mainIcon || (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-        )}
-      </motion.button>
+      <Magnetic strength={0.4}>
+        <motion.button
+          onClick={() => setIsOpen(o => !o)}
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-e3 dark:shadow-e3-dark"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          animate={{ rotate: isOpen ? 45 : 0 }}
+          transition={spring.snappy}
+          aria-label={isOpen ? 'Close actions' : 'Open actions'}
+        >
+          {mainIcon || <Plus className="h-6 w-6" />}
+        </motion.button>
+      </Magnetic>
     </div>
   );
 };

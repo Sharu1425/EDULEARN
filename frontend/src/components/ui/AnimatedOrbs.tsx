@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { useTheme } from "../../contexts/ThemeContext"
 
 interface AnimatedOrbsProps {
@@ -51,11 +51,13 @@ const orbDefs = [
 const AnimatedOrbs: React.FC<AnimatedOrbsProps> = ({ className }) => {
   const { colorScheme } = useTheme()
   const isDark = colorScheme === "dark"
+  const prefersReduced = useReducedMotion()
 
   return (
     <div
       className={`orb-layer ${className ?? ""}`}
       aria-hidden="true"
+      style={{ contain: "paint" }}
     >
       {orbDefs.map(orb => (
         <motion.div
@@ -64,17 +66,22 @@ const AnimatedOrbs: React.FC<AnimatedOrbsProps> = ({ className }) => {
             position: "absolute",
             borderRadius: "50%",
             filter: "blur(80px)",
-            willChange: "transform",
+            // Only hint the compositor while we actually animate.
+            willChange: prefersReduced ? "auto" : "transform",
             background: isDark ? orb.darkBg : orb.lightBg,
             ...orb.style,
           }}
-          animate={orb.animate}
-          transition={{
-            duration: orb.duration,
-            repeat: Infinity,
-            repeatType: "mirror",
-            ease: "easeInOut",
-          }}
+          animate={prefersReduced ? undefined : orb.animate}
+          transition={
+            prefersReduced
+              ? undefined
+              : {
+                  duration: orb.duration,
+                  repeat: Infinity,
+                  repeatType: "mirror",
+                  ease: "easeInOut",
+                }
+          }
         />
       ))}
     </div>

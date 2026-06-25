@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useCountUp } from '../../hooks/useCountUp';
 
 interface ProgressRingProps {
   progress: number;
@@ -18,27 +19,22 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const strokeDasharray = `${circumference} ${circumference}`;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
+  const count = useCountUp(progress);
 
   return (
     <div className={`relative ${className}`} style={{ width: size, height: size }}>
-      <svg
-        className="transform -rotate-90"
-        width={size}
-        height={size}
-      >
-        {/* Background circle */}
+      <svg className="-rotate-90" width={size} height={size}>
+        {/* Track */}
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="currentColor"
+          stroke="hsl(var(--muted))"
           strokeWidth={strokeWidth}
           fill="transparent"
-          className="text-purple-900/30"
         />
-        {/* Progress circle */}
+        {/* Progress arc */}
         <motion.circle
           cx={size / 2}
           cy={size / 2}
@@ -46,30 +42,25 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
           stroke="url(#progressGradient)"
           strokeWidth={strokeWidth}
           fill="transparent"
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
+          strokeDasharray={`${circumference} ${circumference}`}
           strokeLinecap="round"
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset }}
-          transition={{ duration: 1, ease: "easeInOut" }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          style={{ filter: 'drop-shadow(0 0 6px hsl(var(--primary) / 0.45))' }}
         />
         <defs>
-          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#ec4899" />
+          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="hsl(var(--primary))" />
+            <stop offset="100%" stopColor="hsl(var(--accent))" />
           </linearGradient>
         </defs>
       </svg>
       {showPercentage && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <motion.span
-            className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-          >
-            {Math.round(progress)}%
-          </motion.span>
+          <span className="tabular text-2xl font-bold text-gradient-primary">
+            {Math.round(count)}%
+          </span>
         </div>
       )}
     </div>

@@ -1,7 +1,9 @@
 import React from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
+import { AlertTriangle } from "lucide-react"
 import Button from "./Button"
-import { AlertTriangle, X } from "lucide-react"
+import Overlay from "./Overlay"
+import { spring } from "../../lib/motion"
 
 interface ConfirmDialogProps {
   isOpen: boolean
@@ -15,6 +17,13 @@ interface ConfirmDialogProps {
   loading?: boolean
 }
 
+// Map each severity to a semantic token + the matching Button variant.
+const VARIANT = {
+  danger: { token: "destructive", button: "destructive" as const },
+  warning: { token: "warning", button: "primary" as const },
+  info: { token: "info", button: "primary" as const },
+}
+
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   isOpen,
   onClose,
@@ -24,86 +33,41 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   confirmText = "Confirm",
   cancelText = "Cancel",
   variant = "danger",
-  loading = false
+  loading = false,
 }) => {
-  const variantStyles = {
-    danger: {
-      icon: "text-red-500",
-      bg: "bg-red-500/10",
-      border: "border-red-500/30",
-      button: "bg-red-600 hover:bg-red-700"
-    },
-    warning: {
-      icon: "text-yellow-500",
-      bg: "bg-yellow-500/10",
-      border: "border-yellow-500/30",
-      button: "bg-yellow-600 hover:bg-yellow-700"
-    },
-    info: {
-      icon: "text-blue-500",
-      bg: "bg-blue-500/10",
-      border: "border-blue-500/30",
-      button: "bg-blue-600 hover:bg-blue-700"
-    }
-  }
-
-  const style = variantStyles[variant]
+  const { token, button } = VARIANT[variant]
+  const color = `hsl(var(--${token}))`
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
-          onClick={onClose}
-        >
+    <Overlay isOpen={isOpen} onClose={loading ? () => {} : onClose} closeOnBackdrop={!loading}>
+      <div className="glass rounded-2xl p-6 shadow-e4 dark:shadow-e4-dark">
+        <div className="flex items-start gap-4">
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-card border border-border rounded-lg p-6 max-w-md w-full shadow-xl"
-            onClick={(e) => e.stopPropagation()}
+            initial={{ scale: 0, rotate: -15 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={spring.snappy}
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border"
+            style={{ background: `hsl(var(--${token}) / 0.12)`, borderColor: `hsl(var(--${token}) / 0.3)` }}
           >
-            <div className="flex items-start gap-4">
-              <div className={`p-3 rounded-full ${style.bg} ${style.border} border`}>
-                <AlertTriangle className={`h-6 w-6 ${style.icon}`} />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
-                <p className="text-muted-foreground text-sm mb-6">{message}</p>
-                <div className="flex gap-3 justify-end">
-                  <Button
-                    variant="ghost"
-                    onClick={onClose}
-                    disabled={loading}
-                  >
-                    {cancelText}
-                  </Button>
-                  <Button
-                    onClick={onConfirm}
-                    disabled={loading}
-                    className={style.button}
-                  >
-                    {loading ? "Processing..." : confirmText}
-                  </Button>
-                </div>
-              </div>
-              <button
-                onClick={onClose}
-                disabled={loading}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+            <AlertTriangle className="h-6 w-6" style={{ color }} />
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+
+          <div className="flex-1">
+            <h3 className="mb-1.5 text-lg font-semibold text-foreground">{title}</h3>
+            <p className="mb-6 text-sm text-muted-foreground">{message}</p>
+            <div className="flex justify-end gap-3">
+              <Button variant="ghost" onClick={onClose} disabled={loading}>
+                {cancelText}
+              </Button>
+              <Button variant={button} onClick={onConfirm} isLoading={loading}>
+                {confirmText}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Overlay>
   )
 }
 
 export default ConfirmDialog
-

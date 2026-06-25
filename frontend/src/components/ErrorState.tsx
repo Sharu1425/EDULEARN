@@ -1,8 +1,8 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { AlertTriangle } from "lucide-react";
 import Card from "./ui/Card";
 import Button from "./ui/Button";
-import { useTheme } from "../contexts/ThemeContext";
 
 interface ErrorStateProps {
     title?: string;
@@ -15,7 +15,7 @@ interface ErrorStateProps {
     className?: string;
 }
 
-const ErrorState: React.FC<ErrorStateProps> = ({ 
+const ErrorState: React.FC<ErrorStateProps> = ({
     title = "Error",
     message,
     onRetry,
@@ -25,52 +25,26 @@ const ErrorState: React.FC<ErrorStateProps> = ({
     showCard = true,
     className = ""
 }) => {
-    const { mode, colorScheme } = useTheme();
-
-    const errorIcon = (
-        <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-    );
-
     const content = (
         <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className={`text-center ${className}`}
         >
-            <div className="text-red-400 mb-4">
-                {errorIcon}
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-destructive/10 text-destructive animate-float">
+                <AlertTriangle className="h-8 w-8" />
             </div>
-            <h3 className={`text-xl font-bold mb-4 ${
-                mode === 'professional'
-                    ? colorScheme === 'dark' ? 'text-gray-200' : 'text-gray-800'
-                    : 'text-purple-200'
-            }`}>
-                {title}
-            </h3>
-            <p className={`mb-6 ${
-                mode === 'professional'
-                    ? colorScheme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                    : 'text-purple-300'
-            }`}>
-                {message}
-            </p>
-            <div className="space-x-4">
+            <h3 className="mb-2 text-xl font-bold text-foreground">{title}</h3>
+            <p className="mb-6 text-muted-foreground">{message}</p>
+            <div className="flex justify-center gap-3">
                 {onRetry && (
-                    <Button 
-                        onClick={onRetry}
-                        variant="primary"
-                    >
+                    <Button onClick={onRetry} variant="primary">
                         {retryText}
                     </Button>
                 )}
                 {onBack && (
-                    <Button 
-                        onClick={onBack}
-                        variant="outline"
-                    >
+                    <Button onClick={onBack} variant="outline">
                         {backText}
                     </Button>
                 )}
@@ -80,7 +54,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({
 
     if (showCard) {
         return (
-            <Card className="p-8 max-w-md mx-auto text-center">
+            <Card hover={false} className="mx-auto max-w-md p-8 text-center">
                 {content}
             </Card>
         );

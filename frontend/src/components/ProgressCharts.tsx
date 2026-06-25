@@ -14,6 +14,7 @@ import {
 import { User, Analytics } from "../types";
 import api from "../utils/api";
 import Card from "./ui/Card";
+import Badge from "./ui/Badge";
 import LoadingSpinner from "./ui/LoadingSpinner";
 import { ANIMATION_VARIANTS } from "../utils/constants";
 
@@ -348,11 +349,9 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({ user, analytics }) => {
             <Card className="h-[400px] p-6">
                 <motion.div variants={ANIMATION_VARIANTS.slideUp}>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl font-semibold text-gray-100">Performance Progress</h3>
+                        <h3 className="text-xl font-semibold text-foreground">Performance Progress</h3>
                         {hasRealData && (
-                            <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-full">
-                                Real Data
-                            </span>
+                            <Badge variant="success" dot>Real Data</Badge>
                         )}
                     </div>
                     <div className="h-[300px] w-full">
@@ -365,7 +364,7 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({ user, analytics }) => {
                                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.2)" />
                             <XAxis 
                                 dataKey="name" 
                                 stroke="#9ca3af" 
@@ -380,10 +379,12 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({ user, analytics }) => {
                             />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: "#1e293b",
-                                    border: "1px solid #374151",
-                                    borderRadius: "0.5rem",
-                                    color: "#e2e8f0",
+                                    backgroundColor: "hsl(var(--popover))",
+                                    border: "1px solid hsl(var(--border))",
+                                    borderRadius: "0.75rem",
+                                    boxShadow: "0 10px 22px rgba(0,0,0,0.18)",
+                                    backdropFilter: "blur(8px)",
+                                    color: "hsl(var(--popover-foreground))",
                                 }}
                                 formatter={(value: any) => [`${value}%`, 'Score']}
                                 labelFormatter={(label) => `Test: ${label}`}
@@ -410,18 +411,16 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({ user, analytics }) => {
             <Card className="h-[400px] p-6">
                 <motion.div variants={ANIMATION_VARIANTS.slideUp}>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl font-semibold text-white">Subject Performance</h3>
+                        <h3 className="text-xl font-semibold text-foreground">Subject Performance</h3>
                         {hasRealData && (
-                            <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-full">
-                                Real Data
-                            </span>
+                            <Badge variant="success" dot>Real Data</Badge>
                         )}
                     </div>
                     <div className="h-[300px] w-full">
                         {performanceData.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={performanceData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.2)" />
                             <XAxis 
                                 dataKey="name" 
                                 stroke="#9ca3af" 
@@ -439,10 +438,12 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({ user, analytics }) => {
                             />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: "#1e293b",
-                                    border: "1px solid #374151",
-                                    borderRadius: "0.5rem",
-                                    color: "#ffffff",
+                                    backgroundColor: "hsl(var(--popover))",
+                                    border: "1px solid hsl(var(--border))",
+                                    borderRadius: "0.75rem",
+                                    boxShadow: "0 10px 22px rgba(0,0,0,0.18)",
+                                    backdropFilter: "blur(8px)",
+                                    color: "hsl(var(--popover-foreground))",
                                 }}
                                 formatter={(value: any) => [`${value}%`, 'Average Score']}
                             />
