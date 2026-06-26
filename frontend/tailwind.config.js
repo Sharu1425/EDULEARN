@@ -41,6 +41,15 @@ export default {
                     DEFAULT: "hsl(var(--info))",
                     foreground: "hsl(var(--info-foreground))",
                 },
+                // ── Legacy aliases ──────────────────────────────────────────────
+                // Older components used a different token vocabulary that was never
+                // defined in Tailwind, so they rendered partly unstyled. Map those
+                // names onto the real design tokens so they theme correctly.
+                surface: "hsl(var(--card))",
+                elevated: "hsl(var(--muted))",
+                base: "hsl(var(--border))",
+                fg: "hsl(var(--foreground))",
+                "muted-fg": "hsl(var(--muted-foreground))",
                 muted: {
                     DEFAULT: "hsl(var(--muted))",
                     foreground: "hsl(var(--muted-foreground))",

@@ -185,65 +185,56 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
 
   if (!user) {
     return (
-      <div className="min-h-screen pt-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <Card className="p-8 text-center">
-            <LoadingSpinner size="lg" />
-            <p className="text-muted-foreground mt-4">Loading coding platform...</p>
-          </Card>
-        </div>
+      <div className="flex h-full items-center justify-center p-8">
+        <Card size="md" hover={false} className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="text-muted-foreground mt-4">Loading coding platform...</p>
+        </Card>
       </div>
     )
   }
 
   if (loading && !analytics) {
     return (
-      <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
+      <div className="flex h-full items-center justify-center p-8">
         <LoadingSpinner size="lg" text="Loading coding platform..." />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen pt-20 px-4">
+    <div className="px-4 sm:px-6 py-6">
       <motion.div
         variants={ANIMATION_VARIANTS.fadeIn}
         initial="initial"
         animate="animate"
         className="max-w-7xl mx-auto"
       >
-        {/* Header */}
-        <Card className="p-8 mb-8">
-          <motion.div variants={ANIMATION_VARIANTS.slideDown} className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-foreground mb-2">AI Coding Platform</h1>
-            <p className="text-muted-foreground text-lg">
-              Master coding with AI-powered problems, real-time feedback, and personalized learning
-            </p>
-          </motion.div>
-
+        {/* Header card: stats + generate */}
+        <Card size="md" hover={false} className="mb-6">
           {/* Analytics Overview */}
           {analytics && (
-            <motion.div variants={ANIMATION_VARIANTS.stagger} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <motion.div variants={ANIMATION_VARIANTS.stagger} className="grid grid-cols-3 gap-3 mb-5">
               <motion.div variants={ANIMATION_VARIANTS.slideUp}>
-                <Card className="p-6 text-center group relative overflow-hidden">
+                <Card size="sm" className="text-center group relative overflow-hidden">
                   <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <div className="text-3xl font-black text-emerald-400 mb-1 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">{analytics.total_problems_solved}</div>
+                  <div className="text-2xl font-black text-emerald-400 mb-1 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">{analytics.total_problems_solved}</div>
                   <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Solved</div>
                 </Card>
               </motion.div>
               
               <motion.div variants={ANIMATION_VARIANTS.slideUp}>
-                <Card className="p-6 text-center group relative overflow-hidden">
+                <Card size="sm" className="text-center group relative overflow-hidden">
                   <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <div className="text-3xl font-black text-blue-400 mb-1 drop-shadow-[0_0_10px_rgba(56,189,248,0.3)]">{Math.round(analytics.success_rate)}%</div>
+                  <div className="text-2xl font-black text-blue-400 mb-1 drop-shadow-[0_0_10px_rgba(56,189,248,0.3)]">{Math.round(analytics.success_rate)}%</div>
                   <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Rate</div>
                 </Card>
               </motion.div>
               
               <motion.div variants={ANIMATION_VARIANTS.slideUp}>
-                <Card className="p-6 text-center group relative overflow-hidden">
+                <Card size="sm" className="text-center group relative overflow-hidden">
                   <div className="absolute inset-0 bg-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <div className="text-3xl font-black text-purple-400 mb-1 drop-shadow-[0_0_10px_rgba(139,92,246,0.3)]">{analytics.total_problems_attempted || 0}</div>
+                  <div className="text-2xl font-black text-purple-400 mb-1 drop-shadow-[0_0_10px_rgba(139,92,246,0.3)]">{analytics.total_problems_attempted || 0}</div>
                   <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Attempted</div>
                 </Card>
               </motion.div>
@@ -253,10 +244,10 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
           {/* Problem Generation */}
           <motion.div
             variants={ANIMATION_VARIANTS.slideUp}
-            className="bg-muted/20 rounded-lg p-6 mb-8 border border-border"
+            className="rounded-lg border border-border bg-muted/20 p-4"
           >
-            <h3 className="text-xl font-semibold text-foreground mb-4"> Generate AI-Powered Problem</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <h3 className="mb-3 text-base font-semibold text-foreground">Generate AI-Powered Problem</h3>
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
               <div className="flex flex-col">
                 <label className="block text-sm font-medium text-muted-foreground mb-2">Select Topic</label>
                 <select

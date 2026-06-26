@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { X, Check, Loader2, Award, ShieldAlert, Clock, Code2 } from "lucide-react"
 import api from "../../utils/api"
-import { useTheme } from "../../contexts/ThemeContext"
 import { useToast } from "../../contexts/ToastContext"
 import { cn } from "../../lib/utils"
+import Overlay from "../ui/Overlay"
+import Button from "../ui/Button"
+import Badge from "../ui/Badge"
 
 interface TopicDetailModalProps {
     isOpen: boolean
@@ -31,9 +33,7 @@ interface Question {
 }
 
 const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, topic, onComplete }) => {
-    const { colorScheme } = useTheme()
     const { addToast } = useToast()
-    const isDark = colorScheme === "dark"
 
     const [step, setStep] = useState<Step>("loading_read")
     const [summary, setSummary] = useState<any>(null)
@@ -44,10 +44,9 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
     const [submitting, setSubmitting] = useState(false)
     const [completionData, setCompletionData] = useState<any>(null)
     const [timeLeft, setTimeLeft] = useState<number>(30)
-    
+
     const timerRef = useRef<NodeJS.Timeout | null>(null)
 
-    // Reset and fetch summary when opened
     useEffect(() => {
         if (isOpen && topic) {
             setStep("loading_read")
@@ -56,13 +55,12 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
             setCurrentIndex(0)
             setAnswers({})
             setCompletionData(null)
-            
             fetchSummary()
         }
         return () => clearInterval(timerRef.current!)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, topic])
 
-    // Timer logic
     useEffect(() => {
         if (step === "quiz") {
             timerRef.current = setInterval(() => {
@@ -77,6 +75,7 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
             }, 1000)
         }
         return () => clearInterval(timerRef.current!)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [step, currentIndex])
 
     const fetchSummary = async () => {
@@ -84,7 +83,7 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
             const res = await api.post("/api/mastery/summary", {
                 subtopic_id: topic.id,
                 subtopic_title: topic.title,
-                difficulty: topic.difficulty || 1
+                difficulty: topic.difficulty || 1,
             })
             setSummary(res.data)
             setStep("read")
@@ -102,9 +101,8 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
                 subtopic_id: topic.id,
                 subtopic_title: topic.title,
                 difficulty: topic.difficulty || 1,
-                attempt_number: (topic.attempts || 0) + 1
+                attempt_number: (topic.attempts || 0) + 1,
             })
-            // Normalize FIB options into a shuffled array if needed
             const qs = res.data.questions.map((q: any) => {
                 if (q.type === "fib" && q.near_miss_options && q.correct_word) {
                     const opts = [...q.near_miss_options, q.correct_word].sort(() => Math.random() - 0.5)
@@ -117,8 +115,7 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
             setStep("quiz")
         } catch (error: any) {
             console.error(error)
-            const msg = error.response?.data?.detail || "Failed to generate quiz"
-            addToast({ title: msg, type: "error" })
+            addToast({ title: error.response?.data?.detail || "Failed to generate quiz", type: "error" })
             setStep("read")
         }
     }
@@ -126,7 +123,7 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
     const handleNextOrSubmit = () => {
         if (currentIndex < questions.length - 1) {
             setCurrentIndex(prev => prev + 1)
-            setTimeLeft(30) // Reset timer
+            setTimeLeft(30)
         } else {
             finishQuiz()
         }
@@ -135,25 +132,21 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
     const finishQuiz = async () => {
         setStep("result")
         clearInterval(timerRef.current!)
-        
+
         let correctCount = 0
         questions.forEach((q, i) => {
             const ans = answers[i]
             if (q.type === "mcq" || q.type === "scenario" || q.type === "fib") {
-                // Check string or index match
                 if (ans === q.correct_answer || ans === q.correct_word) correctCount++
             } else if (q.type === "sata") {
                 const correctArr = q.correct_answers || []
                 const ansArr = ans || []
-                if (ansArr.length === correctArr.length && ansArr.every((a: string) => correctArr.includes(a))) {
-                    correctCount++
-                }
+                if (ansArr.length === correctArr.length && ansArr.every((a: string) => correctArr.includes(a))) correctCount++
             }
         })
-        
+
         setScore({ correct: correctCount, total: questions.length })
-        
-        const passed = correctCount >= (questions.length * 0.8) // 80% passing threshold
+        const passed = correctCount >= questions.length * 0.8
 
         try {
             setSubmitting(true)
@@ -161,15 +154,11 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
                 user_id: "",
                 quiz_score: correctCount / questions.length,
                 status: passed ? "completed" : "locked",
-                attempt_number: (topic.attempts || 0) + 1
+                attempt_number: (topic.attempts || 0) + 1,
             })
             setCompletionData(res.data)
-            
-            if (passed) {
-                addToast({ title: `Topic Mastered!`, type: "success" })
-            } else {
-                addToast({ title: `Quiz Failed. Topic is in cooldown for 10 minutes.`, type: "warning" })
-            }
+            if (passed) addToast({ title: "Topic Mastered!", type: "success" })
+            else addToast({ title: "Quiz failed — 10 minute cooldown.", type: "warning" })
         } catch (error) {
             console.error(error)
             addToast({ title: "Failed to save progress", type: "error" })
@@ -179,87 +168,67 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
     }
 
     const toggleSataAnswer = (opt: string) => {
-        const currentAns = answers[currentIndex] || []
-        let newAns;
-        if (currentAns.includes(opt)) {
-            newAns = currentAns.filter((o: string) => o !== opt)
-        } else {
-            newAns = [...currentAns, opt]
-        }
-        setAnswers({ ...answers, [currentIndex]: newAns })
+        const cur = answers[currentIndex] || []
+        const next = cur.includes(opt) ? cur.filter((o: string) => o !== opt) : [...cur, opt]
+        setAnswers({ ...answers, [currentIndex]: next })
     }
+    const setSingleAnswer = (opt: string | number) => setAnswers({ ...answers, [currentIndex]: opt })
 
-    const setSingleAnswer = (opt: string | number) => {
-        setAnswers({ ...answers, [currentIndex]: opt })
-    }
-
+    // ── Steps ─────────────────────────────────────────────────────────────────
     const renderReadStep = () => {
         if (step === "loading_read") {
             return (
-                <div className="flex flex-col h-full items-center justify-center p-8">
-                    <Loader2 className="w-12 h-12 animate-spin text-indigo-500 mb-4" />
-                    <p className={isDark ? "text-slate-400" : "text-slate-500"}>Generating deep dive summary...</p>
+                <div className="flex h-full flex-col items-center justify-center p-8">
+                    <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
+                    <p className="text-muted-foreground">Generating deep-dive summary…</p>
                 </div>
             )
         }
-        
         return (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col h-full">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex h-full flex-col">
                 <div className="flex-1 overflow-y-auto p-6 md:p-8">
-                    <div className="inline-block px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-medium rounded-full text-xs uppercase tracking-wider mb-4">
-                        Level {summary?.difficulty} • ~{summary?.estimated_read_minutes} min read
-                    </div>
-                    <h2 className={cn("text-3xl font-heading font-bold mb-4", isDark ? "text-white" : "text-slate-900")}>
-                        {summary?.subtopic_title}
-                    </h2>
-                    
+                    <Badge variant="info" className="mb-4">Level {summary?.difficulty} • ~{summary?.estimated_read_minutes} min read</Badge>
+                    <h2 className="mb-4 text-3xl font-heading font-bold text-foreground">{summary?.subtopic_title}</h2>
+
                     {summary?.hook && (
-                        <div className="text-lg italic text-slate-500 dark:text-slate-400 mb-8 border-l-4 border-indigo-500 pl-4">
-                            {summary.hook}
-                        </div>
+                        <div className="mb-8 border-l-4 border-primary pl-4 text-lg italic text-muted-foreground">{summary.hook}</div>
                     )}
 
-                    <div className={cn("prose prose-lg dark:prose-invert max-w-none leading-relaxed", isDark ? "text-slate-300" : "text-slate-700")}>
-                        {summary?.explanation.split('\n').map((paragraph: string, i: number) => (
-                            paragraph.trim() && <p key={i} className="mb-4">{paragraph}</p>
-                        ))}
+                    <div className="max-w-none leading-relaxed text-muted-foreground">
+                        {summary?.explanation?.split("\n").map((p: string, i: number) => (p.trim() ? <p key={i} className="mb-4">{p}</p> : null))}
                     </div>
-                    
+
                     {summary?.example && (
-                        <div className="mt-8 bg-slate-100 dark:bg-slate-800/50 p-6 rounded-2xl">
-                            <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-2">How it works (Example)</h4>
-                            <p className="text-slate-600 dark:text-slate-400">{summary.example}</p>
+                        <div className="mt-8 rounded-2xl bg-muted/50 p-6">
+                            <h4 className="mb-2 font-bold text-foreground">How it works (Example)</h4>
+                            <p className="text-muted-foreground">{summary.example}</p>
                         </div>
                     )}
 
                     {summary?.code_snippet && (
-                        <div className="mt-6 bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-800">
-                            <div className="flex items-center px-4 py-2 bg-slate-800 border-b border-slate-700">
-                                <Code2 className="w-4 h-4 text-slate-400 mr-2" />
-                                <span className="text-xs text-slate-400 font-mono">Example Snippet</span>
+                        <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-foreground/[0.04]">
+                            <div className="flex items-center border-b border-border px-4 py-2">
+                                <Code2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                                <span className="font-mono text-xs text-muted-foreground">Example Snippet</span>
                             </div>
-                            <pre className="p-4 text-sm font-mono text-indigo-300 overflow-x-auto">
-                                <code>{summary.code_snippet}</code>
-                            </pre>
+                            <pre className="overflow-x-auto p-4 font-mono text-sm text-primary"><code>{summary.code_snippet}</code></pre>
                         </div>
                     )}
 
                     {summary?.common_mistake && (
-                        <div className="mt-8 border border-orange-200 dark:border-orange-900/50 bg-orange-50 dark:bg-orange-900/10 p-6 rounded-2xl">
-                            <h4 className="font-bold text-orange-800 dark:text-orange-400 mb-2 flex items-center gap-2">
-                                <ShieldAlert className="w-5 h-5" /> Common Mistake
-                            </h4>
-                            <p className="text-orange-700 dark:text-orange-300/80">{summary.common_mistake}</p>
+                        <div className="mt-8 rounded-2xl border border-warning/30 bg-warning/10 p-6">
+                            <h4 className="mb-2 flex items-center gap-2 font-bold text-warning"><ShieldAlert className="h-5 w-5" /> Common Mistake</h4>
+                            <p className="text-warning/90">{summary.common_mistake}</p>
                         </div>
                     )}
 
                     {summary?.key_takeaways && (
                         <div className="mt-8">
-                            <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-4">Key Takeaways</h4>
+                            <h4 className="mb-4 font-bold text-foreground">Key Takeaways</h4>
                             <ul className="space-y-3">
                                 {summary.key_takeaways.map((point: string, i: number) => (
-                                    <li key={i} className="flex gap-3 text-slate-600 dark:text-slate-400">
-                                        <div className="mt-1 w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                                    <li key={i} className="flex gap-3 text-muted-foreground">
+                                        <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                                         <span>{point}</span>
                                     </li>
                                 ))}
@@ -267,20 +236,11 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
                         </div>
                     )}
                 </div>
-                
-                <div className={cn("p-6 border-t flex justify-end gap-4 shrink-0", isDark ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-slate-50")}>
-                    {topic.status === "completed" ? (
-                        <button onClick={onClose} className="px-6 py-3 rounded-xl bg-slate-200 dark:bg-slate-800 font-semibold transition-colors">
-                            Close
-                        </button>
-                    ) : (
-                        <button 
-                            onClick={handleStartQuiz}
-                            className="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white font-semibold flex items-center gap-2 hover:shadow-lg hover:-translate-y-0.5 transition-all"
-                        >
-                            <Check className="w-5 h-5" /> Take the Quiz
-                        </button>
-                    )}
+
+                <div className="flex shrink-0 justify-end gap-3 border-t border-border bg-muted/30 p-6">
+                    {topic.status === "completed"
+                        ? <Button variant="outline" onClick={onClose}>Close</Button>
+                        : <Button variant="primary" onClick={handleStartQuiz}><Check className="h-5 w-5" /> Take the Quiz</Button>}
                 </div>
             </motion.div>
         )
@@ -289,107 +249,79 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
     const renderQuizStep = () => {
         if (step === "generating_quiz") {
             return (
-                <div className="flex flex-col h-full items-center justify-center p-8 text-center bg-gradient-to-br from-indigo-500/5 to-cyan-500/5">
-                    <Loader2 className="w-12 h-12 animate-spin text-indigo-500 mb-6" />
-                    <h3 className="text-xl font-bold bg-gradient-to-r from-indigo-500 to-cyan-500 bg-clip-text text-transparent mb-2">Generating Rigorous Quiz</h3>
-                    <p className={isDark ? "text-slate-400" : "text-slate-500"}>Our AI is generating non-repeating questions to test true mastery...</p>
+                <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+                    <Loader2 className="mb-6 h-12 w-12 animate-spin text-primary" />
+                    <h3 className="mb-2 text-xl font-heading font-bold text-gradient-primary">Generating Rigorous Quiz</h3>
+                    <p className="text-muted-foreground">Our AI is generating non-repeating questions to test true mastery…</p>
                 </div>
             )
         }
-
         if (questions.length === 0) return null
-        
         const q = questions[currentIndex]
-        const progressPercentage = ((currentIndex) / questions.length) * 100
+        const pct = (currentIndex / questions.length) * 100
 
         return (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col h-full overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50 shrink-0 pr-16">
-                    <span className="font-semibold text-slate-500 dark:text-slate-400 text-sm tracking-wide uppercase">Question {currentIndex + 1} of {questions.length}</span>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex h-full flex-col overflow-hidden">
+                <div className="flex shrink-0 items-center justify-between border-b border-border bg-muted/30 px-6 py-4 pr-16">
+                    <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Question {currentIndex + 1} of {questions.length}</span>
                     <div className="flex items-center gap-4">
-                        <div className={cn(
-                            "flex items-center gap-2 px-3 py-1 rounded-full font-mono font-bold text-sm",
-                            timeLeft <= 5 ? "bg-red-100 text-red-600 animate-pulse" : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-                        )}>
-                            <Clock className="w-4 h-4" /> 00:{timeLeft.toString().padStart(2, '0')}
+                        <div className={cn("flex items-center gap-2 rounded-full px-3 py-1 font-mono text-sm font-bold",
+                            timeLeft <= 5 ? "bg-destructive/15 text-destructive animate-pulse" : "bg-muted text-foreground")}>
+                            <Clock className="h-4 w-4" /> 00:{timeLeft.toString().padStart(2, "0")}
                         </div>
-                        <div className="w-24 sm:w-32 h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div className="h-full bg-indigo-500 transition-all duration-300" style={{ width: `${progressPercentage}%` }} />
+                        <div className="hidden h-2 w-24 overflow-hidden rounded-full bg-muted sm:block">
+                            <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-300" style={{ width: `${pct}%` }} />
                         </div>
                     </div>
                 </div>
 
-                <div className="flex-1 p-6 md:p-8 overflow-y-auto">
-                    {/* Scenario Badge */}
+                <div className="flex-1 overflow-y-auto p-6 md:p-8">
                     {q.type === "scenario" && (
-                        <div className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50">
-                            <h4 className="font-bold text-blue-800 dark:text-blue-400 mb-2 uppercase text-xs tracking-wider">Scenario</h4>
-                            <p className="text-blue-900 dark:text-blue-200/90 leading-relaxed">{q.scenario}</p>
+                        <div className="mb-6 rounded-xl border border-info/30 bg-info/10 p-4">
+                            <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-info">Scenario</h4>
+                            <p className="leading-relaxed text-foreground/90">{q.scenario}</p>
                         </div>
                     )}
-                    
-                    {/* FIB formatting */}
                     {q.type === "fib" && (
                         <div className="mb-8">
-                            <h4 className="font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase text-xs tracking-wider">Fill in the blank</h4>
-                            <h3 className={cn("text-2xl font-semibold leading-tight", isDark ? "text-white" : "text-slate-900")}>
-                                {q.sentence_with_blank?.replace("_____", "___")}
-                            </h3>
+                            <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Fill in the blank</h4>
+                            <h3 className="text-2xl font-semibold leading-tight text-foreground">{q.sentence_with_blank?.replace("_____", "___")}</h3>
                         </div>
                     )}
-
                     {q.type !== "fib" && (
-                        <h3 className={cn("text-2xl font-semibold mb-8 leading-tight", isDark ? "text-white" : "text-slate-900")}>
-                            {q.question}
-                        </h3>
+                        <h3 className="mb-8 text-2xl font-semibold leading-tight text-foreground">{q.question}</h3>
                     )}
-                    
-                    {q.type === "sata" && (
-                        <p className="text-sm text-indigo-500 font-semibold mb-4 uppercase tracking-wider">Select ALL that apply</p>
-                    )}
+                    {q.type === "sata" && <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-primary">Select ALL that apply</p>}
 
                     <div className="flex flex-col gap-3">
                         {q.options?.map((opt, i) => {
                             let isSelected = false
-                            if (q.type === "sata") {
-                                isSelected = (answers[currentIndex] || []).includes(opt)
-                            } else if (q.type === "mcq" || q.type === "scenario") {
-                                // Sometimes correct_answer is an index, sometimes string. Assume string or option value matching
-                                isSelected = answers[currentIndex] === opt || answers[currentIndex] === i
-                            } else if (q.type === "fib") {
-                                isSelected = answers[currentIndex] === opt
-                            }
+                            if (q.type === "sata") isSelected = (answers[currentIndex] || []).includes(opt)
+                            else if (q.type === "mcq" || q.type === "scenario") isSelected = answers[currentIndex] === opt || answers[currentIndex] === i
+                            else if (q.type === "fib") isSelected = answers[currentIndex] === opt
 
                             return (
                                 <button
                                     key={i}
                                     onClick={() => {
                                         if (q.type === "sata") toggleSataAnswer(opt)
-                                        else setSingleAnswer(q.type === "mcq" ? (typeof q.correct_answer === 'number' ? i : opt) : opt)
+                                        else setSingleAnswer(q.type === "mcq" ? (typeof q.correct_answer === "number" ? i : opt) : opt)
                                     }}
                                     className={cn(
-                                        "text-left p-4 rounded-xl border-2 transition-all font-medium flex items-center gap-3",
-                                        isSelected 
-                                            ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
-                                            : isDark
-                                                ? "border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-slate-200"
-                                                : "border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50"
+                                        "flex items-center gap-3 rounded-xl border-2 p-4 text-left font-medium transition-all",
+                                        isSelected ? "border-primary bg-primary/10 text-primary"
+                                            : "border-border bg-muted/30 text-foreground hover:border-primary/40 hover:bg-muted/60"
                                     )}
                                 >
-                                    {q.type === "sata" && (
-                                        <div className={cn(
-                                            "w-5 h-5 rounded border flex items-center justify-center shrink-0",
-                                            isSelected ? "bg-indigo-500 border-indigo-500 text-white" : "border-slate-400"
-                                        )}>
-                                            {isSelected && <Check className="w-3.5 h-3.5" />}
+                                    {q.type === "sata" ? (
+                                        <div className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded border",
+                                            isSelected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground")}>
+                                            {isSelected && <Check className="h-3.5 w-3.5" />}
                                         </div>
-                                    )}
-                                    {q.type !== "sata" && (
-                                        <div className={cn(
-                                            "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0",
-                                            isSelected ? "border-indigo-500" : "border-slate-400"
-                                        )}>
-                                            {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-indigo-500" />}
+                                    ) : (
+                                        <div className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2",
+                                            isSelected ? "border-primary" : "border-muted-foreground")}>
+                                            {isSelected && <div className="h-2.5 w-2.5 rounded-full bg-primary" />}
                                         </div>
                                     )}
                                     {opt}
@@ -398,68 +330,44 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
                         })}
                     </div>
                 </div>
-                
-                <div className="shrink-0 flex justify-end items-center p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-                    <button
-                        onClick={handleNextOrSubmit}
-                        className={cn(
-                            "px-8 py-3 rounded-xl font-semibold transition-all shadow-lg",
-                            "bg-indigo-600 text-white hover:bg-indigo-700 hover:-translate-y-0.5"
-                        )}
-                    >
+
+                <div className="flex shrink-0 justify-end border-t border-border bg-muted/30 p-6">
+                    <Button variant="primary" onClick={handleNextOrSubmit}>
                         {currentIndex < questions.length - 1 ? "Next Question" : "Submit Quiz"}
-                    </button>
+                    </Button>
                 </div>
             </motion.div>
         )
     }
 
     const renderResultStep = () => {
-        const passMark = questions.length * 0.8
-        const passed = score.correct >= passMark
-        
+        const passed = score.correct >= questions.length * 0.8
         return (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col h-full items-center justify-center p-8 text-center overflow-y-auto">
+            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="flex h-full flex-col items-center justify-center overflow-y-auto p-8 text-center">
                 {submitting ? (
-                    <Loader2 className="w-12 h-12 animate-spin text-indigo-500 mb-4" />
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
                 ) : (
                     <>
-                        <div className={cn(
-                            "w-24 h-24 rounded-full flex items-center justify-center mb-6",
-                            passed ? "bg-green-100 text-green-500 dark:bg-green-500/20" : "bg-red-100 text-red-500 dark:bg-red-500/20"
-                        )}>
-                            {passed ? <Award className="w-12 h-12" /> : <ShieldAlert className="w-12 h-12" />}
+                        <div className={cn("mb-6 flex h-24 w-24 items-center justify-center rounded-full",
+                            passed ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive")}>
+                            {passed ? <Award className="h-12 w-12" /> : <ShieldAlert className="h-12 w-12" />}
                         </div>
-                        
-                        <h2 className={cn("text-3xl font-bold mb-2", isDark ? "text-white" : "text-slate-900")}>
-                            {passed ? "Mastery Achieved!" : "Mastery Failed"}
-                        </h2>
-                        
-                        <p className={cn("text-xl mb-6", isDark ? "text-slate-300" : "text-slate-600")}>
-                            You scored <strong className={passed ? "text-green-500" : "text-red-500"}>{score.correct} out of {score.total}</strong>
+                        <h2 className="mb-2 text-3xl font-heading font-bold text-foreground">{passed ? "Mastery Achieved!" : "Mastery Failed"}</h2>
+                        <p className="mb-6 text-xl text-muted-foreground">
+                            You scored <strong style={{ color: passed ? "hsl(var(--success))" : "hsl(var(--destructive))" }}>{score.correct} out of {score.total}</strong>
                         </p>
-                        
                         {!passed && (
-                            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-6 py-4 rounded-xl text-sm max-w-md mx-auto mb-8">
-                                <p className="font-bold mb-1">Cooldown Initiated</p>
-                                <p>You must wait 10 minutes before retaking this quiz to ensure you have time to study the material properly.</p>
+                            <div className="mx-auto mb-8 max-w-md rounded-xl bg-destructive/10 px-6 py-4 text-sm text-destructive">
+                                <p className="mb-1 font-bold">Cooldown Initiated</p>
+                                <p>Wait 10 minutes before retaking this quiz so you have time to study the material properly.</p>
                             </div>
                         )}
-
-                        <div className="flex gap-4">
-                            <button 
-                                onClick={() => {
-                                    if (completionData?.progress) onComplete(completionData.progress)
-                                    else onComplete()
-                                }}
-                                className={cn(
-                                    "px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:-translate-y-0.5 transition-all",
-                                    passed ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:shadow-green-500/25" : "bg-slate-800 hover:bg-slate-700"
-                                )}
-                            >
-                                Back to Roadmap
-                            </button>
-                        </div>
+                        <Button
+                            variant={passed ? "primary" : "outline"}
+                            onClick={() => { if (completionData?.progress) onComplete(completionData.progress); else onComplete() }}
+                        >
+                            Back to Roadmap
+                        </Button>
                     </>
                 )}
             </motion.div>
@@ -467,42 +375,22 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
     }
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-                    <motion.div 
-                        initial={{ opacity: 0 }} 
-                        animate={{ opacity: 1 }} 
-                        exit={{ opacity: 0 }} 
+        <Overlay isOpen={isOpen && !!topic} onClose={onClose} className="max-w-2xl">
+            <div className="glass relative flex h-[82vh] flex-col overflow-hidden rounded-3xl shadow-e4 dark:shadow-e4-dark">
+                {(step === "loading_read" || step === "read" || step === "generating_quiz" || step === "quiz") && (
+                    <button
                         onClick={onClose}
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
-                    />
-                    
-                    <motion.div 
-                        initial={{ opacity: 0, y: 50, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className={cn(
-                            "relative w-full max-w-2xl h-[85vh] sm:h-[80vh] flex flex-col rounded-3xl overflow-hidden shadow-2xl",
-                            isDark ? "bg-slate-900 border border-white/10" : "bg-white"
-                        )}
+                        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-muted/60 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        aria-label="Close"
                     >
-                        {(step === "loading_read" || step === "read" || step === "generating_quiz" || step === "quiz") && (
-                            <button 
-                                onClick={onClose}
-                                className="absolute right-4 top-4 z-10 w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center transition-colors"
-                            >
-                                <X className="w-5 h-5 text-slate-500 dark:text-slate-300" />
-                            </button>
-                        )}
-
-                        {step.includes("read") && renderReadStep()}
-                        {step.includes("quiz") && renderQuizStep()}
-                        {step === "result" && renderResultStep()}
-                    </motion.div>
-                </div>
-            )}
-        </AnimatePresence>
+                        <X className="h-5 w-5" />
+                    </button>
+                )}
+                {step.includes("read") && renderReadStep()}
+                {step.includes("quiz") && renderQuizStep()}
+                {step === "result" && renderResultStep()}
+            </div>
+        </Overlay>
     )
 }
 

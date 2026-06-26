@@ -291,7 +291,7 @@ async def update_progress(
         credits_to_add = int(10 * xp_multiplier)
             
         user_id = ObjectId(current_user["id"])
-        await mastery_service.check_and_update_streak(db.client.get_database("edulearn"), user_id)
+        await mastery_service.check_and_update_streak(db, user_id)
         if credits_to_add > 0:
             await add_credits(
                 user_id=str(user_id),

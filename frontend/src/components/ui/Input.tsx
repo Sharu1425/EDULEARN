@@ -26,10 +26,10 @@ const Input: React.FC<InputProps> = ({ label, error, icon, className = "", ...pr
         )}
         <input
           className={cn(
-            "w-full rounded-xl border bg-muted/10 px-4 py-3 text-foreground backdrop-blur-md",
+            "w-full rounded-xl border bg-background/40 px-4 py-3 text-foreground backdrop-blur-md backdrop-saturate-150",
             "placeholder:text-muted-foreground/60",
             "transition-[border-color,box-shadow,background-color] duration-200 ease-out-expo",
-            "focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/15 focus:bg-muted/20",
+            "focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/15 focus:bg-background/60",
             icon && "pl-10",
             error
               ? "border-destructive focus:border-destructive focus:ring-destructive/20"

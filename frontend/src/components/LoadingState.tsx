@@ -30,7 +30,7 @@ const LoadingState: React.FC<LoadingStateProps> = ({
   }
 
   if (showCard) {
-    return <Card className="p-8 max-w-md mx-auto text-center bg-surface text-fg">{content}</Card>
+    return <Card hover={false} className="p-8 max-w-md mx-auto text-center">{content}</Card>
   }
 
   return content

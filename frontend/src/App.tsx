@@ -28,6 +28,7 @@ class ErrorBoundary extends React.Component<any, { hasError: boolean, error: any
   }
 }
 import { ToastProvider, useToast } from "./contexts/ToastContext"
+import { HeaderTitleProvider } from "./contexts/HeaderTitleContext"
 import { useAuth } from "./hooks/useAuth"
 import Header from "./components/ui/Header"
 import Sidebar from "./components/ui/Sidebar"
@@ -136,6 +137,14 @@ const AppLayout: React.FC<{
   const location = useLocation()
   const bgTier = useBackgroundTier()
 
+  // Sidebar collapsed state lives here so the Header brand block + Sidebar stay in sync.
+  const [collapsed, setCollapsed] = React.useState<boolean>(() => {
+    try { return localStorage.getItem("sidebar-collapsed") === "true" } catch { return false }
+  })
+  React.useEffect(() => {
+    try { localStorage.setItem("sidebar-collapsed", String(collapsed)) } catch { /* ignore */ }
+  }, [collapsed])
+
   const fullscreen = isFullscreenPath(location.pathname)
   // Show Sidebar and Header on authenticated, non-fullscreen routes
   const showSidebarAndHeader = !!user && !fullscreen
@@ -151,25 +160,27 @@ const AppLayout: React.FC<{
       <ThemeFlash />
       <ToastContainer toasts={toasts} onClose={removeToast} />
 
-      <div className="flex flex-col min-h-screen relative overflow-hidden">
-        {/* Top Header spans full width */}
+      <div className="flex h-full flex-col relative overflow-hidden">
+        {/* Static app-shell header spanning the full width */}
         {showSidebarAndHeader && (
-          <Header onMenuClick={() => window.dispatchEvent(new Event('toggle-mobile-sidebar'))} />
+          <Header
+            onMenuClick={() => window.dispatchEvent(new Event('toggle-mobile-sidebar'))}
+            collapsed={collapsed}
+            onToggleCollapse={() => setCollapsed(c => !c)}
+          />
         )}
 
-        {/* Content Area flex container under Header */}
-        <div className={showSidebarAndHeader ? "flex flex-1 overflow-hidden" : "flex flex-1"}>
+        {/* Content row under header — min-h-0 lets <main> scroll instead of growing the page */}
+        <div className={showSidebarAndHeader ? "flex flex-1 min-h-0 overflow-hidden" : "flex flex-1 min-h-0"}>
 
-          {/* Sidebar sits below header */}
-          {showSidebarAndHeader && <Sidebar user={user} />}
+          {/* Sidebar (full height of the row) */}
+          {showSidebarAndHeader && <Sidebar user={user} collapsed={collapsed} />}
 
-          {/* Main Content Area */}
+          {/* Main content — the only scroll container */}
           <main className={cn(
-            "flex-1 overflow-y-auto w-full relative",
+            "flex-1 min-h-0 overflow-y-auto w-full relative",
             showSidebarAndHeader && "bg-background/40"
           )}>
-            {/* If Header is fixed, we might need a top spacer. Let's see if Header uses fixed. Yes it does in Header.tsx. So add pt-16. */}
-            {showSidebarAndHeader && <div className="h-16 w-full shrink-0" />}
             <div className={cn(
               "mx-auto w-full",
               !fullscreen && "pb-12"
@@ -262,14 +273,16 @@ const AppContent: React.FC = () => {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <Router>
-          <div className="min-h-screen relative overflow-hidden transition-colors duration-300 bg-background text-foreground">
-            <AppLayout
-              user={user}
-              setUser={setUser}
-            />
-          </div>
-        </Router>
+        <HeaderTitleProvider>
+          <Router>
+            <div className="h-screen relative overflow-hidden transition-colors duration-300 bg-background text-foreground">
+              <AppLayout
+                user={user}
+                setUser={setUser}
+              />
+            </div>
+          </Router>
+        </HeaderTitleProvider>
       </ToastProvider>
     </ThemeProvider>
   )

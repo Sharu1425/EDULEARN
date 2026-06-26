@@ -2,7 +2,6 @@
 
 import type React from "react"
 import { motion } from "framer-motion"
-import { useTheme } from "../../contexts/ThemeContext"
 import { staggerContainer } from "../../lib/motion"
 
 export default function PageShell({
@@ -16,55 +15,25 @@ export default function PageShell({
   headerRight?: React.ReactNode
   children: React.ReactNode
 }) {
-  const { colorScheme } = useTheme()
-  const isDark = colorScheme === "dark"
+  const hasHeader = !!(title || subtitle || headerRight)
 
   return (
-    <div className="relative min-h-[100dvh]">
-      {/* Page header — fully theme-aware */}
-      <header
-        className="sticky top-0 z-40 border-b backdrop-blur-2xl transition-all"
-        style={{
-          background: isDark
-            ? "rgba(2, 6, 23, 0.72)"
-            : "rgba(248, 250, 252, 0.90)",
-          borderColor: isDark
-            ? "rgba(255,255,255,0.06)"
-            : "rgba(99, 102, 241, 0.12)",
-          boxShadow: isDark
-            ? "0 1px 20px rgba(0,0,0,0.3)"
-            : "0 1px 20px rgba(99,102,241,0.06)",
-        }}
-      >
-        <div className="px-6 lg:px-8 flex min-h-[4rem] items-center justify-between py-3">
-          <div className="flex min-w-0 flex-1 flex-col justify-center">
-            {title && (
-              <h1 className={`text-xl font-heading font-bold tracking-tight truncate sm:whitespace-normal ${isDark ? "gradient-text" : "gradient-text-light"}`}>
-                {title}
-              </h1>
-            )}
-            {subtitle && (
-              <p className="text-sm font-sans text-muted-foreground mt-0.5 line-clamp-1 sm:line-clamp-none">
-                {subtitle}
-              </p>
-            )}
+    // min-h-full (not 100dvh): fills the scroll area without forcing a phantom scrollbar.
+    // The page title now lives in the global app header; this is a compact in-page greeting.
+    <div className="relative min-h-full px-6 py-6 lg:px-8">
+      {hasHeader && (
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            {title && <h1 className="text-2xl font-heading font-bold tracking-tight text-foreground">{title}</h1>}
+            {subtitle && <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>}
           </div>
-          <div className="flex items-center gap-3 shrink-0 ml-4">{headerRight}</div>
+          {headerRight && <div className="flex shrink-0 items-center gap-3">{headerRight}</div>}
         </div>
-      </header>
+      )}
 
-      <main className="relative z-10 w-full">
-        {/* Stagger container — page blocks using the `staggerItem` variant
-            animate in sequence; plain children simply appear. */}
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-          className="px-6 lg:px-8 py-8 sm:py-10"
-        >
-          {children}
-        </motion.div>
-      </main>
+      <motion.div variants={staggerContainer} initial="hidden" animate="visible">
+        {children}
+      </motion.div>
     </div>
   )
 }

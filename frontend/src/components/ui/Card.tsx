@@ -8,16 +8,21 @@ interface CardProps {
   className?: string
   glow?: boolean
   hover?: boolean
+  /** Standard padding preset. Omit to control padding via className. */
+  size?: "sm" | "md" | "lg"
   /** Cursor-tracking light highlight on hover. Defaults to `hover`. */
   spotlight?: boolean
   onClick?: () => void
 }
+
+const SIZE_PADDING = { sm: "p-4", md: "p-6", lg: "p-8" } as const
 
 const Card: React.FC<CardProps> = ({
   children,
   className = "",
   glow = false,
   hover = true,
+  size,
   spotlight,
   onClick,
 }) => {
@@ -39,24 +44,26 @@ const Card: React.FC<CardProps> = ({
       onClick={onClick}
       onMouseMove={enableSpotlight ? handleMove : undefined}
       className={cn(
-        // Base glass morphism styling. `isolate` guarantees the spotlight
-        // overlay (-z-10) paints above the card background but below content,
-        // so children render directly without an extra wrapper.
-        "group relative isolate overflow-hidden rounded-2xl border backdrop-blur-xl transition-all duration-300 ease-out-expo",
+        // macOS-style vibrancy glass. `isolate` guarantees the spotlight overlay
+        // (-z-10) paints above the card background but below content, so children
+        // render directly without an extra wrapper. `ring-inset` is the specular
+        // inner rim that gives the "liquid glass" edge.
+        "group relative isolate overflow-hidden rounded-2xl border backdrop-blur-2xl backdrop-saturate-150 transition-all duration-300 ease-out-expo",
         // Light mode
-        "bg-white/70 border-white/60 shadow-e2",
+        "bg-white/60 border-white/50 shadow-e2 ring-1 ring-inset ring-white/30",
         // Dark mode
-        "dark:bg-[rgba(2,6,23,0.45)] dark:border-white/5 dark:shadow-e2-dark",
-        // Hover — lift one elevation tier
+        "dark:bg-[rgba(17,23,41,0.55)] dark:border-white/10 dark:shadow-e2-dark dark:ring-white/[0.06]",
+        // Hover — lift a tier + brighten the glass rim
         hover && [
-          "hover:-translate-y-0.5 hover:shadow-e3",
-          "dark:hover:shadow-e3-dark dark:hover:border-white/10 dark:hover:bg-[rgba(2,6,23,0.6)]",
+          "hover:-translate-y-0.5 hover:shadow-e3 hover:ring-white/50",
+          "dark:hover:shadow-e3-dark dark:hover:border-white/15 dark:hover:bg-[rgba(17,23,41,0.7)] dark:hover:ring-white/10",
         ],
         // Optional accent ring + soft glow
         glow && [
           "ring-1 ring-inset ring-primary/15",
           "dark:hover:shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_28px_rgba(34,211,238,0.10)]",
         ],
+        size && SIZE_PADDING[size],
         onClick && "cursor-pointer",
         className
       )}

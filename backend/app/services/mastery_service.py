@@ -254,8 +254,9 @@ class MasteryService:
             print(f"Error generating final exam: {e}")
             raise Exception(f"Failed to generate final exam: {str(e)}")
 
-    async def check_and_update_streak(self, db, user_id: str) -> int:
-        user_coll = db.users
+    async def check_and_update_streak(self, db, user_id) -> int:
+        # Use get_collection so this works with both Motor and the mock DB.
+        user_coll = db.get_collection("users")
         user = await user_coll.find_one({"_id": user_id})
         
         if not user:

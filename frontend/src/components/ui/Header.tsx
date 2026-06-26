@@ -1,31 +1,38 @@
 import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Bell, Menu, LogOut, Settings, User as UserIcon, Moon, Sun, Coins } from "lucide-react"
+import { Bell, Menu, LogOut, Settings, User as UserIcon, Moon, Sun, Coins, PanelLeftClose, PanelLeftOpen } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
 import { useTheme } from "../../contexts/ThemeContext"
-import { useNavigate, useLocation } from "react-router-dom"
+import { useNavigate, useLocation, Link } from "react-router-dom"
 import { cn } from "../../lib/utils"
+import { spring } from "../../lib/motion"
 import { useCredits } from "../../hooks/useCredits"
 import { useCountUp } from "../../hooks/useCountUp"
+import { getPageTitle } from "../../lib/pageTitles"
+import { useHeaderTitleOverride } from "../../contexts/HeaderTitleContext"
 
 interface HeaderProps {
     onMenuClick?: () => void
+    collapsed?: boolean
+    onToggleCollapse?: () => void
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuClick, collapsed = false, onToggleCollapse }) => {
     const { user, logout } = useAuth()
     const { colorScheme, toggleColorScheme } = useTheme()
     const navigate = useNavigate()
     const location = useLocation()
     const [showProfileDropdown, setShowProfileDropdown] = useState(false)
-    const [scrolled, setScrolled] = useState(false)
     const isDark = colorScheme === "dark"
+
     const { balance: creditsBalance, loading: creditsLoading } = useCredits()
     const displayCredits = useCountUp(creditsBalance ?? 0)
     const [creditsPulse, setCreditsPulse] = useState(false)
     const prevCreditsRef = useRef(creditsBalance)
 
-    // Briefly pulse the badge when the balance changes (earned/spent).
+    const override = useHeaderTitleOverride()
+    const pageTitle = override || getPageTitle(location.pathname)
+
     useEffect(() => {
         if (prevCreditsRef.current != null && creditsBalance != null && creditsBalance !== prevCreditsRef.current) {
             setCreditsPulse(true)
@@ -36,126 +43,106 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         prevCreditsRef.current = creditsBalance
     }, [creditsBalance])
 
-    useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 20)
-        window.addEventListener("scroll", handleScroll)
-        return () => window.removeEventListener("scroll", handleScroll)
-    }, [])
+    useEffect(() => { setShowProfileDropdown(false) }, [location.pathname])
 
-    useEffect(() => {
-        setShowProfileDropdown(false)
-    }, [location.pathname])
-
-    // ── Theme-aware values ─────────────────────────────────────────────────────
-    const headerBg = scrolled
-        ? isDark
-            ? "rgba(2, 6, 23, 0.88)"
-            : "rgba(248, 250, 252, 0.92)"
-        : isDark
-            ? "rgba(2, 6, 23, 0.4)"
-            : "rgba(248, 250, 252, 0.6)"
-
-    const headerBorderColor = scrolled
-        ? isDark ? "rgba(255,255,255,0.07)" : "rgba(99,102,241,0.15)"
-        : "transparent"
-
-    const dropdownBg = isDark ? "rgba(10, 14, 30, 0.95)" : "rgba(255, 255, 255, 0.98)"
-    const dropdownBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(99,102,241,0.15)"
+    const Logo = ({ withText }: { withText: boolean }) => (
+        <Link to="/" className="flex items-center gap-2.5 min-w-0">
+            <div
+                className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl text-sm font-bold text-white"
+                style={{ background: "linear-gradient(135deg, #38bdf8, #818cf8)", boxShadow: "0 0 18px rgba(56,189,248,0.35)" }}
+            >
+                <span className="relative z-10 font-heading font-black">E</span>
+                <div className="absolute inset-0 animate-spin-slow opacity-25"
+                    style={{ background: "conic-gradient(from 0deg, transparent, rgba(255,255,255,0.3), transparent)" }} />
+            </div>
+            {withText && (
+                <span className={cn("hidden truncate font-heading text-lg font-bold tracking-tight sm:block", isDark ? "gradient-text" : "gradient-text-light")}>
+                    EduLearn
+                </span>
+            )}
+        </Link>
+    )
 
     return (
-        <header
-            className="fixed top-0 left-0 z-[60] w-full transition-all duration-500 backdrop-blur-2xl border-b"
-            style={{
-                background: headerBg,
-                borderColor: headerBorderColor,
-                boxShadow: scrolled
-                    ? isDark
-                        ? "0 4px 30px rgba(0,0,0,0.4)"
-                        : "0 4px 30px rgba(99,102,241,0.08)"
-                    : "none",
-            }}
-        >
-            {/* Gradient hairline that fades in on scroll */}
-            <div
-                aria-hidden="true"
-                className="pointer-events-none absolute bottom-0 left-0 right-0 h-px transition-opacity duration-500"
-                style={{
-                    opacity: scrolled ? 1 : 0,
-                    background: "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.5), transparent)",
-                }}
-            />
-            <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-                {/* Left Side */}
-                <div className="flex items-center gap-4">
+        <header className="glass relative z-40 flex h-16 w-full shrink-0 items-stretch border-b border-border/60">
+            {/* Brand block — width tracks the sidebar (desktop only) */}
+            <motion.div
+                animate={{ width: collapsed ? 72 : 260 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+                className="hidden shrink-0 items-center border-r border-border/60 px-4 lg:flex"
+            >
+                <Logo withText={!collapsed} />
+            </motion.div>
+
+            {/* Main header row */}
+            <div className="flex min-w-0 flex-1 items-center justify-between gap-3 px-4 sm:px-6">
+                <div className="flex min-w-0 items-center gap-2">
+                    {/* Mobile menu */}
                     <button
                         onClick={onMenuClick}
-                        className="lg:hidden rounded-lg p-2 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+                        className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground lg:hidden"
+                        aria-label="Open menu"
                     >
                         <Menu className="h-5 w-5" />
                     </button>
-
-                    {/* Logo */}
-                    <div className="flex items-center gap-3">
-                        <motion.div
-                            whileHover={{ scale: 1.05 }}
-                            className="relative flex h-9 w-9 items-center justify-center rounded-xl text-white font-bold text-sm shadow-lg overflow-hidden"
-                            style={{
-                                background: "linear-gradient(135deg, #38bdf8, #818cf8)",
-                                boxShadow: "0 0 20px rgba(56,189,248,0.35)",
-                            }}
-                        >
-                            <span className="relative z-10 font-heading font-black">E</span>
-                            <div className="absolute inset-0 animate-spin-slow opacity-25"
-                                style={{ background: "conic-gradient(from 0deg, transparent, rgba(255,255,255,0.3), transparent)" }} />
-                        </motion.div>
-                        <span className={cn(
-                            "font-heading font-bold text-lg tracking-tight hidden sm:block",
-                            isDark ? "gradient-text" : "gradient-text-light"
-                        )}>
-                            EduLearn
-                        </span>
+                    {/* Mobile logo (brand block hidden on mobile) */}
+                    <div className="lg:hidden">
+                        <Logo withText={false} />
                     </div>
+                    {/* Desktop collapse toggle */}
+                    <button
+                        onClick={onToggleCollapse}
+                        className="hidden h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/50 hover:text-primary lg:flex"
+                        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                    >
+                        {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+                    </button>
+
+                    {/* Page title */}
+                    <AnimatePresence mode="wait">
+                        <motion.h1
+                            key={pageTitle}
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -4 }}
+                            transition={{ duration: 0.2 }}
+                            className="truncate font-heading text-lg font-semibold text-foreground"
+                        >
+                            {pageTitle}
+                        </motion.h1>
+                    </AnimatePresence>
                 </div>
 
-                {/* Right Side */}
+                {/* Actions */}
                 <div className="flex items-center gap-2 sm:gap-3">
-
-                    {/* Theme Toggle */}
                     <motion.button
                         whileHover={{ scale: 1.1, rotate: 15 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={toggleColorScheme}
-                        className="flex items-center justify-center h-9 w-9 rounded-full text-muted-foreground hover:bg-muted/50 hover:text-primary transition-colors"
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-primary"
                         aria-label="Toggle theme"
                     >
-                        {isDark
-                            ? <Sun className="h-4 w-4 text-yellow-400" />
-                            : <Moon className="h-4 w-4 text-indigo-500" />}
+                        {isDark ? <Sun className="h-4 w-4 text-yellow-400" /> : <Moon className="h-4 w-4 text-indigo-500" />}
                     </motion.button>
 
-                    {/* Notifications */}
                     <motion.button
                         whileHover={{ scale: 1.1, rotate: [0, -10, 8, -4, 0] }}
                         whileTap={{ scale: 0.9 }}
-                        className="relative flex items-center justify-center h-9 w-9 rounded-full text-muted-foreground hover:bg-muted/50 hover:text-primary transition-colors"
+                        className="relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-primary"
+                        aria-label="Notifications"
                     >
                         <Bell className="h-4 w-4" />
-                        <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-cyan-400 border-2 border-background animate-pulse" />
+                        <span className="absolute right-1.5 top-1.5 h-2 w-2 animate-pulse rounded-full border-2 border-background bg-cyan-400" />
                     </motion.button>
 
-                    {/* Credits Badge */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.85 }}
                         animate={{ opacity: 1, scale: creditsPulse ? [1, 1.12, 1] : 1 }}
                         transition={creditsPulse ? { duration: 0.5, ease: [0.16, 1, 0.3, 1] } : undefined}
-                        className="hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1.5 border text-xs font-bold transition-colors cursor-default select-none"
+                        className="hidden cursor-default select-none items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors sm:flex"
                         style={{
-                            background: isDark
-                                ? "rgba(251,191,36,0.12)"
-                                : "rgba(251,191,36,0.15)",
-                            borderColor: isDark
-                                ? "rgba(251,191,36,0.3)"
-                                : "rgba(217,119,6,0.3)",
+                            background: isDark ? "rgba(251,191,36,0.12)" : "rgba(251,191,36,0.15)",
+                            borderColor: isDark ? "rgba(251,191,36,0.3)" : "rgba(217,119,6,0.3)",
                             color: isDark ? "#fbbf24" : "#b45309",
                             boxShadow: creditsPulse ? "0 0 18px rgba(251,191,36,0.45)" : "none",
                         }}
@@ -172,53 +159,38 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                            className="flex items-center gap-3 rounded-full py-1 pl-1 pr-3 hover:bg-muted/40 border border-transparent hover:border-border/30 transition-all"
+                            className="flex items-center gap-3 rounded-full border border-transparent py-1 pl-1 pr-3 transition-all hover:border-border/30 hover:bg-muted/40"
                         >
-                            <div
-                                className="flex h-8 w-8 items-center justify-center rounded-full font-bold uppercase text-sm text-white"
-                                style={{ background: "linear-gradient(135deg, #38bdf8, #8b5cf6)" }}
-                            >
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold uppercase text-white"
+                                style={{ background: "linear-gradient(135deg, #38bdf8, #8b5cf6)" }}>
                                 {(user?.name || user?.username || user?.email || "U")[0]}
                             </div>
-                            <div className="hidden md:flex flex-col items-start pr-1">
-                                <span className="text-sm font-semibold leading-tight text-foreground truncate max-w-[110px]">
+                            <div className="hidden flex-col items-start pr-1 md:flex">
+                                <span className="max-w-[110px] truncate text-sm font-semibold leading-tight text-foreground">
                                     {user?.name || user?.username || user?.email?.split("@")[0] || "User"}
                                 </span>
-                                <span className="text-[10px] uppercase font-bold tracking-wider"
-                                    style={{ color: isDark ? "#38bdf8" : "#6366f1" }}>
+                                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: isDark ? "#38bdf8" : "#6366f1" }}>
                                     {user?.role || "Student"}
                                 </span>
                             </div>
                         </motion.button>
 
-                        {/* Dropdown */}
                         <AnimatePresence>
                             {showProfileDropdown && (
                                 <>
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        className="fixed inset-0 z-40"
-                                        onClick={() => setShowProfileDropdown(false)}
-                                    />
+                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                        className="fixed inset-0 z-40" onClick={() => setShowProfileDropdown(false)} />
                                     <motion.div
                                         initial={{ opacity: 0, scale: 0.95, y: 8 }}
                                         animate={{ opacity: 1, scale: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.95, y: 8 }}
-                                        transition={{ type: "spring", stiffness: 420, damping: 30 }}
-                                        className="absolute right-0 top-full mt-2 w-56 origin-top-right rounded-2xl border p-2 shadow-2xl z-50 overflow-hidden"
-                                        style={{
-                                            background: dropdownBg,
-                                            backdropFilter: "blur(20px)",
-                                            borderColor: dropdownBorder,
-                                        }}
+                                        transition={spring.smooth}
+                                        className="glass absolute right-0 top-full z-50 mt-2 w-56 origin-top-right overflow-hidden rounded-2xl border border-border/60 p-2 shadow-e4 dark:shadow-e4-dark"
                                     >
-                                        <div className="px-3 py-3 border-b border-border/30 mb-2 md:hidden">
+                                        <div className="mb-2 border-b border-border/30 px-3 py-3 md:hidden">
                                             <p className="text-sm font-semibold text-foreground">{user?.email}</p>
-                                            <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
+                                            <p className="text-xs capitalize text-muted-foreground">{user?.role}</p>
                                         </div>
-
                                         <div className="space-y-0.5">
                                             {[
                                                 { icon: UserIcon, label: "My Profile", path: "/profile" },
@@ -226,19 +198,15 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                                             ].map(({ icon: Icon, label, path }) => (
                                                 <button key={path}
                                                     onClick={() => { navigate(path); setShowProfileDropdown(false) }}
-                                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted/50 hover:text-primary transition-colors"
-                                                >
+                                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/50 hover:text-primary">
                                                     <Icon className="h-4 w-4" />
                                                     {label}
                                                 </button>
                                             ))}
                                         </div>
-
                                         <div className="mt-2 border-t border-border/30 pt-2">
-                                            <button
-                                                onClick={() => { logout(); setShowProfileDropdown(false) }}
-                                                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
-                                            >
+                                            <button onClick={() => { logout(); setShowProfileDropdown(false) }}
+                                                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10">
                                                 <LogOut className="h-4 w-4" />
                                                 Sign Out
                                             </button>

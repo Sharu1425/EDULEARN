@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
     LayoutDashboard, ClipboardList, Code2, BarChart3, User, Settings,
     Users, CalendarDays, Trophy, ShieldCheck, Map,
-    X, PanelLeftClose, PanelLeftOpen
+    X
 } from "lucide-react"
 import { cn } from "../../lib/utils"
 import { spring, staggerContainer, staggerItem } from "../../lib/motion"
@@ -21,6 +21,7 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
 
 interface SidebarProps {
     user: UserType | null
+    collapsed: boolean
     className?: string
 }
 
@@ -138,93 +139,40 @@ interface SidebarContentProps {
     isDark: boolean
     navItems: Array<{ path: string; label: string; icon: string; exact?: boolean }>
     isActive: (path: string, exact?: boolean) => boolean
-    setCollapsed: React.Dispatch<React.SetStateAction<boolean>>
     /** Present only for the mobile drawer (renders logo + close button). */
     onClose?: () => void
 }
 
-const SidebarContent: React.FC<SidebarContentProps> = ({ collapsed, isDark, navItems, isActive, setCollapsed, onClose }) => (
+const SidebarContent: React.FC<SidebarContentProps> = ({ collapsed, isDark, navItems, isActive, onClose }) => (
     <>
-        {/* Top bar */}
-        <div className={cn(
-            "flex items-center p-4 min-h-[64px] border-b",
-            isDark ? "border-white/5" : "border-slate-200/70",
-            collapsed && !onClose ? "justify-center" : "justify-between"
-        )}>
-            {!collapsed && !onClose && (
+        {/* Top bar — mobile drawer only (desktop brand + collapse live in the Header) */}
+        {onClose && (
+            <div className={cn("flex items-center justify-between p-4 min-h-[64px] border-b", isDark ? "border-white/5" : "border-slate-200/70")}>
                 <div className="flex items-center gap-2">
-                    <span className={cn(
-                        "text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border",
-                        isDark
-                            ? "text-cyan-400/80 border-cyan-400/20 bg-cyan-400/5"
-                            : "text-indigo-500/80 border-indigo-500/20 bg-indigo-500/5"
-                    )}>
-                        Menu
+                    <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white text-xs font-black"
+                        style={{ background: "linear-gradient(135deg,#38bdf8,#8b5cf6)" }}>
+                        E
+                    </div>
+                    <span className={cn("font-heading font-bold text-sm", isDark ? "text-white" : "text-slate-800")}>
+                        EduLearn
                     </span>
                 </div>
-            )}
-
-            {onClose ? (
-                // Mobile: show logo + close button
-                <>
-                    <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white text-xs font-black"
-                            style={{ background: "linear-gradient(135deg,#38bdf8,#8b5cf6)" }}>
-                            E
-                        </div>
-                        <span className={cn("font-heading font-bold text-sm", isDark ? "text-white" : "text-slate-800")}>
-                            EduLearn
-                        </span>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className={cn(
-                            "rounded-lg p-1.5 transition-colors shrink-0",
-                            isDark
-                                ? "text-slate-400 hover:text-white hover:bg-white/10"
-                                : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-                        )}
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
-                </>
-            ) : (
-                // Desktop: collapse toggle button
                 <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setCollapsed(c => !c);
-                    }}
-                    title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                    className={cn(
-                        "group/toggle relative flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-300",
-                        isDark
-                            ? "text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10"
-                            : "text-slate-500 hover:text-indigo-600 hover:bg-indigo-600/10",
-                        collapsed && "mx-auto"
-                    )}
+                    onClick={onClose}
+                    className={cn("rounded-lg p-1.5 transition-colors shrink-0",
+                        isDark ? "text-slate-400 hover:text-white hover:bg-white/10" : "text-slate-500 hover:text-slate-900 hover:bg-slate-100")}
                 >
-                    {collapsed
-                        ? <PanelLeftOpen className="w-5 h-5 transition-transform group-hover/toggle:scale-110" />
-                        : <PanelLeftClose className="w-5 h-5 transition-transform group-hover/toggle:scale-110" />
-                    }
-
-                    {/* Glow effect on hover */}
-                    <div className={cn(
-                        "absolute inset-0 rounded-lg opacity-0 group-hover/toggle:opacity-100 blur-md transition-opacity duration-300 -z-10",
-                        isDark ? "bg-cyan-400/20" : "bg-indigo-600/15"
-                    )} />
+                    <X className="w-4 h-4" />
                 </button>
-            )}
-        </div>
+            </div>
+        )}
 
         {/* Nav items — staggered in on mount (runs once, no longer on every nav) */}
         <motion.nav
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
-            className="flex-1 overflow-y-auto overflow-x-hidden p-2 space-y-0.5 mt-1"
+            className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-0.5"
         >
             {navItems.map(item => (
                 <motion.div key={item.path} variants={staggerItem}>
@@ -244,23 +192,13 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ collapsed, isDark, navI
     </>
 )
 
-const Sidebar: React.FC<SidebarProps> = ({ user, className }) => {
+const Sidebar: React.FC<SidebarProps> = ({ user, collapsed, className }) => {
     const location = useLocation()
     const { colorScheme } = useTheme()
     const isDark = colorScheme === "dark"
 
-    // Persist collapsed state in localStorage
-    const [collapsed, setCollapsed] = useState<boolean>(() => {
-        try { return localStorage.getItem("sidebar-collapsed") === "true" }
-        catch { return false }
-    })
     const [mobileOpen, setMobileOpen] = useState(false)
     const navItems = getSidebarNavItems(user as any)
-
-    // Persist collapse state
-    useEffect(() => {
-        localStorage.setItem("sidebar-collapsed", String(collapsed))
-    }, [collapsed])
 
     const isActive = useCallback(
         (path: string, exact?: boolean) => {
@@ -283,9 +221,9 @@ const Sidebar: React.FC<SidebarProps> = ({ user, className }) => {
     }, [])
 
     // ── Theme-aware surface colors ──────────────────────────────────────────────
-    const sidebarBg = isDark ? "rgba(2, 6, 23, 0.72)" : "rgba(248, 250, 252, 0.92)"
-    const sidebarBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(99, 102, 241, 0.12)"
-    const mobileBg = isDark ? "rgba(2, 6, 23, 0.97)" : "rgba(248, 250, 252, 0.98)"
+    const sidebarBg = isDark ? "rgba(10, 14, 28, 0.62)" : "rgba(248, 250, 252, 0.78)"
+    const sidebarBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(99, 102, 241, 0.12)"
+    const mobileBg = isDark ? "rgba(10, 14, 28, 0.9)" : "rgba(248, 250, 252, 0.92)"
 
     return (
         <>
@@ -294,14 +232,14 @@ const Sidebar: React.FC<SidebarProps> = ({ user, className }) => {
                 animate={{ width: collapsed ? 72 : 260 }}
                 transition={{ type: "spring", bounce: 0, duration: 0.4 }}
                 className={cn(
-                    "hidden lg:flex flex-col shrink-0 h-screen sticky top-0 z-30 overflow-hidden border-r pt-16",
+                    "hidden lg:flex flex-col shrink-0 h-full z-30 overflow-hidden border-r",
                     className
                 )}
                 style={{
                     background: sidebarBg,
                     borderColor: sidebarBorder,
-                    backdropFilter: "blur(24px)",
-                    WebkitBackdropFilter: "blur(24px)",
+                    backdropFilter: "blur(24px) saturate(180%)",
+                    WebkitBackdropFilter: "blur(24px) saturate(180%)",
                 }}
             >
                 <SidebarContent
@@ -309,7 +247,6 @@ const Sidebar: React.FC<SidebarProps> = ({ user, className }) => {
                     isDark={isDark}
                     navItems={navItems}
                     isActive={isActive}
-                    setCollapsed={setCollapsed}
                 />
             </motion.aside>
 
@@ -336,8 +273,8 @@ const Sidebar: React.FC<SidebarProps> = ({ user, className }) => {
                             style={{
                                 background: mobileBg,
                                 borderColor: sidebarBorder,
-                                backdropFilter: "blur(28px)",
-                                WebkitBackdropFilter: "blur(28px)",
+                                backdropFilter: "blur(28px) saturate(180%)",
+                                WebkitBackdropFilter: "blur(28px) saturate(180%)",
                             }}
                         >
                             <SidebarContent
@@ -345,7 +282,6 @@ const Sidebar: React.FC<SidebarProps> = ({ user, className }) => {
                                 isDark={isDark}
                                 navItems={navItems}
                                 isActive={isActive}
-                                setCollapsed={setCollapsed}
                                 onClose={() => setMobileOpen(false)}
                             />
                         </motion.aside>

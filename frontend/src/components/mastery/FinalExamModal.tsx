@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { X, Check, Loader2, Award, ShieldAlert, Clock } from "lucide-react"
+import { motion } from "framer-motion"
+import { Check, Loader2, Award, ShieldAlert, Clock, X } from "lucide-react"
 import api from "../../utils/api"
-import { useTheme } from "../../contexts/ThemeContext"
 import { useToast } from "../../contexts/ToastContext"
 import { cn } from "../../lib/utils"
+import Overlay from "../ui/Overlay"
+import Button from "../ui/Button"
+import Badge from "../ui/Badge"
 
 interface FinalExamModalProps {
     isOpen: boolean
@@ -31,9 +33,7 @@ interface Question {
 }
 
 const FinalExamModal: React.FC<FinalExamModalProps> = ({ isOpen, onClose, roadmapId, onComplete }) => {
-    const { colorScheme } = useTheme()
     const { addToast } = useToast()
-    const isDark = colorScheme === "dark"
 
     const [step, setStep] = useState<Step>("generating")
     const [examData, setExamData] = useState<any>(null)
@@ -41,8 +41,6 @@ const FinalExamModal: React.FC<FinalExamModalProps> = ({ isOpen, onClose, roadma
     const [currentIndex, setCurrentIndex] = useState(0)
     const [answers, setAnswers] = useState<Record<number, any>>({})
     const [score, setScore] = useState({ correct: 0, total: 18 })
-    
-    // 45 minutes global timer
     const [timeLeft, setTimeLeft] = useState<number>(45 * 60)
     const timerRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -57,6 +55,7 @@ const FinalExamModal: React.FC<FinalExamModalProps> = ({ isOpen, onClose, roadma
             generateExam()
         }
         return () => clearInterval(timerRef.current!)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen])
 
     useEffect(() => {
@@ -73,17 +72,13 @@ const FinalExamModal: React.FC<FinalExamModalProps> = ({ isOpen, onClose, roadma
             }, 1000)
         }
         return () => clearInterval(timerRef.current!)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [step])
 
     const generateExam = async () => {
         try {
-            const res = await api.post("/api/mastery/final-exam", {
-                roadmap_id: roadmapId
-            })
-            
+            const res = await api.post("/api/mastery/final-exam", { roadmap_id: roadmapId })
             setExamData(res.data)
-            
-            // Normalize FIB options
             const qs = res.data.questions.map((q: any) => {
                 if (q.type === "fib" && q.near_miss_options && q.correct_word) {
                     const opts = [...q.near_miss_options, q.correct_word].sort(() => Math.random() - 0.5)
@@ -92,14 +87,11 @@ const FinalExamModal: React.FC<FinalExamModalProps> = ({ isOpen, onClose, roadma
                 return q
             })
             setQuestions(qs)
-            if (res.data.time_limit_minutes) {
-                setTimeLeft(res.data.time_limit_minutes * 60)
-            }
+            if (res.data.time_limit_minutes) setTimeLeft(res.data.time_limit_minutes * 60)
             setStep("exam")
         } catch (error: any) {
             console.error(error)
-            const msg = error.response?.data?.detail || "Failed to generate Final Exam"
-            addToast({ title: msg, type: "error" })
+            addToast({ title: error.response?.data?.detail || "Failed to generate Final Exam", type: "error" })
             onClose()
         }
     }
@@ -107,7 +99,6 @@ const FinalExamModal: React.FC<FinalExamModalProps> = ({ isOpen, onClose, roadma
     const finishExam = async () => {
         setStep("result")
         clearInterval(timerRef.current!)
-        
         let correctCount = 0
         questions.forEach((q, i) => {
             const ans = answers[i]
@@ -116,142 +107,90 @@ const FinalExamModal: React.FC<FinalExamModalProps> = ({ isOpen, onClose, roadma
             } else if (q.type === "sata") {
                 const correctArr = q.correct_answers || []
                 const ansArr = ans || []
-                if (ansArr.length === correctArr.length && ansArr.every((a: string) => correctArr.includes(a))) {
-                    correctCount++
-                }
+                if (ansArr.length === correctArr.length && ansArr.every((a: string) => correctArr.includes(a))) correctCount++
             }
         })
-        
         setScore({ correct: correctCount, total: questions.length })
         const passed = correctCount >= (examData?.pass_mark || 15)
-
-        if (passed) {
-            addToast({ title: "Mastery Certified! You passed the Final Exam.", type: "success" })
-        } else {
-            addToast({ title: "Final Exam Failed. Keep studying!", type: "warning" })
-        }
+        if (passed) addToast({ title: "Mastery Certified! You passed the Final Exam.", type: "success" })
+        else addToast({ title: "Final Exam failed. Keep studying!", type: "warning" })
     }
 
     const toggleSataAnswer = (opt: string) => {
-        const currentAns = answers[currentIndex] || []
-        let newAns;
-        if (currentAns.includes(opt)) {
-            newAns = currentAns.filter((o: string) => o !== opt)
-        } else {
-            newAns = [...currentAns, opt]
-        }
-        setAnswers({ ...answers, [currentIndex]: newAns })
+        const cur = answers[currentIndex] || []
+        const next = cur.includes(opt) ? cur.filter((o: string) => o !== opt) : [...cur, opt]
+        setAnswers({ ...answers, [currentIndex]: next })
     }
+    const setSingleAnswer = (opt: string | number) => setAnswers({ ...answers, [currentIndex]: opt })
 
-    const setSingleAnswer = (opt: string | number) => {
-        setAnswers({ ...answers, [currentIndex]: opt })
-    }
-
-    const formatTime = (seconds: number) => {
-        const m = Math.floor(seconds / 60)
-        const s = seconds % 60
-        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-    }
+    const formatTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`
 
     const renderExamStep = () => {
         if (questions.length === 0) return null
-        
         const q = questions[currentIndex]
-        const progressPercentage = ((currentIndex) / questions.length) * 100
+        const pct = (currentIndex / questions.length) * 100
 
         return (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col h-full overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50 shrink-0 pr-16">
-                    <span className="font-semibold text-slate-500 dark:text-slate-400 text-sm tracking-wide uppercase">
-                        Question {currentIndex + 1} of {questions.length}
-                    </span>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex h-full flex-col overflow-hidden">
+                <div className="flex shrink-0 items-center justify-between border-b border-border bg-muted/30 px-6 py-4 pr-16">
+                    <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Question {currentIndex + 1} of {questions.length}</span>
                     <div className="flex items-center gap-4">
-                        <div className={cn(
-                            "flex items-center gap-2 px-3 py-1 rounded-full font-mono font-bold text-sm",
-                            timeLeft <= 300 ? "bg-red-100 text-red-600 animate-pulse" : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-                        )}>
-                            <Clock className="w-4 h-4" /> {formatTime(timeLeft)}
+                        <div className={cn("flex items-center gap-2 rounded-full px-3 py-1 font-mono text-sm font-bold",
+                            timeLeft <= 300 ? "bg-destructive/15 text-destructive animate-pulse" : "bg-muted text-foreground")}>
+                            <Clock className="h-4 w-4" /> {formatTime(timeLeft)}
                         </div>
-                        <div className="w-24 sm:w-32 h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden hidden sm:block">
-                            <div className="h-full bg-indigo-500 transition-all duration-300" style={{ width: `${progressPercentage}%` }} />
+                        <div className="hidden h-2 w-24 overflow-hidden rounded-full bg-muted sm:block">
+                            <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-300" style={{ width: `${pct}%` }} />
                         </div>
                     </div>
                 </div>
 
-                <div className="flex-1 p-6 md:p-8 overflow-y-auto">
-                    {q.cross_topic && (
-                        <div className="mb-4 inline-flex items-center px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full text-xs font-bold uppercase tracking-wider">
-                            Cross-Topic Synthesis
-                        </div>
-                    )}
-
+                <div className="flex-1 overflow-y-auto p-6 md:p-8">
+                    {q.cross_topic && <Badge variant="ai" className="mb-4">Cross-Topic Synthesis</Badge>}
                     {q.type === "scenario" && (
-                        <div className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50">
-                            <h4 className="font-bold text-blue-800 dark:text-blue-400 mb-2 uppercase text-xs tracking-wider">Scenario</h4>
-                            <p className="text-blue-900 dark:text-blue-200/90 leading-relaxed">{q.scenario}</p>
+                        <div className="mb-6 rounded-xl border border-info/30 bg-info/10 p-4">
+                            <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-info">Scenario</h4>
+                            <p className="leading-relaxed text-foreground/90">{q.scenario}</p>
                         </div>
                     )}
-                    
                     {q.type === "fib" && (
                         <div className="mb-8">
-                            <h4 className="font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase text-xs tracking-wider">Fill in the blank</h4>
-                            <h3 className={cn("text-2xl font-semibold leading-tight", isDark ? "text-white" : "text-slate-900")}>
-                                {q.sentence_with_blank?.replace("_____", "___")}
-                            </h3>
+                            <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Fill in the blank</h4>
+                            <h3 className="text-2xl font-semibold leading-tight text-foreground">{q.sentence_with_blank?.replace("_____", "___")}</h3>
                         </div>
                     )}
-
-                    {q.type !== "fib" && (
-                        <h3 className={cn("text-2xl font-semibold mb-8 leading-tight", isDark ? "text-white" : "text-slate-900")}>
-                            {q.question}
-                        </h3>
-                    )}
-                    
-                    {q.type === "sata" && (
-                        <p className="text-sm text-indigo-500 font-semibold mb-4 uppercase tracking-wider">Select ALL that apply</p>
-                    )}
+                    {q.type !== "fib" && <h3 className="mb-8 text-2xl font-semibold leading-tight text-foreground">{q.question}</h3>}
+                    {q.type === "sata" && <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-primary">Select ALL that apply</p>}
 
                     <div className="flex flex-col gap-3">
                         {q.options?.map((opt, i) => {
                             let isSelected = false
-                            if (q.type === "sata") {
-                                isSelected = (answers[currentIndex] || []).includes(opt)
-                            } else if (q.type === "mcq" || q.type === "scenario") {
-                                isSelected = answers[currentIndex] === opt || answers[currentIndex] === i
-                            } else if (q.type === "fib") {
-                                isSelected = answers[currentIndex] === opt
-                            }
+                            if (q.type === "sata") isSelected = (answers[currentIndex] || []).includes(opt)
+                            else if (q.type === "mcq" || q.type === "scenario") isSelected = answers[currentIndex] === opt || answers[currentIndex] === i
+                            else if (q.type === "fib") isSelected = answers[currentIndex] === opt
 
                             return (
                                 <button
                                     key={i}
                                     onClick={() => {
                                         if (q.type === "sata") toggleSataAnswer(opt)
-                                        else setSingleAnswer(q.type === "mcq" ? (typeof q.correct_answer === 'number' ? i : opt) : opt)
+                                        else setSingleAnswer(q.type === "mcq" ? (typeof q.correct_answer === "number" ? i : opt) : opt)
                                     }}
                                     className={cn(
-                                        "text-left p-4 rounded-xl border-2 transition-all font-medium flex items-center gap-3",
-                                        isSelected 
-                                            ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
-                                            : isDark
-                                                ? "border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-slate-200"
-                                                : "border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50"
+                                        "flex items-center gap-3 rounded-xl border-2 p-4 text-left font-medium transition-all",
+                                        isSelected ? "border-primary bg-primary/10 text-primary"
+                                            : "border-border bg-muted/30 text-foreground hover:border-primary/40 hover:bg-muted/60"
                                     )}
                                 >
-                                    {q.type === "sata" && (
-                                        <div className={cn(
-                                            "w-5 h-5 rounded border flex items-center justify-center shrink-0",
-                                            isSelected ? "bg-indigo-500 border-indigo-500 text-white" : "border-slate-400"
-                                        )}>
-                                            {isSelected && <Check className="w-3.5 h-3.5" />}
+                                    {q.type === "sata" ? (
+                                        <div className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded border",
+                                            isSelected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground")}>
+                                            {isSelected && <Check className="h-3.5 w-3.5" />}
                                         </div>
-                                    )}
-                                    {q.type !== "sata" && (
-                                        <div className={cn(
-                                            "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0",
-                                            isSelected ? "border-indigo-500" : "border-slate-400"
-                                        )}>
-                                            {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-indigo-500" />}
+                                    ) : (
+                                        <div className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2",
+                                            isSelected ? "border-primary" : "border-muted-foreground")}>
+                                            {isSelected && <div className="h-2.5 w-2.5 rounded-full bg-primary" />}
                                         </div>
                                     )}
                                     {opt}
@@ -260,132 +199,72 @@ const FinalExamModal: React.FC<FinalExamModalProps> = ({ isOpen, onClose, roadma
                         })}
                     </div>
                 </div>
-                
-                <div className="shrink-0 flex justify-between items-center p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-                    <button
-                        onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
-                        disabled={currentIndex === 0}
-                        className={cn(
-                            "px-6 py-2.5 rounded-xl font-semibold transition-all",
-                            currentIndex === 0 
-                                ? "opacity-50 cursor-not-allowed bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500" 
-                                : "bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                        )}
-                    >
-                        Previous
-                    </button>
-                    
-                    {/* Navigation Dots */}
-                    <div className="hidden md:flex gap-1">
+
+                <div className="flex shrink-0 items-center justify-between border-t border-border bg-muted/30 p-6">
+                    <Button variant="outline" onClick={() => setCurrentIndex(p => Math.max(0, p - 1))} disabled={currentIndex === 0}>Previous</Button>
+                    <div className="hidden gap-1 md:flex">
                         {questions.map((_, i) => (
-                            <div key={i} className={cn(
-                                "w-2 h-2 rounded-full",
-                                i === currentIndex ? "bg-indigo-500" : answers[i] !== undefined ? "bg-indigo-300 dark:bg-indigo-700" : "bg-slate-300 dark:bg-slate-700"
-                            )} />
+                            <div key={i} className={cn("h-2 w-2 rounded-full",
+                                i === currentIndex ? "bg-primary" : answers[i] !== undefined ? "bg-primary/40" : "bg-muted-foreground/30")} />
                         ))}
                     </div>
-
-                    <button
-                        onClick={() => {
-                            if (currentIndex < questions.length - 1) setCurrentIndex(prev => prev + 1)
-                            else finishExam()
-                        }}
-                        className={cn(
-                            "px-8 py-2.5 rounded-xl font-semibold transition-all shadow-lg",
-                            "bg-indigo-600 text-white hover:bg-indigo-700 hover:-translate-y-0.5"
-                        )}
-                    >
+                    <Button variant="primary" onClick={() => { if (currentIndex < questions.length - 1) setCurrentIndex(p => p + 1); else finishExam() }}>
                         {currentIndex < questions.length - 1 ? "Next" : "Submit Exam"}
-                    </button>
+                    </Button>
                 </div>
             </motion.div>
         )
     }
 
     const renderResultStep = () => {
-        const passMark = examData?.pass_mark || 15
-        const passed = score.correct >= passMark
-        
+        const passed = score.correct >= (examData?.pass_mark || 15)
         return (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col h-full items-center justify-center p-8 text-center overflow-y-auto">
-                <div className={cn(
-                    "w-32 h-32 rounded-full flex items-center justify-center mb-6 border-8",
-                    passed ? "bg-green-100 text-green-500 border-green-200 dark:bg-green-500/20 dark:border-green-500/30" : "bg-red-100 text-red-500 border-red-200 dark:bg-red-500/20 dark:border-red-500/30"
-                )}>
-                    {passed ? <Award className="w-16 h-16" /> : <ShieldAlert className="w-16 h-16" />}
+            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="flex h-full flex-col items-center justify-center overflow-y-auto p-8 text-center">
+                <div className={cn("mb-6 flex h-32 w-32 items-center justify-center rounded-full border-8",
+                    passed ? "border-success/30 bg-success/15 text-success" : "border-destructive/30 bg-destructive/15 text-destructive")}>
+                    {passed ? <Award className="h-16 w-16" /> : <ShieldAlert className="h-16 w-16" />}
                 </div>
-                
-                <h2 className={cn("text-4xl font-bold mb-4", isDark ? "text-white" : "text-slate-900")}>
-                    {passed ? "Mastery Certified!" : "Exam Failed"}
-                </h2>
-                
-                <p className={cn("text-2xl mb-8", isDark ? "text-slate-300" : "text-slate-600")}>
-                    You scored <strong className={passed ? "text-green-500" : "text-red-500"}>{score.correct} out of {score.total}</strong>
+                <h2 className="mb-4 text-4xl font-heading font-bold text-foreground">{passed ? "Mastery Certified!" : "Exam Failed"}</h2>
+                <p className="mb-8 text-2xl text-muted-foreground">
+                    You scored <strong style={{ color: passed ? "hsl(var(--success))" : "hsl(var(--destructive))" }}>{score.correct} out of {score.total}</strong>
                 </p>
-
-                <div className="flex gap-4 mt-4">
-                    <button 
-                        onClick={() => {
-                            onClose()
-                            if (passed) onComplete()
-                        }}
-                        className={cn(
-                            "px-10 py-4 rounded-2xl text-white font-bold text-lg shadow-xl hover:-translate-y-1 transition-all",
-                            passed ? "bg-gradient-to-r from-yellow-400 to-amber-600 shadow-amber-500/30" : "bg-slate-800 hover:bg-slate-700"
-                        )}
-                    >
-                        {passed ? "Claim Certificate" : "Close"}
-                    </button>
-                </div>
+                <button
+                    onClick={() => { onClose(); if (passed) onComplete() }}
+                    className={cn(
+                        "rounded-2xl px-10 py-4 text-lg font-bold text-white shadow-e3 transition-all hover:-translate-y-1",
+                        passed ? "bg-gradient-to-r from-amber-400 to-amber-600" : "bg-foreground/80"
+                    )}
+                >
+                    {passed ? "Claim Certificate" : "Close"}
+                </button>
             </motion.div>
         )
     }
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
-                    <motion.div 
-                        initial={{ opacity: 0 }} 
-                        animate={{ opacity: 1 }} 
-                        exit={{ opacity: 0 }} 
-                        className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
-                    />
-                    
-                    <motion.div 
-                        initial={{ opacity: 0, y: 50, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className={cn(
-                            "relative w-full max-w-4xl h-[90vh] sm:h-[85vh] flex flex-col rounded-3xl overflow-hidden shadow-2xl",
-                            isDark ? "bg-slate-900 border border-white/10" : "bg-white"
-                        )}
+        <Overlay isOpen={isOpen} onClose={onClose} className="max-w-4xl">
+            <div className="glass relative flex h-[88vh] flex-col overflow-hidden rounded-3xl shadow-e4 dark:shadow-e4-dark sm:h-[85vh]">
+                {(step === "generating" || step === "exam") && (
+                    <button
+                        onClick={onClose}
+                        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-muted/60 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        aria-label="Close"
                     >
-                        {(step === "generating" || step === "exam") && (
-                            <button 
-                                onClick={onClose}
-                                className="absolute right-4 top-4 z-10 w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center transition-colors"
-                            >
-                                <X className="w-5 h-5 text-slate-500 dark:text-slate-300" />
-                            </button>
-                        )}
+                        <X className="h-5 w-5" />
+                    </button>
+                )}
 
-                        {step === "generating" && (
-                            <div className="flex flex-col h-full items-center justify-center p-8 text-center bg-gradient-to-br from-indigo-500/5 to-purple-500/5">
-                                <Loader2 className="w-16 h-16 animate-spin text-purple-500 mb-6" />
-                                <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent mb-4">
-                                    Forging the Final Boss Exam
-                                </h3>
-                                <p className={isDark ? "text-slate-400" : "text-slate-500"}>Synthesizing knowledge across all completed topics...</p>
-                            </div>
-                        )}
-                        
-                        {step === "exam" && renderExamStep()}
-                        {step === "result" && renderResultStep()}
-                    </motion.div>
-                </div>
-            )}
-        </AnimatePresence>
+                {step === "generating" && (
+                    <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+                        <Loader2 className="mb-6 h-16 w-16 animate-spin text-primary" />
+                        <h3 className="mb-4 text-2xl font-heading font-bold text-gradient-primary">Forging the Final Exam</h3>
+                        <p className="text-muted-foreground">Synthesizing knowledge across all completed topics…</p>
+                    </div>
+                )}
+                {step === "exam" && renderExamStep()}
+                {step === "result" && renderResultStep()}
+            </div>
+        </Overlay>
     )
 }
 

@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { motion } from "framer-motion"
-import { Loader2, ArrowLeft, CheckCircle2, Lock, Flame, ShieldAlert } from "lucide-react"
+import { motion, useReducedMotion } from "framer-motion"
+import { Loader2, ArrowLeft, Check, Lock, Flame, ShieldAlert, Trophy } from "lucide-react"
 import api from "../../utils/api"
 import { useToast } from "../../contexts/ToastContext"
-import { useTheme } from "../../contexts/ThemeContext"
 import { useAuth } from "../../hooks/useAuth"
+import { useHeaderTitle } from "../../contexts/HeaderTitleContext"
 import { cn } from "../../lib/utils"
+import { spring } from "../../lib/motion"
 import TopicDetailModal from "../../components/mastery/TopicDetailModal"
 import CertificateModal from "../../components/mastery/CertificateModal"
 import FinalExamModal from "../../components/mastery/FinalExamModal"
@@ -38,13 +39,146 @@ interface RoadmapDetails {
     streak_count: number
 }
 
+// ── Path geometry (responsive width, wide serpentine) ─────────────────────────
+const NODE = 84
+const ROW = 134
+const WAVE = [0, 0.82, 0, -0.82]
+const ampFor = (w: number) => Math.min(160, w / 2 - NODE / 2 - 14)
+const centerX = (i: number, w: number) => w / 2 + WAVE[i % WAVE.length] * ampFor(w)
+const centerY = (i: number) => NODE / 2 + i * ROW
+const clusterHeight = (n: number) => (n - 1) * ROW + NODE + 44
+
+const cooldownMinutes = (lockedUntil?: string | null): number => {
+    if (!lockedUntil) return 0
+    const diff = new Date(lockedUntil).getTime() - Date.now()
+    return diff > 0 ? Math.ceil(diff / 60000) : 0
+}
+
+// ── One cluster's serpentine path (module scope = stable identity) ────────────
+const ClusterPath: React.FC<{
+    subtopics: TopicNode[]
+    width: number
+    prefersReduced: boolean
+    hasProgress: boolean
+    onSelect: (t: TopicNode) => void
+    onCooldown: (mins: number) => void
+}> = ({ subtopics, width, prefersReduced, hasProgress, onSelect, onCooldown }) => {
+    const height = clusterHeight(subtopics.length)
+
+    return (
+        <div className="relative mx-auto" style={{ width, height }}>
+            <svg className="absolute inset-0" width={width} height={height} fill="none" aria-hidden="true">
+                {subtopics.slice(0, -1).map((t, i) => {
+                    const x0 = centerX(i, width), y0 = centerY(i)
+                    const x1 = centerX(i + 1, width), y1 = centerY(i + 1)
+                    const cy = (y0 + y1) / 2
+                    const lit = t.status === "completed"
+                    return (
+                        <path
+                            key={t.id}
+                            d={`M ${x0} ${y0} C ${x0} ${cy}, ${x1} ${cy}, ${x1} ${y1}`}
+                            stroke={lit ? "hsl(var(--success))" : "hsl(var(--muted-foreground) / 0.22)"}
+                            strokeWidth={10}
+                            strokeLinecap="round"
+                            strokeDasharray={lit ? undefined : "1 16"}
+                        />
+                    )
+                })}
+            </svg>
+
+            {subtopics.map((topic, index) => {
+                const isCompleted = topic.status === "completed"
+                const cool = cooldownMinutes(topic.locked_until)
+                const isCooldown = cool > 0
+                const isAvailable = topic.status === "available" && !isCooldown
+                const isLocked = topic.status === "locked" && !isCooldown
+                const x = centerX(index, width)
+                const y = centerY(index)
+
+                const bg = isCompleted ? "hsl(var(--success))"
+                    : isCooldown ? "hsl(var(--destructive))"
+                        : isAvailable ? "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))"
+                            : "hsl(var(--muted))"
+                const chunk = isCompleted ? "0 7px 0 0 hsl(var(--success) / 0.4)"
+                    : isCooldown ? "0 7px 0 0 hsl(var(--destructive) / 0.4)"
+                        : isAvailable ? "0 7px 0 0 hsl(var(--primary) / 0.45)"
+                            : "0 6px 0 0 hsl(var(--muted-foreground) / 0.18)"
+
+                return (
+                    <React.Fragment key={topic.id}>
+                        {/* START / CONTINUE pill above the current node */}
+                        {isAvailable && (
+                            <motion.div
+                                initial={prefersReduced ? false : { opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="absolute z-20 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-e2"
+                                style={{ left: x, top: y - NODE / 2 - 26 }}
+                            >
+                                {hasProgress ? "Continue" : "Start"}
+                            </motion.div>
+                        )}
+
+                        <motion.button
+                            initial={prefersReduced ? false : { opacity: 0, scale: 0.6 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ ...spring.snappy, delay: prefersReduced ? 0 : index * 0.04 }}
+                            whileHover={isAvailable || isCompleted ? { scale: 1.06, y: -2 } : {}}
+                            whileTap={isAvailable || isCompleted ? { scale: 0.95 } : {}}
+                            onClick={() => {
+                                if (isCooldown) onCooldown(cool)
+                                else if (isAvailable || isCompleted) onSelect(topic)
+                            }}
+                            disabled={isLocked}
+                            aria-label={topic.title}
+                            className={cn(
+                                "absolute z-10 flex items-center justify-center overflow-hidden rounded-full font-bold",
+                                isLocked ? "cursor-not-allowed text-muted-foreground" : "cursor-pointer text-white"
+                            )}
+                            style={{ width: NODE, height: NODE, left: x - NODE / 2, top: y - NODE / 2, background: bg, boxShadow: chunk }}
+                        >
+                            {/* glossy top sheen */}
+                            {!isLocked && (
+                                <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent" />
+                            )}
+                            {/* pulse ring on the current node */}
+                            {isAvailable && !prefersReduced && (
+                                <span className="absolute inset-0 rounded-full bg-primary/40 animate-ping" style={{ animationDuration: "2s" }} />
+                            )}
+
+                            {isCompleted && <Check className="relative h-9 w-9" strokeWidth={3} />}
+                            {isCooldown && <ShieldAlert className="relative h-8 w-8" />}
+                            {isAvailable && <span className="relative text-2xl">{topic.difficulty}</span>}
+                            {isLocked && <Lock className="relative h-7 w-7" />}
+
+                            {/* difficulty chip */}
+                            <span className="absolute -bottom-1.5 -right-1.5 z-20 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-card text-[10px] font-bold text-foreground shadow-e1">
+                                L{topic.difficulty}
+                            </span>
+                        </motion.button>
+
+                        <div
+                            className={cn(
+                                "absolute z-10 text-center text-sm font-medium leading-tight",
+                                isCompleted ? "text-success" : isCooldown ? "text-destructive" : isAvailable ? "font-semibold text-foreground" : "text-muted-foreground"
+                            )}
+                            style={{ left: x - 80, top: y + NODE / 2 + 8, width: 160 }}
+                        >
+                            {topic.title}
+                            {isCooldown && <div className="mt-0.5 text-xs text-destructive/80">Cooldown {cool}m</div>}
+                        </div>
+                    </React.Fragment>
+                )
+            })}
+        </div>
+    )
+}
+
 const MasteryNodeMap: React.FC = () => {
     const { roadmapId } = useParams()
     const navigate = useNavigate()
     const { addToast } = useToast()
-    const { colorScheme } = useTheme()
     const { user } = useAuth()
-    const isDark = colorScheme === "dark"
+    const prefersReduced = useReducedMotion() ?? false
 
     const [roadmap, setRoadmap] = useState<RoadmapDetails | null>(null)
     const [loading, setLoading] = useState(true)
@@ -52,11 +186,26 @@ const MasteryNodeMap: React.FC = () => {
     const [showCertificate, setShowCertificate] = useState(false)
     const [showFinalExam, setShowFinalExam] = useState(false)
 
+    // Responsive path width (clamped) so the serpentine spreads wide on desktop.
+    const containerRef = useRef<HTMLDivElement>(null)
+    const [width, setWidth] = useState(520)
     useEffect(() => {
-        if (roadmapId) {
-            fetchRoadmapDetails()
-        }
+        const el = containerRef.current
+        if (!el || typeof ResizeObserver === "undefined") return
+        const ro = new ResizeObserver(entries => {
+            const w = entries[0].contentRect.width
+            setWidth(Math.max(280, Math.min(560, w)))
+        })
+        ro.observe(el)
+        return () => ro.disconnect()
+    }, [])
+
+    useEffect(() => {
+        if (roadmapId) fetchRoadmapDetails()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [roadmapId])
+
+    useHeaderTitle(roadmap ? (roadmap.roadmap_title || roadmap.subject) : undefined)
 
     const fetchRoadmapDetails = async () => {
         try {
@@ -71,203 +220,112 @@ const MasteryNodeMap: React.FC = () => {
     }
 
     if (loading) {
-        return (
-            <div className="flex h-full items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-            </div>
-        )
+        return <div className="flex h-full items-center justify-center py-32"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
     }
 
     if (!roadmap) {
         return (
-            <div className="flex flex-col h-full items-center justify-center text-center p-6">
-                <h2 className="text-2xl font-bold mb-4">Roadmap not found</h2>
-                <button onClick={() => navigate("/mastery")} className="text-indigo-500 hover:underline">
-                    Back to Mastery Paths
-                </button>
+            <div className="flex h-full flex-col items-center justify-center p-6 text-center">
+                <h2 className="mb-4 text-2xl font-heading font-bold text-foreground">Roadmap not found</h2>
+                <button onClick={() => navigate("/mastery")} className="text-primary hover:underline">Back to Mastery Paths</button>
             </div>
         )
     }
 
-    // Flatten all topics to compute total and completed
     const allTopics = roadmap.topics.flatMap(c => c.subtopics)
     const completedCount = allTopics.filter(t => t.status === "completed").length
     const totalCount = allTopics.length
     const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
     const isAllCompleted = completedCount === totalCount && totalCount > 0
+    const hasProgress = completedCount > 0
 
     return (
-        <div className="min-h-full flex flex-col items-center relative overflow-x-hidden pt-6 pb-20">
-            {/* Header */}
-            <div className="w-full max-w-3xl px-6 mb-12 flex flex-col sm:flex-row items-center justify-between gap-6 z-10 sticky top-0 py-4 backdrop-blur-md bg-opacity-80 rounded-b-2xl" style={{ backgroundColor: isDark ? 'rgba(2, 6, 23, 0.7)' : 'rgba(255, 255, 255, 0.7)' }}>
-                <div className="flex items-center gap-4 w-full sm:w-auto">
-                    <button 
+        <div className="mx-auto flex w-full max-w-3xl flex-col px-4 pb-24 pt-4">
+            {/* Progress + streak bar */}
+            <div className="mb-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
+                <div className="flex w-full items-center gap-4 sm:w-auto">
+                    <button
                         onClick={() => navigate("/mastery")}
-                        className={cn(
-                            "w-10 h-10 rounded-full flex items-center justify-center transition-colors shrink-0",
-                            isDark ? "bg-slate-800 hover:bg-slate-700" : "bg-slate-100 hover:bg-slate-200"
-                        )}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-muted/70"
+                        aria-label="Back to mastery paths"
                     >
-                        <ArrowLeft className="w-5 h-5" />
+                        <ArrowLeft className="h-5 w-5" />
                     </button>
-                    <div>
-                        <h1 className={cn("text-2xl font-heading font-bold", isDark ? "text-white" : "text-slate-900")}>
-                            {roadmap.roadmap_title || roadmap.subject}
-                        </h1>
-                        <div className="flex items-center gap-3 text-sm mt-1">
-                            <span className="font-semibold text-indigo-500">{completedCount} / {totalCount} Mastered</span>
-                            <div className="w-32 h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden hidden sm:block">
-                                <div className="h-full bg-gradient-to-r from-cyan-400 to-indigo-500" style={{ width: `${progress}%` }} />
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-3 text-sm">
+                            <span className="tabular font-semibold text-primary">{completedCount} / {totalCount} Mastered</span>
+                            <div className="hidden h-1.5 w-40 overflow-hidden rounded-full bg-muted sm:block">
+                                <motion.div
+                                    className="h-full rounded-full bg-gradient-to-r from-primary to-accent"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progress}%` }}
+                                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                                />
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-lg shadow-sm border",
-                    isDark ? "bg-slate-900 border-orange-500/20 text-orange-400" : "bg-white border-orange-200 text-orange-500"
-                )}>
-                    <Flame className={cn("w-6 h-6", roadmap.streak_count > 0 ? "text-orange-500 fill-orange-500" : "text-slate-400")} />
-                    {roadmap.streak_count}
+                <div className="flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-2 text-lg font-bold text-amber-500 shadow-e1 dark:shadow-e1-dark dark:text-amber-300">
+                    <Flame className={cn("h-6 w-6", roadmap.streak_count > 0 && "fill-amber-500 text-amber-500")} />
+                    <span className="tabular">{roadmap.streak_count}</span>
                 </div>
             </div>
 
-            {/* Structured Skill Tree by Cluster */}
-            <div className="w-full max-w-sm px-4 flex flex-col items-center relative gap-4">
-                {roadmap.topics.map((cluster, cIndex) => (
-                    <div key={cluster.cluster_id} className="w-full flex flex-col items-center mb-12">
-                        {/* Cluster Header */}
-                        <div className="mb-6 px-6 py-2 rounded-full border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 shadow-sm z-20">
-                            <h3 className="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest text-xs">
-                                {cluster.cluster_title}
-                            </h3>
+            {/* Cluster zones */}
+            <div ref={containerRef} className="flex w-full flex-col items-center">
+                {roadmap.topics.map((cluster, ci) => (
+                    <div key={cluster.cluster_id} className="mb-8 w-full rounded-3xl border border-border/40 bg-muted/[0.06] py-6">
+                        <div className="mb-5 flex items-center justify-center gap-3">
+                            <span className="h-px w-8 bg-border" />
+                            <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] text-primary/80">
+                                {cluster.cluster_title || `Zone ${ci + 1}`}
+                            </span>
+                            <span className="h-px w-8 bg-border" />
                         </div>
-
-                        {cluster.subtopics.map((topic, index) => {
-                            const isCompleted = topic.status === "completed"
-                            const isAvailable = topic.status === "available"
-                            const isLocked = topic.status === "locked"
-                            
-                            let isCooldown = false
-                            let cooldownRemaining = 0
-                            if (topic.locked_until) {
-                                const lockedDate = new Date(topic.locked_until).getTime()
-                                const now = Date.now()
-                                if (lockedDate > now) {
-                                    isCooldown = true
-                                    cooldownRemaining = Math.ceil((lockedDate - now) / 60000)
-                                }
-                            }
-
-                            const offsetX = index % 2 === 0 ? 0 : (index % 4 === 1 ? 40 : -40)
-                            const isLastNode = cIndex === roadmap.topics.length - 1 && index === cluster.subtopics.length - 1
-
-                            return (
-                                <div key={topic.id} className="relative w-full flex flex-col items-center">
-                                    {/* Vertical connecting line to next node */}
-                                    {!isLastNode && (
-                                        <div className="h-12 w-3 rounded-full my-2 bg-slate-200 dark:bg-slate-800 relative overflow-hidden shrink-0">
-                                            {(isCompleted) && (
-                                                <div className="absolute inset-0 bg-green-500" />
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Node */}
-                                    <motion.button
-                                        whileHover={(isAvailable || isCompleted) && !isCooldown ? { scale: 1.05 } : {}}
-                                        whileTap={(isAvailable || isCompleted) && !isCooldown ? { scale: 0.95 } : {}}
-                                        onClick={() => {
-                                            if (!isCooldown && (isAvailable || isCompleted)) {
-                                                setSelectedTopic(topic)
-                                            } else if (isCooldown) {
-                                                addToast({ title: `Topic in cooldown for ${cooldownRemaining}m`, type: "error" })
-                                            }
-                                        }}
-                                        disabled={isLocked && !isCooldown}
-                                        className={cn(
-                                            "relative w-20 h-20 rounded-full flex items-center justify-center transition-all z-10 shrink-0",
-                                            isCompleted ? "bg-green-500 text-white shadow-[0_6px_0_#16a34a]" : '',
-                                            isAvailable && !isCooldown ? "bg-gradient-to-b from-cyan-400 to-indigo-500 text-white shadow-[0_6px_0_#4f46e5]" : '',
-                                            (isLocked && !isCooldown) ? "bg-slate-200 dark:bg-slate-800 text-slate-400 shadow-[0_6px_0_#cbd5e1] dark:shadow-[0_6px_0_#0f172a] cursor-not-allowed opacity-80" : '',
-                                            isCooldown ? "bg-red-500 text-white shadow-[0_6px_0_#b91c1c] cursor-not-allowed" : ''
-                                        )}
-                                        style={{ transform: `translateX(${offsetX}px)` }}
-                                    >
-                                        {/* Glowing rings for available node */}
-                                        {isAvailable && !isCooldown && (
-                                            <>
-                                                <div className="absolute inset-0 rounded-full animate-ping bg-cyan-400/40" style={{ animationDuration: '2s' }} />
-                                                <div className="absolute -inset-2 rounded-full border-2 border-indigo-400/50" />
-                                            </>
-                                        )}
-
-                                        {isCompleted && <CheckCircle2 className="w-8 h-8" />}
-                                        {isAvailable && !isCooldown && <span className="font-bold text-xl">{topic.difficulty}</span>}
-                                        {(isLocked && !isCooldown) && <Lock className="w-8 h-8" />}
-                                        {isCooldown && <ShieldAlert className="w-8 h-8" />}
-                                        
-                                        {/* Difficulty Badge */}
-                                        <div className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold border-2 border-white shadow-sm">
-                                            L{topic.difficulty}
-                                        </div>
-                                    </motion.button>
-                                    
-                                    {/* Title below node */}
-                                    <div 
-                                        className={cn(
-                                            "mt-3 text-center px-4 max-w-[200px]",
-                                            isCompleted ? "font-semibold text-green-600 dark:text-green-400" :
-                                            isAvailable && !isCooldown ? "font-bold text-indigo-600 dark:text-indigo-400" :
-                                            isCooldown ? "font-bold text-red-500" :
-                                            "font-medium text-slate-500 dark:text-slate-400"
-                                        )}
-                                        style={{ transform: `translateX(${offsetX}px)` }}
-                                    >
-                                        {topic.title}
-                                        {isCooldown && (
-                                            <div className="text-xs mt-1 text-red-400">Cooldown: {cooldownRemaining}m</div>
-                                        )}
-                                    </div>
-                                </div>
-                            )
-                        })}
+                        <ClusterPath
+                            subtopics={cluster.subtopics}
+                            width={width}
+                            prefersReduced={prefersReduced}
+                            hasProgress={hasProgress}
+                            onSelect={setSelectedTopic}
+                            onCooldown={(m) => addToast({ title: `Topic in cooldown for ${m}m`, type: "warning" })}
+                        />
                     </div>
                 ))}
-                
-                {/* Final Boss Node */}
+
+                {/* Boss / Final Exam node */}
                 {allTopics.length > 0 && (
-                    <div className="w-full flex flex-col items-center mt-4">
-                        <div className="h-12 w-3 rounded-full my-2 bg-slate-200 dark:bg-slate-800 relative overflow-hidden shrink-0">
-                            {isAllCompleted && <div className="absolute inset-0 bg-green-500" />}
-                        </div>
+                    <div className="flex flex-col items-center">
+                        <div className="mb-3 h-10 w-1.5 rounded-full" style={{ background: isAllCompleted ? "hsl(var(--success))" : "hsl(var(--muted-foreground) / 0.22)" }} />
                         <motion.button
-                            whileHover={isAllCompleted ? { scale: 1.05 } : {}}
+                            initial={prefersReduced ? false : { opacity: 0, scale: 0.7 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={spring.snappy}
+                            whileHover={isAllCompleted ? { scale: 1.05, y: -2 } : {}}
                             whileTap={isAllCompleted ? { scale: 0.95 } : {}}
-                            onClick={() => {
-                                if (isAllCompleted) setShowFinalExam(true)
-                            }}
+                            onClick={() => { if (isAllCompleted) setShowFinalExam(true) }}
                             disabled={!isAllCompleted}
                             className={cn(
-                                "relative w-28 h-24 rounded-2xl flex items-center justify-center transition-all z-10 shrink-0",
-                                isAllCompleted ? "bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-[0_8px_0_#b45309]" : "bg-slate-200 dark:bg-slate-800 text-slate-400 shadow-[0_8px_0_#cbd5e1] dark:shadow-[0_8px_0_#0f172a] cursor-not-allowed opacity-80"
+                                "relative flex h-28 w-36 flex-col items-center justify-center gap-1 overflow-hidden rounded-3xl font-bold",
+                                isAllCompleted ? "cursor-pointer text-white" : "cursor-not-allowed text-muted-foreground"
                             )}
+                            style={{
+                                background: isAllCompleted ? "linear-gradient(135deg, #fbbf24, #d97706)" : "hsl(var(--muted))",
+                                boxShadow: isAllCompleted ? "0 9px 0 0 rgba(180,83,9,0.55)" : "0 7px 0 0 hsl(var(--muted-foreground) / 0.18)",
+                            }}
                         >
                             {isAllCompleted && (
-                                <>
-                                    <div className="absolute inset-0 rounded-2xl animate-ping bg-yellow-400/40" style={{ animationDuration: '3s' }} />
-                                    <div className="absolute -inset-2 rounded-2xl border-2 border-yellow-400/50" />
-                                </>
+                                <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent" />
                             )}
-                            <div className="flex flex-col items-center gap-1">
-                                <Flame className="w-8 h-8" />
-                                <span className="font-bold text-xs uppercase tracking-wider">Final Exam</span>
-                            </div>
+                            {isAllCompleted && !prefersReduced && (
+                                <span className="absolute inset-0 rounded-3xl bg-amber-400/40 animate-ping" style={{ animationDuration: "3s" }} />
+                            )}
+                            <Trophy className="relative h-9 w-9" />
+                            <span className="relative text-xs uppercase tracking-wider">Final Exam</span>
                         </motion.button>
                     </div>
                 )}
-                
-                <div className="h-8" /> {/* extra padding at bottom */}
+                <div className="h-8" />
             </div>
 
             <TopicDetailModal
@@ -276,9 +334,7 @@ const MasteryNodeMap: React.FC = () => {
                 topic={selectedTopic}
                 roadmapId={roadmap.id}
                 onComplete={(updatedProgress?: any[]) => {
-                    if (updatedProgress) {
-                        fetchRoadmapDetails()
-                    }
+                    if (updatedProgress) fetchRoadmapDetails()
                     setSelectedTopic(null)
                 }}
             />
@@ -288,10 +344,7 @@ const MasteryNodeMap: React.FC = () => {
                     isOpen={showFinalExam}
                     onClose={() => setShowFinalExam(false)}
                     roadmapId={roadmap.id}
-                    onComplete={() => {
-                        setShowFinalExam(false)
-                        setShowCertificate(true)
-                    }}
+                    onComplete={() => { setShowFinalExam(false); setShowCertificate(true) }}
                 />
             )}
 
