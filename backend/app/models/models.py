@@ -68,6 +68,8 @@ class UserModel(BaseModel):
     settings: Optional[Dict[str, Any]] = None
     batch_ids: List[str] = Field(default_factory=list)
     credits: int = Field(default=0)  # Virtual currency balance
+    streak_count: int = Field(default=0)
+    last_activity_date: Optional[datetime] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -265,6 +267,40 @@ class TransactionModel(BaseModel):
     reason: str                             # e.g. "signup_bonus", "quiz_attempt"
     balance_after: int                      # Snapshot of balance after this transaction
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
+
+# Mastery Models
+class MasteryRoadmapModel(BaseModel):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    user_id: str
+    subject: str
+    topics: List[Dict[str, Any]]
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
+
+class TopicStatus(str, Enum):
+    locked = "locked"
+    available = "available"
+    completed = "completed"
+
+class MasteryProgressModel(BaseModel):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    user_id: str
+    roadmap_id: str
+    topic_id: str
+    status: TopicStatus = TopicStatus.locked
+    quiz_score: Optional[float] = None
+    completed_at: Optional[datetime] = None
 
     model_config = ConfigDict(
         populate_by_name=True,

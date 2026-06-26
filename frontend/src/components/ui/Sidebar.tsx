@@ -5,7 +5,7 @@ import { Link, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     LayoutDashboard, ClipboardList, Code2, BarChart3, User, Settings,
-    Users, CalendarDays, Trophy, ShieldCheck,
+    Users, CalendarDays, Trophy, ShieldCheck, Map,
     X, PanelLeftClose, PanelLeftOpen
 } from "lucide-react"
 import { cn } from "../../lib/utils"
@@ -16,7 +16,7 @@ import type { User as UserType } from "../../types"
 
 const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
     LayoutDashboard, ClipboardList, Code2, BarChart3, User, Settings,
-    Users, CalendarDays, Trophy, ShieldCheck,
+    Users, CalendarDays, Trophy, ShieldCheck, Map,
 }
 
 interface SidebarProps {

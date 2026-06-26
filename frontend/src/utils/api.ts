@@ -15,13 +15,13 @@ const getApiBaseUrl = () => {
 
     if (isProduction) {
         // Use relative path for production deployment
-        const baseUrl = window.location.origin;
+        const baseUrl = window.location.origin + '/api';
         console.log('🌐 [API] Using production relative URL:', baseUrl);
         return baseUrl;
     }
 
     // Default to local development URL
-    const localUrl = 'http://localhost:5001';
+    const localUrl = 'http://localhost:5001/api';
     console.log('🌐 [API] Using default local API URL:', localUrl);
     return localUrl;
 };
@@ -39,6 +39,11 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
     (config) => {
+        // Fix inconsistent /api prefixes across the app
+        if (config.url && config.url.startsWith('/api/')) {
+            config.url = config.url.substring(4); // Remove the extra /api since baseURL provides it
+        }
+
         const token = localStorage.getItem('access_token');
 
         if (token) {

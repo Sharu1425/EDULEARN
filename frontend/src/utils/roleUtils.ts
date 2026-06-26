@@ -119,7 +119,7 @@ export const getRoleDisplayName = (role: UserRole): string => {
 export const canAccessRoute = (user: User | null, route: string): boolean => {
   if (!user) return false
 
-  const routePermissions: Record<string, UserRole[]> = {
+    const routePermissions: Record<string, UserRole[]> = {
     "/dashboard": ["student", "teacher", "admin"],
     "/teacher-dashboard": ["teacher", "admin"],
     "/admin-dashboard": ["admin"],
@@ -128,6 +128,7 @@ export const canAccessRoute = (user: User | null, route: string): boolean => {
     "/profile": ["student", "teacher", "admin"],
     "/settings": ["student", "teacher", "admin"],
     "/my-results": ["student"],
+    "/mastery": ["student"],
   }
 
   const allowedRoles = routePermissions[route]
@@ -197,6 +198,7 @@ export const getSidebarNavItems = (user: User | null): SidebarNavItem[] => {
     return [
       { path: "/dashboard", label: "Dashboard", icon: "LayoutDashboard", exact: true },
       { path: "/assessment-choice", label: "Assessments", icon: "ClipboardList" },
+      { path: "/mastery", label: "Topic Mastery", icon: "Map" },
       { path: "/coding", label: "Coding Lab", icon: "Code2" },
       { path: "/my-results", label: "My Results", icon: "BarChart3" },
       { path: "/profile", label: "Profile", icon: "User" },

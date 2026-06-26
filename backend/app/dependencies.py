@@ -19,7 +19,7 @@ async def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depend
     """Get current user ID from JWT token"""
     try:
         import jwt
-        payload = jwt.decode(credentials.credentials, settings.secret_key, algorithms=[settings.algorithm])
+        payload = jwt.decode(credentials.credentials, settings.effective_secret_key, algorithms=[settings.algorithm])
         user_id = payload.get("sub")
         if user_id is None:
             return None
@@ -31,7 +31,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     """Get current authenticated user"""
     try:
         import jwt
-        payload = jwt.decode(credentials.credentials, settings.secret_key, algorithms=[settings.algorithm])
+        payload = jwt.decode(credentials.credentials, settings.effective_secret_key, algorithms=[settings.algorithm])
         user_id = payload.get("sub")
 
         if not user_id:

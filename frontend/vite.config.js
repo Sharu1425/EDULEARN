@@ -7,12 +7,19 @@ export default defineConfig({
   logLevel: 'info',
   plugins: [react()],
   server: {
-    host: true,
+    port: 5173,
     proxy: {
-      '/api': 'http://localhost:5001',
-      '/db': 'http://localhost:5001',
-      '/auth': 'http://localhost:5001'
-    },
+      '/api': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/ws': {
+        target: 'ws://localhost:5001',
+        ws: true,
+        changeOrigin: true,
+      }
+    }
   },
   resolve: {
     alias: {

@@ -300,23 +300,32 @@ async def get_class_performance_overview(user: UserModel = Depends(require_teach
                 for subject, scores in subjects.items():
                     subject_averages[subject] = sum(scores) / len(scores)
                 
-                class_performance.append({
-                    "id": student_id,
-                    "student_id": student_id,
-                    "name": student.get("name") or student.get("username", student.get("email", "Unknown")),
-                    "student_name": student.get("name") or student.get("username", ""),
-                    "email": student.get("email", ""),
-                    "student_email": student.get("email", ""),
-                    "batch": student.get("batch_name", "No Batch"),
-                    "batch_id": student.get("batch_id") or (student.get("batch_ids", [None])[0] if student.get("batch_ids") else ""),
-                    "batch_ids": student.get("batch_ids", []),
-                    "total_assessments": total_assessments,
-                    "average_score": round(average_score, 2),
-                    "recent_average": round(recent_average, 2),
-                    "subject_averages": subject_averages,
-                    "last_activity": max([parse_date(r.get("submitted_at")) for r in all_results]).isoformat() if all_results else None,
-                    "performance_trend": "improving" if recent_average > average_score else "declining" if recent_average < average_score else "stable"
-                })
+                last_activity = max([parse_date(r.get("submitted_at")) for r in all_results]).isoformat() if all_results else None
+                performance_trend = "improving" if recent_average > average_score else "declining" if recent_average < average_score else "stable"
+            else:
+                average_score = 0
+                recent_average = 0
+                subject_averages = {}
+                last_activity = None
+                performance_trend = "stable"
+                
+            class_performance.append({
+                "id": student_id,
+                "student_id": student_id,
+                "name": student.get("name") or student.get("username", student.get("email", "Unknown")),
+                "student_name": student.get("name") or student.get("username", ""),
+                "email": student.get("email", ""),
+                "student_email": student.get("email", ""),
+                "batch": student.get("batch_name", "No Batch"),
+                "batch_id": student.get("batch_id") or (student.get("batch_ids", [None])[0] if student.get("batch_ids") else ""),
+                "batch_ids": student.get("batch_ids", []),
+                "total_assessments": total_assessments,
+                "average_score": round(average_score, 2),
+                "recent_average": round(recent_average, 2),
+                "subject_averages": subject_averages,
+                "last_activity": last_activity,
+                "performance_trend": performance_trend
+            })
         
         # Sort by average score (highest first)
         class_performance.sort(key=lambda x: x["average_score"], reverse=True)
@@ -324,8 +333,9 @@ async def get_class_performance_overview(user: UserModel = Depends(require_teach
         # Calculate class statistics
         if class_performance:
             class_average = sum([s["average_score"] for s in class_performance]) / len(class_performance)
-            top_performers = class_performance[:3]
-            struggling_students = [s for s in class_performance if s["average_score"] < 60]
+            active_students = [s for s in class_performance if s["total_assessments"] > 0]
+            top_performers = active_students[:3]
+            struggling_students = [s for s in active_students if s["average_score"] < 60]
         else:
             class_average = 0
             top_performers = []

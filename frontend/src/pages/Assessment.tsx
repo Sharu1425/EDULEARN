@@ -135,7 +135,7 @@ const Assessment: React.FC = () => {
     console.log("🤖 [ASSESSMENT] Params:", { topic, difficulty, count: qnCount })
 
     // Fetch questions from Gemini AI (always generates unique questions)
-    const geminiResponse = await api.get("/db/questions", {
+    const geminiResponse = await api.get("/api/assessments/generate-questions", {
       params: { topic, difficulty, count: qnCount }
     })
 

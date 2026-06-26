@@ -115,14 +115,14 @@ async def main():
     
     # Summary
     print("\n" + "=" * 60)
-    print("📊 TEST SUMMARY")
+    print("TEST SUMMARY")
     print("=" * 60)
     print(f"Configuration: {'✅ PASS' if config_ok else '❌ FAIL'}")
     print(f"Python Execution: {'✅ PASS' if python_ok else '❌ FAIL'}")
     print(f"JavaScript Execution: {'✅ PASS' if js_ok else '❌ FAIL'}")
     
     if config_ok and python_ok and js_ok:
-        print("\n🎉 All tests passed! Your coding platform is ready!")
+        print("\n All tests passed! Your coding platform is ready!")
         print("\nNext steps:")
         print("1. Start the backend: python start_server.py")
         print("2. Start the frontend: cd frontend && npm run dev")

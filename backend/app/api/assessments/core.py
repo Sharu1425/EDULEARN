@@ -24,6 +24,26 @@ class HeartbeatRequest(BaseModel):
 
 router = APIRouter(prefix="/assessments", tags=["assessments-core"])
 
+@router.get("/generate-questions")
+async def generate_questions_for_student(
+    topic: str,
+    difficulty: str,
+    count: int = 10,
+    current_user: UserModel = Depends(get_current_user)
+):
+    """Generate questions dynamically for a student assessment session"""
+    from ...services.gemini_coding_service import gemini_coding_service as gemini_service
+    try:
+        questions = await gemini_service.generate_mcq_questions(
+            topic=topic,
+            difficulty=difficulty,
+            count=count,
+            store_in_db=True
+        )
+        return questions
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate questions: {str(e)}")
+
 @router.post("/", response_model=AssessmentResponse)
 async def create_assessment(assessment_data: AssessmentCreate, user: UserModel = Depends(require_teacher)):
     """Create a new assessment - Teacher/Admin only"""
@@ -357,8 +377,8 @@ async def get_assessment_questions(assessment_id: str, user: UserModel = Depends
             # Create response object (hide answers for students)
             question_response = QuestionResponse(
                 id=str(i + 1),
-                question=q["question"],
-                options=q["options"],
+                question=q.get("question", ""),
+                options=q.get("options", []),
                 correct_answer=-1,  # Hide
                 explanation=None,   # Hide
                 points=q.get("points", 1)

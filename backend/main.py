@@ -10,7 +10,7 @@ import os
 from dotenv import load_dotenv
 
 # Load .env file - must be called before importing any modules that use environment variables
-load_dotenv()
+load_dotenv(override=True)
 
 # Debug: Print HackerEarth secret to verify it's loaded (remove in production)
 client_secret = os.getenv("HACKEREARTH_CLIENT_SECRET")
@@ -25,8 +25,8 @@ import uvicorn
 
 if __name__ == "__main__":
     print("Starting FastAPI server...")
-    print("Server will be available at: http://0.0.0.0:5001")
-    print("API documentation at: http://0.0.0.0:5001/docs")
+    print("Server will be available at: http://127.0.0.1:5001")
+    print("API documentation at: http://127.0.0.1:5001/docs")
     print("Press Ctrl+C to stop the server")
     
     port = int(os.environ.get("PORT", 5001))
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     
     uvicorn.run(
         "app.main:app",
-        host="0.0.0.0",
+        host="127.0.0.1",
         port=port,
         reload=not is_prod,
         log_level="info"

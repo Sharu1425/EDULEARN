@@ -383,6 +383,13 @@ const FloatingTag: React.FC<{ text: string; color: string; delay: number; classN
 )
 
 /* ─── Neural Wave SVG ───────────────────────────────────────────────────────── */
+const WAVE_PATHS = [
+  "M0,160 C360,80 720,200 1080,120 L1440,100 L1440,320 L0,320 Z",
+  "M0,180 C360,100 720,180 1080,140 L1440,120 L1440,320 L0,320 Z",
+  "M0,140 C360,200 720,100 1080,160 L1440,140 L1440,320 L0,320 Z",
+  "M0,200 C360,120 720,220 1080,100 L1440,160 L1440,320 L0,320 Z",
+]
+
 const NeuralWave: React.FC = () => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
     <svg
@@ -397,19 +404,18 @@ const NeuralWave: React.FC = () => (
           <stop offset="100%" stopColor="#22d3ee" />
         </linearGradient>
       </defs>
-      {[0, 20, 40, 60].map((phase, i) => (
+      {WAVE_PATHS.map((d, i) => (
         <motion.path
           key={i}
-          d={`M0,${160 + phase} C360,${80 + i * 10} 720,${200 - i * 10} 1080,${120 + i * 5} L1440,${100 - phase} L1440,320 L0,320 Z`}
+          d={d}
           fill="url(#waveGrad)"
-          animate={{
-            d: [
-              `M0,${160 + phase} C360,${80 + i * 10} 720,${200 - i * 10} 1080,${120 + i * 5} L1440,${100 - phase} L1440,320 L0,320 Z`,
-              `M0,${140 - phase} C360,${200 - i * 10} 720,${100 + i * 10} 1080,${160 - i * 5} L1440,${140 + phase} L1440,320 L0,320 Z`,
-              `M0,${160 + phase} C360,${80 + i * 10} 720,${200 - i * 10} 1080,${120 + i * 5} L1440,${100 - phase} L1440,320 L0,320 Z`,
-            ],
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{
+            duration: 6 + i * 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: i * 1.5,
           }}
-          transition={{ duration: 8 + i * 2, repeat: Infinity, ease: "easeInOut" }}
         />
       ))}
     </svg>

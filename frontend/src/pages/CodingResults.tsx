@@ -247,7 +247,7 @@ const CodingResults: React.FC = () => {
               {/* Result Message */}
               <div className="flex items-center justify-center space-x-2 mb-6">
                 <h3 className="text-2xl font-bold text-white">
-                  {allPassed ? "🎉 All Tests Passed!" : `${passedTests}/${totalTests} Tests Passed`}
+                  {allPassed ? " All Tests Passed!" : `${passedTests}/${totalTests} Tests Passed`}
                 </h3>
               </div>
             </motion.div>

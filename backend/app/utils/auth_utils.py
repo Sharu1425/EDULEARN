@@ -10,7 +10,7 @@ from typing import Optional, Dict, Any
 from ..core.config import settings
 
 # JWT settings — sourced from .env via settings
-SECRET_KEY = settings.secret_key
+SECRET_KEY = settings.effective_secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 

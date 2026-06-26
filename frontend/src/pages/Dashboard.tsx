@@ -120,7 +120,7 @@ const Dashboard: React.FC = () => {
   const fetchActiveSessions = async () => {
     try {
       if (!user) return
-      const response = await api.get("/api/sessions/active-for-student")
+      const response = await api.get("/api/livesession/sessions/active-for-student")
       if (response.data && response.data.active_sessions) {
         console.log("🔴 [DASHBOARD] Active Sessions:", response.data.active_sessions)
         setActiveSessions(response.data.active_sessions)

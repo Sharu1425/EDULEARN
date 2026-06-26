@@ -5,6 +5,28 @@ import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from "r
 import { AnimatePresence, motion } from "framer-motion"
 
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext"
+
+class ErrorBoundary extends React.Component<any, { hasError: boolean, error: any }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: "2rem", color: "red", backgroundColor: "black", width: "100%", height: "100%" }}>
+          <h2>React Render Error</h2>
+          <pre>{this.state.error?.toString()}</pre>
+          <pre>{this.state.error?.stack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { ToastProvider, useToast } from "./contexts/ToastContext"
 import { useAuth } from "./hooks/useAuth"
 import Header from "./components/ui/Header"
@@ -49,6 +71,8 @@ import TeacherLiveConsole from "./pages/TeacherLiveConsole"
 import StudentLiveRoom from "./pages/StudentLiveRoom"
 import ThinkTraceSession from "./pages/ThinkTraceSession"
 import ThinkTraceResultDetail from "./pages/ThinkTraceResultDetail"
+import MasteryPage from "./pages/student/MasteryPage"
+import MasteryNodeMap from "./pages/student/MasteryNodeMap"
 
 const FULLSCREEN_ROUTES = [
   "/assessment",
@@ -150,71 +174,75 @@ const AppLayout: React.FC<{
               "mx-auto w-full",
               !fullscreen && "pb-12"
             )}>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={location.pathname}
-                  variants={fullscreen ? instant : pageTransition}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                >
-                <Routes location={location}>
-                  {/* Public */}
-                  <Route path="/" element={user ? <Navigate to={getDashboardPath(user)} replace /> : <LandingPage />} />
-                  <Route path="/login" element={user ? <Navigate to={getDashboardPath(user)} replace /> : <Login setUser={setUser} />} />
-                  <Route path="/signup" element={user ? <Navigate to={getDashboardPath(user)} replace /> : <Signup setUser={setUser} />} />
+              <ErrorBoundary>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={location.pathname}
+                    variants={fullscreen ? instant : pageTransition}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
+                  <Routes location={location}>
+                    {/* Public */}
+                    <Route path="/" element={user ? <Navigate to={getDashboardPath(user)} replace /> : <LandingPage />} />
+                    <Route path="/login" element={user ? <Navigate to={getDashboardPath(user)} replace /> : <Login setUser={setUser} />} />
+                    <Route path="/signup" element={user ? <Navigate to={getDashboardPath(user)} replace /> : <Signup setUser={setUser} />} />
 
-                  {/* Student */}
-                  <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><Dashboard /></ProtectedRoute>} />
-                  <Route path="/assessment" element={<ProtectedRoute allowedRoles={["student"]}><Assessment /></ProtectedRoute>} />
-                  <Route path="/assessment/:id" element={<ProtectedRoute allowedRoles={["student"]}><Assessment /></ProtectedRoute>} />
-                  <Route path="/test/:assessmentId" element={<ProtectedRoute allowedRoles={["student"]}><TestPage /></ProtectedRoute>} />
-                  <Route path="/my-results" element={<ProtectedRoute allowedRoles={["student"]}>{user && <StudentResults />}</ProtectedRoute>} />
-                  <Route path="/results" element={<ProtectedRoute allowedRoles={["student"]}>{user && <Results user={user} />}</ProtectedRoute>} />
-                  <Route path="/coding-results" element={<ProtectedRoute allowedRoles={["student"]}><CodingResults /></ProtectedRoute>} />
-                  <Route path="/test-result/:resultId" element={<ProtectedRoute allowedRoles={["student"]}><TestResultDetail /></ProtectedRoute>} />
-                  <Route path="/coding" element={<ProtectedRoute allowedRoles={["student"]}><CodingPlatform /></ProtectedRoute>} />
-                  <Route path="/coding/problem/:problemId" element={<ProtectedRoute allowedRoles={["student"]}>{user && <CodingProblemPage user={user} />}</ProtectedRoute>} />
-                  <Route path="/assessconfig" element={<ProtectedRoute allowedRoles={["student"]}><UnifiedAssessment /></ProtectedRoute>} />
-                  <Route path="/assessment-choice" element={<ProtectedRoute allowedRoles={["student"]}><UnifiedAssessment /></ProtectedRoute>} />
-                  <Route path="/unified-assessment" element={<ProtectedRoute allowedRoles={["student"]}><UnifiedAssessment /></ProtectedRoute>} />
-                  <Route path="/student/live/:batchId" element={<ProtectedRoute allowedRoles={["student"]}><StudentLiveRoom /></ProtectedRoute>} />
-                  <Route path="/thinktrace" element={<ProtectedRoute allowedRoles={["student"]}><ThinkTraceSession /></ProtectedRoute>} />
-                  <Route path="/thinktrace-result/:sessionId" element={<ProtectedRoute allowedRoles={["student"]}><ThinkTraceResultDetail /></ProtectedRoute>} />
+                    {/* Student */}
+                    <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><Dashboard /></ProtectedRoute>} />
+                    <Route path="/assessment" element={<ProtectedRoute allowedRoles={["student"]}><Assessment /></ProtectedRoute>} />
+                    <Route path="/assessment/:id" element={<ProtectedRoute allowedRoles={["student"]}><Assessment /></ProtectedRoute>} />
+                    <Route path="/test/:assessmentId" element={<ProtectedRoute allowedRoles={["student"]}><TestPage /></ProtectedRoute>} />
+                    <Route path="/my-results" element={<ProtectedRoute allowedRoles={["student"]}>{user && <StudentResults />}</ProtectedRoute>} />
+                    <Route path="/results" element={<ProtectedRoute allowedRoles={["student"]}>{user && <Results user={user} />}</ProtectedRoute>} />
+                    <Route path="/coding-results" element={<ProtectedRoute allowedRoles={["student"]}><CodingResults /></ProtectedRoute>} />
+                    <Route path="/test-result/:resultId" element={<ProtectedRoute allowedRoles={["student"]}><TestResultDetail /></ProtectedRoute>} />
+                    <Route path="/coding" element={<ProtectedRoute allowedRoles={["student"]}><CodingPlatform /></ProtectedRoute>} />
+                    <Route path="/coding/problem/:problemId" element={<ProtectedRoute allowedRoles={["student"]}>{user && <CodingProblemPage user={user} />}</ProtectedRoute>} />
+                    <Route path="/assessconfig" element={<ProtectedRoute allowedRoles={["student"]}><UnifiedAssessment /></ProtectedRoute>} />
+                    <Route path="/assessment-choice" element={<ProtectedRoute allowedRoles={["student"]}><UnifiedAssessment /></ProtectedRoute>} />
+                    <Route path="/unified-assessment" element={<ProtectedRoute allowedRoles={["student"]}><UnifiedAssessment /></ProtectedRoute>} />
+                    <Route path="/student/live/:batchId" element={<ProtectedRoute allowedRoles={["student"]}><StudentLiveRoom /></ProtectedRoute>} />
+                    <Route path="/thinktrace" element={<ProtectedRoute allowedRoles={["student"]}><ThinkTraceSession /></ProtectedRoute>} />
+                    <Route path="/thinktrace-result/:sessionId" element={<ProtectedRoute allowedRoles={["student"]}><ThinkTraceResultDetail /></ProtectedRoute>} />
+                    <Route path="/mastery" element={<ProtectedRoute allowedRoles={["student"]}><MasteryPage /></ProtectedRoute>} />
+                    <Route path="/mastery/:roadmapId" element={<ProtectedRoute allowedRoles={["student"]}><MasteryNodeMap /></ProtectedRoute>} />
 
-                  {/* Teacher */}
-                  <Route path="/teacher-dashboard" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherDashboard /></ProtectedRoute>} />
-                  <Route path="/teacher/student-management" element={<ProtectedRoute allowedRoles={["teacher"]}><StudentManagement /></ProtectedRoute>} />
-                  <Route path="/teacher/assessment-management" element={<ProtectedRoute allowedRoles={["teacher"]}><AssessmentManagement /></ProtectedRoute>} />
-                  <Route path="/teacher/create-assessment" element={<ProtectedRoute allowedRoles={["teacher"]}><CreateAssessment /></ProtectedRoute>} />
-                  <Route path="/teacher/batch-analytics" element={<ProtectedRoute allowedRoles={["teacher"]}><BatchAnalytics /></ProtectedRoute>} />
-                  <Route path="/teacher/results-dashboard" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherResultsDashboard /></ProtectedRoute>} />
-                  <Route path="/teacher/assessment-history" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherAssessmentHistory /></ProtectedRoute>} />
-                  <Route path="/teacher/assessment/:assessmentId/results" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherAssessmentResults /></ProtectedRoute>} />
-                  <Route path="/teacher/live/:batchId" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherLiveConsole /></ProtectedRoute>} />
-                  <Route path="/teacher/test-result/:resultId" element={<ProtectedRoute allowedRoles={["teacher"]}><TestResultDetail /></ProtectedRoute>} />
+                    {/* Teacher */}
+                    <Route path="/teacher-dashboard" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherDashboard /></ProtectedRoute>} />
+                    <Route path="/teacher/student-management" element={<ProtectedRoute allowedRoles={["teacher"]}><StudentManagement /></ProtectedRoute>} />
+                    <Route path="/teacher/assessment-management" element={<ProtectedRoute allowedRoles={["teacher"]}><AssessmentManagement /></ProtectedRoute>} />
+                    <Route path="/teacher/create-assessment" element={<ProtectedRoute allowedRoles={["teacher"]}><CreateAssessment /></ProtectedRoute>} />
+                    <Route path="/teacher/batch-analytics" element={<ProtectedRoute allowedRoles={["teacher"]}><BatchAnalytics /></ProtectedRoute>} />
+                    <Route path="/teacher/results-dashboard" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherResultsDashboard /></ProtectedRoute>} />
+                    <Route path="/teacher/assessment-history" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherAssessmentHistory /></ProtectedRoute>} />
+                    <Route path="/teacher/assessment/:assessmentId/results" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherAssessmentResults /></ProtectedRoute>} />
+                    <Route path="/teacher/live/:batchId" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherLiveConsole /></ProtectedRoute>} />
+                    <Route path="/teacher/test-result/:resultId" element={<ProtectedRoute allowedRoles={["teacher"]}><TestResultDetail /></ProtectedRoute>} />
 
-                  {/* Admin */}
-                  <Route path="/admin-dashboard" element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
-                      <EnhancedAdminDashboard />
-                    </ProtectedRoute>
-                  } />
+                    {/* Admin */}
+                    <Route path="/admin-dashboard" element={
+                      <ProtectedRoute allowedRoles={["admin"]}>
+                        <EnhancedAdminDashboard />
+                      </ProtectedRoute>
+                    } />
 
-                  {/* Shared */}
-                  <Route path="/profile" element={
-                    <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
-                      {user && user.role === "teacher" ? <TeacherProfile /> : <UserProfile user={user} />}
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/settings" element={
-                    <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
-                      {user && user.role === "teacher" ? <TeacherSettings /> : <Settings user={user} />}
-                    </ProtectedRoute>
-                  } />
-                </Routes>
-                </motion.div>
-              </AnimatePresence>
+                    {/* Shared */}
+                    <Route path="/profile" element={
+                      <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
+                        {user && user.role === "teacher" ? <TeacherProfile /> : <UserProfile user={user} />}
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/settings" element={
+                      <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
+                        {user && user.role === "teacher" ? <TeacherSettings /> : <Settings user={user} />}
+                      </ProtectedRoute>
+                    } />
+                  </Routes>
+                  </motion.div>
+                </AnimatePresence>
+              </ErrorBoundary>
             </div>
           </main>
         </div>

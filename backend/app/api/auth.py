@@ -268,4 +268,5 @@ async def auth_status(user_id: Optional[str] = Depends(get_current_user_id)):
         }
     except Exception as e:
         print(f"[ERROR] Error in auth status: {e}")
+        import traceback; traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e)) 

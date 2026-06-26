@@ -9,6 +9,7 @@ import { useAuth } from "../hooks/useAuth"
 import api from "../utils/api"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
+import assessmentService from "../api/assessmentService"
 import { ANIMATION_VARIANTS } from "../utils/constants"
 import { Sparkles, Users, BookOpen, Video, BarChart3 } from "lucide-react"
 
@@ -39,6 +40,7 @@ const TeacherDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [showBatchModal, setShowBatchModal] = useState(false)
   const [sessionStarting, setSessionStarting] = useState(false)
+  const [assessmentsCount, setAssessmentsCount] = useState(0)
 
   useEffect(() => {
     fetchDashboardData()
@@ -86,6 +88,15 @@ const TeacherDashboard: React.FC = () => {
         console.warn("DEBUG [TEACHER] Batches response not an array:", batchesResponse.data)
         setBatches([])
       }
+      
+      try {
+        const assessmentsData = await assessmentService.getTeacherAssessments()
+        if (assessmentsData && Array.isArray(assessmentsData)) {
+          setAssessmentsCount(assessmentsData.length)
+        }
+      } catch (err) {
+        console.error("❌ [TEACHER] Failed to fetch assessments count:", err)
+      }
     } catch (err) {
       console.error("❌ [TEACHER] Failed to fetch dashboard data:", err)
       showError("Error", "Failed to load dashboard data")
@@ -98,6 +109,7 @@ const TeacherDashboard: React.FC = () => {
 
   const handleNavigateToStudentManagement = () => navigate('/teacher/student-management')
   const handleNavigateToAssessmentManagement = () => navigate('/teacher/assessment-management')
+  const handleNavigateToResults = () => navigate('/teacher/results-dashboard')
 
   const handleStartLiveSession = async (batchId: string) => {
     if (!batchId) {
@@ -185,7 +197,7 @@ const TeacherDashboard: React.FC = () => {
                   Icon: BookOpen,
                 },
                 {
-                  label: "Assessments", value: 12,
+                  label: "Assessments", value: assessmentsCount,
                   gradient: "from-emerald-400 to-teal-500",
                   glow: "rgba(52,211,153,0.3)",
                   Icon: BarChart3,
@@ -222,7 +234,7 @@ const TeacherDashboard: React.FC = () => {
             variants={ANIMATION_VARIANTS.stagger}
             initial="initial"
             animate="animate"
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {[
               {
@@ -242,6 +254,15 @@ const TeacherDashboard: React.FC = () => {
                 desc: "Create custom AI-generated assessments and coding challenges for your students.",
                 btnLabel: "Manage Assessments",
                 onClick: handleNavigateToAssessmentManagement,
+              },
+              {
+                gradient: "from-purple-400 to-violet-500",
+                glow: "rgba(139,92,246,0.3)",
+                Icon: BarChart3,
+                title: "Results & Analytics",
+                desc: "View detailed performance metrics and class insights to track student progress.",
+                btnLabel: "View Results",
+                onClick: handleNavigateToResults,
               },
               {
                 gradient: "from-red-400 to-rose-500",

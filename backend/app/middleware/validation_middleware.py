@@ -8,6 +8,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from typing import Dict, Any, List
 import json
 import logging
+import time
 from ..services.validation_service import ValidationService, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -179,7 +180,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     
     async def dispatch(self, request: Request, call_next):
         """Check rate limit and process request"""
-        client_ip = request.client.host
+        client_ip = request.client.host if request.client else "unknown"
         current_time = int(time.time())
         
         # Clean old entries

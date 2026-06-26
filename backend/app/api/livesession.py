@@ -183,3 +183,50 @@ async def end_live_session(
         logger.error(f"[LIVESESSION] Session end failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/sessions/active-for-student")
+async def get_active_sessions_for_student(
+    current_user=Depends(get_current_user)
+):
+    """Get active live sessions for a student's batches."""
+    try:
+        db = await get_db()
+        user_id = str(current_user.id) if hasattr(current_user, 'id') else str(current_user.get("_id", ""))
+        
+        # Find batches the student belongs to
+        student_batches = await db.batches.find({
+            "student_ids": user_id
+        }).to_list(length=None)
+        
+        batch_ids = [str(batch["_id"]) for batch in student_batches]
+        
+        if not batch_ids:
+            return {"active_sessions": []}
+            
+        # Find active sessions for those batches
+        active_sessions = await db.live_sessions.find({
+            "batch_id": {"$in": batch_ids},
+            "status": "active"
+        }).to_list(length=None)
+        
+        # Format response
+        formatted_sessions = []
+        for session in active_sessions:
+            batch = next((b for b in student_batches if str(b["_id"]) == session["batch_id"]), None)
+            batch_name = batch["name"] if batch else "Unknown Batch"
+            
+            formatted_sessions.append({
+                "session_id": str(session["_id"]),
+                "batch_id": session["batch_id"],
+                "batch_name": batch_name,
+                "teacher_id": session.get("teacher_id", ""),
+                "topic": session.get("topic", ""),
+                "session_code": session.get("session_code", session.get("_id", "")[-6:].upper()),
+                "started_at": session.get("started_at")
+            })
+            
+        return {"active_sessions": formatted_sessions}
+    except Exception as e:
+        logger.error(f"[LIVESESSION] Get active sessions failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+

@@ -430,3 +430,53 @@ class PaginatedResponse(BaseModel):
     page: int
     size: int
     pages: int
+
+# Mastery Schemas
+class MasteryRoadmapGenerateRequest(BaseModel):
+    subject: str
+
+class MasteryQuizGenerateRequest(BaseModel):
+    topic_id: str
+    topic_title: str
+    concept_summary: str
+
+class MasteryQuizGenerateResponse(BaseModel):
+    question: str
+    options: List[str]
+    correct_answer: int
+
+class MasterySubmitQuizRequest(BaseModel):
+    score: float  # e.g., 60.0 or 4 (out of 5)
+
+class UpdateProgressRequest(BaseModel):
+    user_id: str
+    quiz_score: float
+    status: str
+
+class MasterySubmitQuizResponse(BaseModel):
+    success: bool
+    status: str
+    streak_count: int
+    credits_awarded: int
+    next_topic_id: Optional[str] = None
+    message: str
+
+class MasteryTopicNode(BaseModel):
+    id: str
+    title: str
+    order: int
+    concept_summary: str
+    estimated_minutes: int
+
+class MasteryRoadmapResponse(BaseModel):
+    id: str
+    user_id: str
+    subject: str
+    topics: List[MasteryTopicNode]
+    created_at: datetime
+
+class MasteryProgressResponse(BaseModel):
+    topic_id: str
+    status: str
+    quiz_score: Optional[float]
+    completed_at: Optional[datetime]

@@ -22,8 +22,18 @@ class Settings(BaseSettings):
     mongo_uri: str = "mongodb://127.0.0.1:27017/edulearn"
     db_name: str = "edulearn"
 
-    # Security — loaded from .env: SECRET_KEY
+    # Security — loaded from .env: SECRET_KEY, SESSION_SECRET
     secret_key: str = "change-me-not-set-in-env"
+    session_secret: str = "change-me-not-set-in-env"
+    
+    # Validation logic to ensure we have a secret key
+    @property
+    def effective_secret_key(self) -> str:
+        """Return SECRET_KEY if set, otherwise fallback to SESSION_SECRET"""
+        if self.secret_key and self.secret_key != "change-me-not-set-in-env":
+            return self.secret_key
+        return self.session_secret
+
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
 
@@ -36,13 +46,7 @@ class Settings(BaseSettings):
             "http://localhost:5174",
             "http://127.0.0.1:5174",
             "http://localhost:3000",
-            "http://13.60.212.110",
-            "https://13.60.212.110",
-            "https://modlrn.vercel.app",
-            "https://modlrn.onrender.com",
-            "https://edulearn-omega.vercel.app",
-            "https://accounts.google.com",
-            "https://oauth2.googleapis.com",
+            "http://localhost:5001",
         ]
 
         # Add FRONTEND_URL from .env if set
@@ -66,10 +70,8 @@ class Settings(BaseSettings):
     code_memory_limit: int = 256
 
     # HackerEarth — loaded from .env
+    hackerearth_client_id: str = ""
     hackerearth_client_secret: str = ""
-
-    # Session — loaded from .env: SESSION_SECRET
-    session_secret: str = "change-me-not-set-in-env"
 
 
 settings = Settings()
