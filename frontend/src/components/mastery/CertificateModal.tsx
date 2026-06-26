@@ -114,8 +114,9 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
                         .cert-footer {
                             display: flex;
                             justify-content: space-between;
+                            align-items: flex-end;
                             width: 80%;
-                            margin-top: 20px;
+                            margin: 20px auto 0 auto;
                         }
                         .cert-date, .cert-signature {
                             text-align: center;
@@ -138,10 +139,6 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
                             letter-spacing: 1px;
                         }
                         .cert-badge {
-                            position: absolute;
-                            bottom: 50px;
-                            left: 50%;
-                            transform: translateX(-50%);
                             width: 80px;
                             height: 80px;
                             background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
@@ -153,6 +150,8 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
                             font-size: 40px;
                             box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
                             border: 4px solid white;
+                            flex-shrink: 0;
+                            margin: 0 20px;
                         }
                         @media print {
                             body { background: white; }
@@ -177,13 +176,14 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
                                     <div class="cert-line">${date.toLocaleDateString()}</div>
                                     <div class="cert-label">Date Completed</div>
                                 </div>
+                                
+                                <div class="cert-badge">★</div>
+                                
                                 <div class="cert-signature">
                                     <div class="cert-line" style="font-family: cursive; font-size: 24px; color: #3b82f6;">EduLearn</div>
                                     <div class="cert-label">Authorized Signature</div>
                                 </div>
                             </div>
-                            
-                            <div class="cert-badge">★</div>
                         </div>
                     </div>
                     <script>
@@ -291,25 +291,25 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
                                         </h3>
                                     </div>
                                     
-                                    <div className="flex justify-between items-end w-[85%] mt-auto">
-                                        <div className="flex flex-col items-center w-40">
-                                            <div className="w-full border-b border-slate-400 text-center font-bold pb-1 text-slate-800">
+                                    <div className="flex justify-between items-end w-[90%] mt-auto mx-auto">
+                                        <div className="flex flex-col items-center w-32 sm:w-40">
+                                            <div className="w-full border-b border-slate-400 text-center font-bold pb-1 text-slate-800 text-sm sm:text-base">
                                                 {date.toLocaleDateString()}
                                             </div>
-                                            <span className="text-xs text-slate-500 uppercase tracking-wider mt-2">
+                                            <span className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider mt-2">
                                                 Date Completed
                                             </span>
                                         </div>
                                         
-                                        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-20 h-20 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-full flex items-center justify-center text-white shadow-lg border-4 border-white z-20">
-                                            <Award className="w-10 h-10" />
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-full flex flex-shrink-0 items-center justify-center text-white shadow-lg border-4 border-white z-20 translate-y-2 mx-4">
+                                            <Award className="w-8 h-8 sm:w-10 sm:h-10" />
                                         </div>
                                         
-                                        <div className="flex flex-col items-center w-40">
-                                            <div className="w-full border-b border-slate-400 text-center font-bold pb-1 text-blue-600" style={{ fontFamily: 'cursive', fontSize: '1.25rem' }}>
+                                        <div className="flex flex-col items-center w-32 sm:w-40">
+                                            <div className="w-full border-b border-slate-400 text-center font-bold pb-1 text-blue-600" style={{ fontFamily: 'cursive', fontSize: '1.1rem' }}>
                                                 EduLearn
                                             </div>
-                                            <span className="text-xs text-slate-500 uppercase tracking-wider mt-2">
+                                            <span className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider mt-2">
                                                 Authorized Signature
                                             </span>
                                         </div>

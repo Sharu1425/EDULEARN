@@ -432,26 +432,106 @@ class PaginatedResponse(BaseModel):
     pages: int
 
 # Mastery Schemas
+class MasteryTopicNode(BaseModel):
+    id: str
+    title: str
+    difficulty: int
+    reading_time_minutes: int
+    prerequisites: List[str]
+
+class MasteryCluster(BaseModel):
+    cluster_id: str
+    cluster_title: str
+    subtopics: List[MasteryTopicNode]
+
 class MasteryRoadmapGenerateRequest(BaseModel):
     subject: str
 
+class MasteryRoadmapGenerateResponse(BaseModel):
+    roadmap_title: str
+    subject: str
+    clusters: List[MasteryCluster]
+
+class MasteryRoadmapResponse(BaseModel):
+    id: str
+    user_id: str
+    subject: str
+    roadmap_title: Optional[str] = None
+    clusters: Optional[List[MasteryCluster]] = None
+    topics: Optional[List[Dict[str, Any]]] = None # Legacy support
+    created_at: datetime
+
+# Summary
+class MasterySummaryGenerateRequest(BaseModel):
+    subtopic_id: str
+    subtopic_title: str
+    difficulty: int
+
+class MasterySummaryGenerateResponse(BaseModel):
+    subtopic_id: str
+    subtopic_title: str
+    difficulty: int
+    estimated_read_minutes: int
+    hook: str
+    explanation: str
+    example: str
+    common_mistake: str
+    key_takeaways: List[str]
+    code_snippet: Optional[str] = None
+
+# Quiz
 class MasteryQuizGenerateRequest(BaseModel):
-    topic_id: str
-    topic_title: str
-    concept_summary: str
+    subtopic_id: str
+    subtopic_title: str
+    difficulty: int
+    attempt_number: int
+
+class MasteryQuizQuestion(BaseModel):
+    q_id: str
+    type: str # 'mcq', 'sata', 'fib', 'scenario', 'coding'
+    question: Optional[str] = None
+    options: Optional[List[str]] = None
+    correct_answer: Optional[Union[str, int]] = None
+    correct_answers: Optional[List[str]] = None # for SATA
+    sentence_with_blank: Optional[str] = None # for FIB
+    correct_word: Optional[str] = None # for FIB
+    near_miss_options: Optional[List[str]] = None # for FIB
+    scenario: Optional[str] = None # for Scenario
+    explanation: str
+    cross_topic: Optional[bool] = False
+    covers_subtopics: Optional[List[str]] = None
 
 class MasteryQuizGenerateResponse(BaseModel):
-    question: str
-    options: List[str]
-    correct_answer: int
+    subtopic_id: str
+    subtopic_title: str
+    attempt_number: int
+    pass_mark: int
+    time_per_question_seconds: int
+    questions: List[MasteryQuizQuestion]
+
+# Final Exam
+class MasteryFinalExamGenerateRequest(BaseModel):
+    roadmap_id: str
+
+class MasteryFinalExamGenerateResponse(BaseModel):
+    exam_title: str
+    roadmap_subject: str
+    total_questions: int
+    pass_mark: int
+    time_limit_minutes: int
+    topic_coverage_map: Dict[str, List[str]]
+    questions: List[MasteryQuizQuestion]
 
 class MasterySubmitQuizRequest(BaseModel):
-    score: float  # e.g., 60.0 or 4 (out of 5)
+    score: float
+    attempt_number: int
+    passed: bool
 
 class UpdateProgressRequest(BaseModel):
     user_id: str
     quiz_score: float
     status: str
+    attempt_number: Optional[int] = 1
 
 class MasterySubmitQuizResponse(BaseModel):
     success: bool
@@ -461,22 +541,10 @@ class MasterySubmitQuizResponse(BaseModel):
     next_topic_id: Optional[str] = None
     message: str
 
-class MasteryTopicNode(BaseModel):
-    id: str
-    title: str
-    order: int
-    concept_summary: str
-    estimated_minutes: int
-
-class MasteryRoadmapResponse(BaseModel):
-    id: str
-    user_id: str
-    subject: str
-    topics: List[MasteryTopicNode]
-    created_at: datetime
-
 class MasteryProgressResponse(BaseModel):
     topic_id: str
     status: str
     quiz_score: Optional[float]
-    completed_at: Optional[datetime]
+    attempts: int = 0
+    locked_until: Optional[datetime] = None
+    completed_at: Optional[datetime] = None

@@ -300,6 +300,8 @@ class MasteryProgressModel(BaseModel):
     topic_id: str
     status: TopicStatus = TopicStatus.locked
     quiz_score: Optional[float] = None
+    attempts: int = 0
+    locked_until: Optional[datetime] = None
     completed_at: Optional[datetime] = None
 
     model_config = ConfigDict(

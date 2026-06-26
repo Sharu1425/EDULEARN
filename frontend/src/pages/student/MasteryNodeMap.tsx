@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
-import { Loader2, ArrowLeft, CheckCircle2, Lock, Flame } from "lucide-react"
+import { Loader2, ArrowLeft, CheckCircle2, Lock, Flame, ShieldAlert } from "lucide-react"
 import api from "../../utils/api"
 import { useToast } from "../../contexts/ToastContext"
 import { useTheme } from "../../contexts/ThemeContext"
@@ -9,22 +9,32 @@ import { useAuth } from "../../hooks/useAuth"
 import { cn } from "../../lib/utils"
 import TopicDetailModal from "../../components/mastery/TopicDetailModal"
 import CertificateModal from "../../components/mastery/CertificateModal"
+import FinalExamModal from "../../components/mastery/FinalExamModal"
 
-interface TopicNode {
+export interface TopicNode {
     id: string
     title: string
-    order: number
-    concept_summary: string
-    estimated_minutes: number
+    difficulty: number
+    reading_time_minutes: number
+    prerequisites: string[]
     status: "locked" | "available" | "completed"
     quiz_score?: number
+    attempts?: number
+    locked_until?: string | null
     progress_id?: string
+}
+
+export interface MasteryCluster {
+    cluster_id: string
+    cluster_title: string
+    subtopics: TopicNode[]
 }
 
 interface RoadmapDetails {
     id: string
     subject: string
-    topics: TopicNode[]
+    roadmap_title?: string
+    topics: MasteryCluster[]
     streak_count: number
 }
 
@@ -40,6 +50,7 @@ const MasteryNodeMap: React.FC = () => {
     const [loading, setLoading] = useState(true)
     const [selectedTopic, setSelectedTopic] = useState<TopicNode | null>(null)
     const [showCertificate, setShowCertificate] = useState(false)
+    const [showFinalExam, setShowFinalExam] = useState(false)
 
     useEffect(() => {
         if (roadmapId) {
@@ -50,9 +61,7 @@ const MasteryNodeMap: React.FC = () => {
     const fetchRoadmapDetails = async () => {
         try {
             const res = await api.get(`/api/mastery/roadmaps/${roadmapId}`)
-            // Sort topics by order just in case
-            const sortedTopics = res.data.topics.sort((a: any, b: any) => a.order - b.order)
-            setRoadmap({ ...res.data, topics: sortedTopics })
+            setRoadmap(res.data)
         } catch (error: any) {
             console.error(error)
             addToast({ title: "Failed to load roadmap", type: "error" })
@@ -80,9 +89,12 @@ const MasteryNodeMap: React.FC = () => {
         )
     }
 
-    const completedCount = roadmap.topics.filter(t => t.status === "completed").length
-    const totalCount = roadmap.topics.length
+    // Flatten all topics to compute total and completed
+    const allTopics = roadmap.topics.flatMap(c => c.subtopics)
+    const completedCount = allTopics.filter(t => t.status === "completed").length
+    const totalCount = allTopics.length
     const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
+    const isAllCompleted = completedCount === totalCount && totalCount > 0
 
     return (
         <div className="min-h-full flex flex-col items-center relative overflow-x-hidden pt-6 pb-20">
@@ -100,21 +112,13 @@ const MasteryNodeMap: React.FC = () => {
                     </button>
                     <div>
                         <h1 className={cn("text-2xl font-heading font-bold", isDark ? "text-white" : "text-slate-900")}>
-                            {roadmap.subject}
+                            {roadmap.roadmap_title || roadmap.subject}
                         </h1>
                         <div className="flex items-center gap-3 text-sm mt-1">
                             <span className="font-semibold text-indigo-500">{completedCount} / {totalCount} Mastered</span>
                             <div className="w-32 h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden hidden sm:block">
                                 <div className="h-full bg-gradient-to-r from-cyan-400 to-indigo-500" style={{ width: `${progress}%` }} />
                             </div>
-                            {completedCount === totalCount && totalCount > 0 && (
-                                <button
-                                    onClick={() => setShowCertificate(true)}
-                                    className="ml-4 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-white font-bold text-xs shadow-md hover:shadow-yellow-500/25 transition-all flex items-center gap-1"
-                                >
-                                    <Flame className="w-3 h-3" /> View Certificate
-                                </button>
-                            )}
                         </div>
                     </div>
                 </div>
@@ -128,71 +132,141 @@ const MasteryNodeMap: React.FC = () => {
                 </div>
             </div>
 
-            {/* Duolingo Style Skill Tree */}
+            {/* Structured Skill Tree by Cluster */}
             <div className="w-full max-w-sm px-4 flex flex-col items-center relative gap-4">
-                {roadmap.topics.map((topic, index) => {
-                    const isCompleted = topic.status === "completed"
-                    const isAvailable = topic.status === "available"
-                    const isLocked = topic.status === "locked"
-                    
-                    // Simple zigzag logic
-                    const offsetX = index % 2 === 0 ? 0 : (index % 4 === 1 ? 40 : -40)
-
-                    return (
-                        <div key={topic.id} className="relative w-full flex flex-col items-center">
-                            {/* Vertical connecting line to next node */}
-                            {index < roadmap.topics.length - 1 && (
-                                <div className="h-12 w-3 rounded-full my-2 bg-slate-200 dark:bg-slate-800 relative overflow-hidden shrink-0">
-                                    {(isCompleted) && (
-                                        <div className="absolute inset-0 bg-green-500" />
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Node */}
-                            <motion.button
-                                whileHover={isAvailable ? { scale: 1.05 } : {}}
-                                whileTap={isAvailable ? { scale: 0.95 } : {}}
-                                onClick={() => {
-                                    if (isAvailable || isCompleted) setSelectedTopic(topic)
-                                }}
-                                disabled={isLocked}
-                                className={cn(
-                                    "relative w-20 h-20 rounded-full flex items-center justify-center transition-all z-10 shrink-0",
-                                    isCompleted ? "bg-green-500 text-white shadow-[0_6px_0_#16a34a]" : '',
-                                    isAvailable ? "bg-gradient-to-b from-cyan-400 to-indigo-500 text-white shadow-[0_6px_0_#4f46e5]" : '',
-                                    isLocked ? "bg-slate-200 dark:bg-slate-800 text-slate-400 shadow-[0_6px_0_#cbd5e1] dark:shadow-[0_6px_0_#0f172a] cursor-not-allowed opacity-80" : ''
-                                )}
-                                style={{ transform: `translateX(${offsetX}px)` }}
-                            >
-                                {/* Glowing rings for available node */}
-                                {isAvailable && (
-                                    <>
-                                        <div className="absolute inset-0 rounded-full animate-ping bg-cyan-400/40" style={{ animationDuration: '2s' }} />
-                                        <div className="absolute -inset-2 rounded-full border-2 border-indigo-400/50" />
-                                    </>
-                                )}
-
-                                {isCompleted && <CheckCircle2 className="w-8 h-8" />}
-                                {isAvailable && <span className="font-bold text-xl">{index + 1}</span>}
-                                {isLocked && <Lock className="w-8 h-8" />}
-                            </motion.button>
-                            
-                            {/* Title below node */}
-                            <div 
-                                className={cn(
-                                    "mt-3 text-center px-4 max-w-[200px]",
-                                    isCompleted ? "font-semibold text-green-600 dark:text-green-400" :
-                                    isAvailable ? "font-bold text-indigo-600 dark:text-indigo-400" :
-                                    "font-medium text-slate-500 dark:text-slate-400"
-                                )}
-                                style={{ transform: `translateX(${offsetX}px)` }}
-                            >
-                                {topic.title}
-                            </div>
+                {roadmap.topics.map((cluster, cIndex) => (
+                    <div key={cluster.cluster_id} className="w-full flex flex-col items-center mb-12">
+                        {/* Cluster Header */}
+                        <div className="mb-6 px-6 py-2 rounded-full border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 shadow-sm z-20">
+                            <h3 className="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest text-xs">
+                                {cluster.cluster_title}
+                            </h3>
                         </div>
-                    )
-                })}
+
+                        {cluster.subtopics.map((topic, index) => {
+                            const isCompleted = topic.status === "completed"
+                            const isAvailable = topic.status === "available"
+                            const isLocked = topic.status === "locked"
+                            
+                            let isCooldown = false
+                            let cooldownRemaining = 0
+                            if (topic.locked_until) {
+                                const lockedDate = new Date(topic.locked_until).getTime()
+                                const now = Date.now()
+                                if (lockedDate > now) {
+                                    isCooldown = true
+                                    cooldownRemaining = Math.ceil((lockedDate - now) / 60000)
+                                }
+                            }
+
+                            const offsetX = index % 2 === 0 ? 0 : (index % 4 === 1 ? 40 : -40)
+                            const isLastNode = cIndex === roadmap.topics.length - 1 && index === cluster.subtopics.length - 1
+
+                            return (
+                                <div key={topic.id} className="relative w-full flex flex-col items-center">
+                                    {/* Vertical connecting line to next node */}
+                                    {!isLastNode && (
+                                        <div className="h-12 w-3 rounded-full my-2 bg-slate-200 dark:bg-slate-800 relative overflow-hidden shrink-0">
+                                            {(isCompleted) && (
+                                                <div className="absolute inset-0 bg-green-500" />
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Node */}
+                                    <motion.button
+                                        whileHover={(isAvailable || isCompleted) && !isCooldown ? { scale: 1.05 } : {}}
+                                        whileTap={(isAvailable || isCompleted) && !isCooldown ? { scale: 0.95 } : {}}
+                                        onClick={() => {
+                                            if (!isCooldown && (isAvailable || isCompleted)) {
+                                                setSelectedTopic(topic)
+                                            } else if (isCooldown) {
+                                                addToast({ title: `Topic in cooldown for ${cooldownRemaining}m`, type: "error" })
+                                            }
+                                        }}
+                                        disabled={isLocked && !isCooldown}
+                                        className={cn(
+                                            "relative w-20 h-20 rounded-full flex items-center justify-center transition-all z-10 shrink-0",
+                                            isCompleted ? "bg-green-500 text-white shadow-[0_6px_0_#16a34a]" : '',
+                                            isAvailable && !isCooldown ? "bg-gradient-to-b from-cyan-400 to-indigo-500 text-white shadow-[0_6px_0_#4f46e5]" : '',
+                                            (isLocked && !isCooldown) ? "bg-slate-200 dark:bg-slate-800 text-slate-400 shadow-[0_6px_0_#cbd5e1] dark:shadow-[0_6px_0_#0f172a] cursor-not-allowed opacity-80" : '',
+                                            isCooldown ? "bg-red-500 text-white shadow-[0_6px_0_#b91c1c] cursor-not-allowed" : ''
+                                        )}
+                                        style={{ transform: `translateX(${offsetX}px)` }}
+                                    >
+                                        {/* Glowing rings for available node */}
+                                        {isAvailable && !isCooldown && (
+                                            <>
+                                                <div className="absolute inset-0 rounded-full animate-ping bg-cyan-400/40" style={{ animationDuration: '2s' }} />
+                                                <div className="absolute -inset-2 rounded-full border-2 border-indigo-400/50" />
+                                            </>
+                                        )}
+
+                                        {isCompleted && <CheckCircle2 className="w-8 h-8" />}
+                                        {isAvailable && !isCooldown && <span className="font-bold text-xl">{topic.difficulty}</span>}
+                                        {(isLocked && !isCooldown) && <Lock className="w-8 h-8" />}
+                                        {isCooldown && <ShieldAlert className="w-8 h-8" />}
+                                        
+                                        {/* Difficulty Badge */}
+                                        <div className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold border-2 border-white shadow-sm">
+                                            L{topic.difficulty}
+                                        </div>
+                                    </motion.button>
+                                    
+                                    {/* Title below node */}
+                                    <div 
+                                        className={cn(
+                                            "mt-3 text-center px-4 max-w-[200px]",
+                                            isCompleted ? "font-semibold text-green-600 dark:text-green-400" :
+                                            isAvailable && !isCooldown ? "font-bold text-indigo-600 dark:text-indigo-400" :
+                                            isCooldown ? "font-bold text-red-500" :
+                                            "font-medium text-slate-500 dark:text-slate-400"
+                                        )}
+                                        style={{ transform: `translateX(${offsetX}px)` }}
+                                    >
+                                        {topic.title}
+                                        {isCooldown && (
+                                            <div className="text-xs mt-1 text-red-400">Cooldown: {cooldownRemaining}m</div>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                ))}
+                
+                {/* Final Boss Node */}
+                {allTopics.length > 0 && (
+                    <div className="w-full flex flex-col items-center mt-4">
+                        <div className="h-12 w-3 rounded-full my-2 bg-slate-200 dark:bg-slate-800 relative overflow-hidden shrink-0">
+                            {isAllCompleted && <div className="absolute inset-0 bg-green-500" />}
+                        </div>
+                        <motion.button
+                            whileHover={isAllCompleted ? { scale: 1.05 } : {}}
+                            whileTap={isAllCompleted ? { scale: 0.95 } : {}}
+                            onClick={() => {
+                                if (isAllCompleted) setShowFinalExam(true)
+                            }}
+                            disabled={!isAllCompleted}
+                            className={cn(
+                                "relative w-28 h-24 rounded-2xl flex items-center justify-center transition-all z-10 shrink-0",
+                                isAllCompleted ? "bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-[0_8px_0_#b45309]" : "bg-slate-200 dark:bg-slate-800 text-slate-400 shadow-[0_8px_0_#cbd5e1] dark:shadow-[0_8px_0_#0f172a] cursor-not-allowed opacity-80"
+                            )}
+                        >
+                            {isAllCompleted && (
+                                <>
+                                    <div className="absolute inset-0 rounded-2xl animate-ping bg-yellow-400/40" style={{ animationDuration: '3s' }} />
+                                    <div className="absolute -inset-2 rounded-2xl border-2 border-yellow-400/50" />
+                                </>
+                            )}
+                            <div className="flex flex-col items-center gap-1">
+                                <Flame className="w-8 h-8" />
+                                <span className="font-bold text-xs uppercase tracking-wider">Final Exam</span>
+                            </div>
+                        </motion.button>
+                    </div>
+                )}
+                
                 <div className="h-8" /> {/* extra padding at bottom */}
             </div>
 
@@ -200,44 +274,33 @@ const MasteryNodeMap: React.FC = () => {
                 isOpen={!!selectedTopic}
                 onClose={() => setSelectedTopic(null)}
                 topic={selectedTopic}
+                roadmapId={roadmap.id}
                 onComplete={(updatedProgress?: any[]) => {
-                    if (updatedProgress && roadmap) {
-                        const progressMap = new Map();
-                        updatedProgress.forEach(p => progressMap.set(p.topic_id, p));
-                        
-                        setRoadmap(prev => {
-                            if (!prev) return prev;
-                            const newTopics = prev.topics.map(t => {
-                                const p = progressMap.get(t.id);
-                                if (p) {
-                                    return { ...t, status: p.status, quiz_score: p.quiz_score, progress_id: p.id || p._id };
-                                }
-                                return t;
-                            });
-                            
-                            // Check if this completion finished the entire roadmap
-                            const newCompletedCount = newTopics.filter(t => t.status === "completed").length;
-                            const newTotalCount = newTopics.length;
-                            if (newCompletedCount === newTotalCount && newTotalCount > 0) {
-                                // Add a small delay for a better user experience
-                                setTimeout(() => setShowCertificate(true), 500);
-                            }
-                            
-                            return { ...prev, topics: newTopics };
-                        });
-                    } else {
+                    if (updatedProgress) {
                         fetchRoadmapDetails()
                     }
                     setSelectedTopic(null)
                 }}
             />
 
+            {showFinalExam && (
+                <FinalExamModal
+                    isOpen={showFinalExam}
+                    onClose={() => setShowFinalExam(false)}
+                    roadmapId={roadmap.id}
+                    onComplete={() => {
+                        setShowFinalExam(false)
+                        setShowCertificate(true)
+                    }}
+                />
+            )}
+
             {showCertificate && roadmap && (
                 <CertificateModal
                     isOpen={showCertificate}
                     onClose={() => setShowCertificate(false)}
                     studentName={user?.name || user?.username || "Student"}
-                    topicName={roadmap.subject}
+                    topicName={roadmap.roadmap_title || roadmap.subject}
                     date={new Date()}
                 />
             )}
