@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useCallback, useEffect, useRef } from "react"
+import React, { useState, useCallback, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -9,11 +9,10 @@ import {
     X
 } from "lucide-react"
 import { cn } from "../../lib/utils"
-import { spring } from "../../lib/motion"
+import { spring, staggerContainer, staggerItem } from "../../lib/motion"
 import { useTheme } from "../../contexts/ThemeContext"
 import { getSidebarNavItems } from "../../utils/roleUtils"
 import type { User as UserType } from "../../types"
-import gsap from "gsap"
 
 const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
     LayoutDashboard, ClipboardList, Code2, BarChart3, User, Settings,
@@ -144,44 +143,7 @@ interface SidebarContentProps {
     onClose?: () => void
 }
 
-const SidebarContent: React.FC<SidebarContentProps> = ({ collapsed, isDark, navItems, isActive, onClose }) => {
-    const navRef = useRef<HTMLElement>(null)
-
-    useEffect(() => {
-        let ctx = gsap.context(() => {
-            const items = gsap.utils.toArray('.nav-item-wrapper');
-            
-            // First run the entrance animation
-            gsap.fromTo(
-                items,
-                { opacity: 0, x: -20 },
-                { 
-                    opacity: 1, 
-                    x: 0, 
-                    duration: 0.4, 
-                    stagger: 0.1, 
-                    ease: "power2.out",
-                    onComplete: () => {
-                        // Then start the infinite floating menu effect
-                        gsap.to(items, {
-                            x: 4,
-                            duration: 1.5,
-                            stagger: {
-                                each: 0.15,
-                                repeat: -1,
-                                yoyo: true
-                            },
-                            ease: "sine.inOut"
-                        });
-                    }
-                }
-            );
-        }, navRef);
-
-        return () => ctx.revert(); // Cleanup on unmount/re-render
-    }, [navItems])
-
-    return (
+const SidebarContent: React.FC<SidebarContentProps> = ({ collapsed, isDark, navItems, isActive, onClose }) => (
     <>
         {/* Top bar — mobile drawer only (desktop brand + collapse live in the Header) */}
         {onClose && (
@@ -206,12 +168,14 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ collapsed, isDark, navI
         )}
 
         {/* Nav items — staggered in on mount (runs once, no longer on every nav) */}
-        <nav
-            ref={navRef}
+        <motion.nav
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
             className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-0.5"
         >
             {navItems.map(item => (
-                <div key={item.path} className="nav-item-wrapper opacity-0">
+                <motion.div key={item.path} variants={staggerItem}>
                     <NavItem
                         {...item}
                         collapsed={collapsed}
@@ -219,15 +183,14 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ collapsed, isDark, navI
                         active={isActive(item.path, item.exact)}
                         onClick={onClose}
                     />
-                </div>
+                </motion.div>
             ))}
-        </nav>
+        </motion.nav>
 
         {/* Bottom spacer */}
         <div className="h-4" />
     </>
-    )
-}
+)
 
 const Sidebar: React.FC<SidebarProps> = ({ user, collapsed, className }) => {
     const location = useLocation()
