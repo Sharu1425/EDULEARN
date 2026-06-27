@@ -12,6 +12,7 @@ import Button from "../components/ui/Button"
 import assessmentService from "../api/assessmentService"
 import { ANIMATION_VARIANTS } from "../utils/constants"
 import { Sparkles, Users, BookOpen, Video, BarChart3 } from "lucide-react"
+import { TypewriterEffect } from "../components/ui/TypewriterEffect"
 
 interface Student {
   id: string
@@ -170,9 +171,11 @@ const TeacherDashboard: React.FC = () => {
         >
           {/* Header */}
           <motion.div variants={ANIMATION_VARIANTS.slideDown} className="mb-8">
-            <h1 className="text-3xl sm:text-4xl font-black gradient-text mb-1">Teacher Dashboard</h1>
-            <p className="text-muted-foreground">
-              Welcome back, {user?.name || user?.email || "Teacher"}!
+            <h1 className="text-3xl sm:text-4xl font-black mb-1 text-foreground">
+              <TypewriterEffect text={`Welcome back, ${user?.name || user?.email || "Teacher"}!`} />
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              <TypewriterEffect text="Ready to manage your classroom and empower your students?" delay={1.5} cursor={false} />
             </p>
           </motion.div>
 

@@ -15,6 +15,7 @@ import SettingsPanel from "./SettingsPanel"
 import LoadingSpinner from "../ui/LoadingSpinner"
 import api from "../../utils/api"
 import { Users, LayoutGrid, Settings, ShieldCheck, Activity, BrainCircuit, AlertTriangle } from "lucide-react"
+import { TypewriterEffect } from "../ui/TypewriterEffect"
 
 interface DashboardStats {
   total_users: number
@@ -86,9 +87,11 @@ const EnhancedAdminDashboard: React.FC = () => {
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <h1 className="text-3xl font-bold font-heading text-foreground mb-2 flex items-center gap-3">
             <ShieldCheck className="w-8 h-8 text-primary" />
-            Control Center
+            <TypewriterEffect text={`Welcome back, ${user?.name || user?.username || "Admin"}!`} />
           </h1>
-          <p className="text-muted-foreground">Monitor platform health, manage users, and configure system settings.</p>
+          <p className="text-muted-foreground">
+            <TypewriterEffect text="Monitor platform health, manage users, and configure system settings." delay={1.5} cursor={false} />
+          </p>
         </motion.div>
 
         {/* System Monitoring Overview */}
