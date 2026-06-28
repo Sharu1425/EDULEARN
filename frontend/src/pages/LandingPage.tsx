@@ -1,766 +1,466 @@
 import type React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 import { Link } from "react-router-dom"
-import { motion, useMotionValue, useTransform, useInView } from "framer-motion"
-import Button from "@/components/ui/Button"
-import { Sparkles, Brain, Code2, BarChart3, Users, Zap, Trophy, ArrowRight, CheckCircle2 } from "lucide-react"
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
+import { Sparkles as SparklesIcon, Brain, Code2, LineChart, Users, ChevronRight, Shield, Rocket, ArrowRight } from "lucide-react"
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import { Environment, Float, MeshDistortMaterial, Stars, Icosahedron, Dodecahedron, Sphere, Torus } from "@react-three/drei"
+import * as THREE from "three"
 
-/* ─── Data ──────────────────────────────────────────────────────────────────── */
+/* ─── 3D Scene Components ──────────────────────────────── */
+
+// Makes the camera slightly follow the mouse for a premium parallax effect
+const CameraRig = () => {
+  const { camera, mouse } = useThree()
+  useFrame(() => {
+    // Subtle movement based on mouse
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouse.x * 2, 0.05)
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, mouse.y * 2, 0.05)
+    camera.lookAt(0, 0, 0)
+  })
+  return null
+}
+
+const ElectronRing = ({ rotation, speed, color }: any) => {
+  const ref = useRef<THREE.Group>(null)
+  useFrame(({ clock }) => {
+    if (ref.current) {
+      ref.current.rotation.z = clock.getElapsedTime() * speed
+    }
+  })
+  return (
+    <group rotation={rotation}>
+      <Torus args={[2, 0.015, 16, 100]}>
+        <meshStandardMaterial color={color} opacity={0.2} transparent />
+      </Torus>
+      <group ref={ref}>
+        <Sphere args={[0.12, 16, 16]} position={[2, 0, 0]}>
+          <MeshDistortMaterial color={color} emissive={color} emissiveIntensity={2} clearcoat={1} roughness={0} distort={0.2} speed={5} />
+        </Sphere>
+      </group>
+    </group>
+  )
+}
+
+const ScienceAtom = () => {
+  return (
+    <group>
+      {/* Central Core */}
+      <Float speed={2} rotationIntensity={2} floatIntensity={1}>
+        <Sphere args={[0.6, 64, 64]}>
+          <MeshDistortMaterial color="#10b981" distort={0.3} speed={3} transmission={0.9} thickness={1} roughness={0.1} ior={1.5} emissive="#10b981" emissiveIntensity={0.2} />
+        </Sphere>
+      </Float>
+      {/* Orbital Rings */}
+      <ElectronRing rotation={[Math.PI / 2, 0, 0]} speed={1} color="#3b82f6" />
+      <ElectronRing rotation={[Math.PI / 2, Math.PI / 3, 0]} speed={1.5} color="#10b981" />
+      <ElectronRing rotation={[Math.PI / 2, -Math.PI / 3, 0]} speed={1.2} color="#14b8a6" />
+    </group>
+  )
+}
+
+const AbstractBook = () => {
+  const ref = useRef<THREE.Group>(null)
+  useFrame((state) => {
+    if (ref.current) {
+      // Gentle page breathing effect
+      const breathe = Math.sin(state.clock.elapsedTime * 2) * 0.05
+      const leftPage = ref.current.children[0]
+      const rightPage = ref.current.children[1]
+      leftPage.rotation.y = 0.2 + breathe
+      rightPage.rotation.y = -0.2 - breathe
+    }
+  })
+
+  return (
+    <group ref={ref} rotation={[0.4, 0.8, -0.2]}>
+      {/* Left Page */}
+      <mesh position={[-1, 0, 0]} rotation={[0, 0.2, 0]}>
+        <boxGeometry args={[2, 0.05, 2.5]} />
+        <MeshDistortMaterial color="#14b8a6" transmission={0.9} thickness={0.5} roughness={0.1} distort={0.1} speed={1} />
+      </mesh>
+      {/* Right Page */}
+      <mesh position={[1, 0, 0]} rotation={[0, -0.2, 0]}>
+        <boxGeometry args={[2, 0.05, 2.5]} />
+        <MeshDistortMaterial color="#3b82f6" transmission={0.9} thickness={0.5} roughness={0.1} distort={0.1} speed={1} />
+      </mesh>
+      {/* Spine / Binding */}
+      <mesh position={[0, -0.05, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.1, 0.1, 2.5, 16]} />
+        <meshStandardMaterial color="#ffffff" metalness={0.9} roughness={0.1} emissive="#ffffff" emissiveIntensity={0.1} />
+      </mesh>
+    </group>
+  )
+}
+
+const EducationalScene = () => {
+  const groupRef = useRef<THREE.Group>(null)
+
+  useFrame(() => {
+    if (groupRef.current) {
+      // Scroll interaction: vertical parallax and dynamic rotation
+      const scrollY = window.scrollY
+      groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, scrollY * 0.005, 0.1)
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, scrollY * 0.002, 0.1)
+    }
+  })
+
+  return (
+    <group ref={groupRef}>
+      {/* Pushed further out to prevent overlapping the centered text */}
+      
+      {/* The Atom (Science / Physics) */}
+      <group position={[6.5, 0.5, -5]}>
+        <Float speed={1.5} rotationIntensity={0.5} floatIntensity={1}>
+          <ScienceAtom />
+        </Float>
+      </group>
+
+      {/* The Book (Humanities / Literature) */}
+      <group position={[-6.5, -1, -5]}>
+        <Float speed={2} rotationIntensity={1} floatIntensity={2}>
+          <AbstractBook />
+        </Float>
+      </group>
+
+      {/* Dodecahedron (Mathematics / Geometry) */}
+      <group position={[-5, 3, -6]}>
+        <Float speed={2.5} rotationIntensity={2} floatIntensity={1.5}>
+          <Dodecahedron args={[1, 0]}>
+            <MeshDistortMaterial color="#10b981" transmission={0.9} thickness={1} roughness={0.1} distort={0.2} />
+          </Dodecahedron>
+        </Float>
+      </group>
+
+      {/* Icosahedron (Data / Logic) */}
+      <group position={[5, -3, -6]}>
+        <Float speed={2} rotationIntensity={1.5} floatIntensity={2}>
+          <Icosahedron args={[0.8, 0]}>
+            <MeshDistortMaterial color="#3b82f6" transmission={0.9} thickness={0.5} roughness={0.1} distort={0.3} />
+          </Icosahedron>
+        </Float>
+      </group>
+    </group>
+  )
+}
+
+/* ─── Shared Glow & Noise Effects ────────────────────────── */
+const NoiseBackground = () => (
+  <div
+    className="fixed inset-0 z-10 opacity-[0.03] pointer-events-none"
+    style={{ backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')" }}
+  />
+);
+
+/* ─── Animated Hero Text ────────────────────────────────── */
 const TYPING_TEXTS = [
-  "AI that understands how you learn.",
-  "Personalized. Adaptive. Intelligent.",
-  "The smartest way to ace your exams.",
-  "Code, compete & conquer your goals.",
+  "Master your exams with AI.",
+  "Learn to code interactively.",
+  "Track your real progress.",
+  "Shape your future.",
 ]
 
-const features = [
-  {
-    icon: Brain,
-    title: "AI-Powered Assessments",
-    description: "Generate unique, adaptive questions with Gemini AI — personalized to your topic, difficulty, and learning style.",
-    gradient: "from-teal-500 to-teal-600",
-    glow: "rgba(34,211,238,0.3)",
-    badge: "+40% retention",
-  },
-  {
-    icon: Code2,
-    title: "Real-time Code Execution",
-    description: "Practice coding with our integrated IDE supporting 15+ languages. Instant feedback, real-time compilation.",
-    gradient: "from-emerald-500 to-teal-600",
-    glow: "rgba(52,211,153,0.3)",
-    badge: "15+ Languages",
-  },
-  {
-    icon: BarChart3,
-    title: "Smart Analytics",
-    description: "Deep insights into your performance trajectory. AI detects patterns humans can't see and suggests micro-improvements.",
-    gradient: "from-teal-500 to-emerald-600",
-    glow: "rgba(20,184,166,0.3)",
-    badge: "AI Insights",
-  },
-  {
-    icon: Users,
-    title: "Batch Management",
-    description: "Teachers get a command center for managing batches, assigning AI-generated tests, and tracking every student's journey.",
-    gradient: "from-orange-500 to-rose-500",
-    glow: "rgba(249,115,22,0.3)",
-    badge: "Live Tracking",
-  },
-  {
-    icon: Zap,
-    title: "ThinkTrace AI Interview",
-    description: "An AI that probes your reasoning, not just your answers. Adaptive conversations that reveal true understanding.",
-    gradient: "from-yellow-500 to-amber-600",
-    glow: "rgba(234,179,8,0.3)",
-    badge: "Adaptive AI",
-  },
-  {
-    icon: Trophy,
-    title: "Leaderboards & Ranks",
-    description: "Compete with peers on dynamically updated leaderboards. Celebrate milestones and keep your competitive edge.",
-    gradient: "from-pink-500 to-rose-600",
-    glow: "rgba(236,72,153,0.3)",
-    badge: "Live Rankings",
-  },
-]
-
-const steps = [
-  {
-    num: "01",
-    title: "Sign Up & Choose Your Role",
-    desc: "Create your account as a Student, Teacher, or Admin. Get onboarded in under 60 seconds.",
-    icon: "👤",
-    color: "#10b981",
-  },
-  {
-    num: "02",
-    title: "Generate or Take AI Assessments",
-    desc: "Teachers craft exams in seconds. Students attempt personalized tests with real-time AI feedback.",
-    icon: "🧠",
-    color: "#14b8a6",
-  },
-  {
-    num: "03",
-    title: "Track, Compete & Grow",
-    desc: "Monitor progress with rich analytics, compete on leaderboards, and unlock your full potential.",
-    icon: "🚀",
-    color: "#2dd4bf",
-  },
-]
-
-const aiTags = [
-  { text: "+12% improvement detected", color: "#10b981" },
-  { text: "AI adapting difficulty...", color: "#14b8a6" },
-  { text: "3 new insights ready", color: "#2dd4bf" },
-  { text: "89% accuracy predicted", color: "#34d399" },
-]
-
-/* ─── Typing Animation ──────────────────────────────────────────────────────── */
-const TypingText: React.FC = () => {
+const TypingSubtitle = () => {
   const [index, setIndex] = useState(0)
-  const [displayed, setDisplayed] = useState("")
-  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
-    const text = TYPING_TEXTS[index]
-    if (!deleting && displayed.length < text.length) {
-      const t = setTimeout(() => setDisplayed(text.slice(0, displayed.length + 1)), 45)
-      return () => clearTimeout(t)
-    }
-    if (!deleting && displayed.length === text.length) {
-      const t = setTimeout(() => setDeleting(true), 2200)
-      return () => clearTimeout(t)
-    }
-    if (deleting && displayed.length > 0) {
-      const t = setTimeout(() => setDisplayed(displayed.slice(0, -1)), 22)
-      return () => clearTimeout(t)
-    }
-    if (deleting && displayed.length === 0) {
-      setDeleting(false)
-      setIndex((i) => (i + 1) % TYPING_TEXTS.length)
-    }
-  }, [displayed, deleting, index])
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % TYPING_TEXTS.length)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
-    <span>
-      <span style={{ color: "#10b981" }}>{displayed}</span>
-      <span className="typing-cursor" style={{ background: "#10b981" }} />
-    </span>
+    <div className="h-8 overflow-hidden relative flex justify-center w-full">
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={index}
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -20, opacity: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="text-xl sm:text-2xl font-medium text-emerald-400 absolute"
+        >
+          {TYPING_TEXTS[index]}
+        </motion.p>
+      </AnimatePresence>
+    </div>
   )
 }
 
-/* ─── 3D Tilt Hero Card ─────────────────────────────────────────────────────── */
-const HeroCard: React.FC = () => {
-  const cardRef = useRef<HTMLDivElement>(null)
-  const rotateX = useMotionValue(0)
-  const rotateY = useMotionValue(0)
-  const glowX = useTransform(rotateY, [-15, 15], ["0%", "100%"])
-  const glowY = useTransform(rotateX, [-15, 15], ["0%", "100%"])
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = cardRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const cx = rect.left + rect.width / 2
-    const cy = rect.top + rect.height / 2
-    rotateX.set(((e.clientY - cy) / (rect.height / 2)) * -10)
-    rotateY.set(((e.clientX - cx) / (rect.width / 2)) * 10)
-  }
-
-  const handleMouseLeave = () => {
-    rotateX.set(0)
-    rotateY.set(0)
-  }
-
-  return (
-    <motion.div
-      ref={cardRef}
-      style={{ rotateX, rotateY, transformStyle: "preserve-3d", perspective: "1000px" }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="animate-float"
-    >
-      <div
-        className="relative w-full max-w-sm rounded-3xl border p-6 overflow-hidden cursor-pointer"
-        style={{
-          background: "rgba(10,18,40,0.7)",
-          backdropFilter: "blur(20px)",
-          borderColor: "rgba(16,185,129,0.2)",
-          boxShadow: "0 25px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(16,185,129,0.1)",
-        }}
-      >
-        {/* Shimmer overlay */}
-        <motion.div
-          className="absolute inset-0 pointer-events-none rounded-3xl opacity-30"
-          style={{
-            background: `radial-gradient(circle at ${glowX} ${glowY}, rgba(16,185,129,0.2), transparent 60%)`,
-          }}
-        />
-
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg,#10b981,#14b8a6)" }}>
-              <Brain className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <p className="text-white text-xs font-bold">EduLearn AI</p>
-              <p className="text-xs" style={{ color: "#10b981" }}>Session Active</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] text-emerald-400 font-semibold">LIVE</span>
-          </div>
-        </div>
-
-        {/* Progress bars */}
-        <div className="space-y-3 mb-5">
-          {[
-            { label: "Data Structures", val: 78, color: "#10b981" },
-            { label: "Algorithms", val: 62, color: "#14b8a6" },
-            { label: "System Design", val: 45, color: "#2dd4bf" },
-          ].map((item) => (
-            <div key={item.label}>
-              <div className="flex justify-between text-[11px] mb-1">
-                <span style={{ color: "rgba(255,255,255,0.7)" }}>{item.label}</span>
-                <span style={{ color: item.color }}>{item.val}%</span>
-              </div>
-              <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${item.val}%` }}
-                  transition={{ duration: 1.5, delay: 0.5, ease: "easeOut" }}
-                  className="h-full rounded-full"
-                  style={{ background: `linear-gradient(90deg, ${item.color}, rgba(255,255,255,0.4))` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* AI Insight */}
-        <div className="rounded-xl p-3 flex items-center gap-3"
-          style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.15)" }}>
-          <Sparkles className="h-4 w-4 shrink-0" style={{ color: "#10b981" }} />
-          <p className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>
-            AI detected you struggle with <strong style={{ color: "#10b981" }}>Graph traversal</strong>. 
-            Personalizing next 3 questions.
-          </p>
-        </div>
-
-        {/* Score badge */}
-        <div className="absolute -top-3 -right-3 w-14 h-14 rounded-full flex flex-col items-center justify-center text-center"
-          style={{
-            background: "linear-gradient(135deg,#10b981,#14b8a6)",
-            boxShadow: "0 0 30px rgba(16,185,129,0.5)",
-          }}>
-          <span className="text-white font-black text-lg leading-none">92</span>
-          <span className="text-white/70 text-[9px] font-semibold">SCORE</span>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-/* ─── Feature Card ──────────────────────────────────────────────────────────── */
-const FeatureCard: React.FC<typeof features[0] & { index: number }> = ({
-  icon: Icon, title, description, gradient, glow, badge, index
-}) => {
-  const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: "-80px" })
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-      className="feature-card group relative rounded-2xl border p-6 overflow-hidden cursor-default"
-      style={{
-        background: "rgba(10,14,30,0.55)",
-        backdropFilter: "blur(16px)",
-        borderColor: "rgba(255,255,255,0.06)",
-      }}
-    >
-      {/* Background glow on hover */}
-      <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none"
-        style={{ background: `radial-gradient(circle at 30% 30%, ${glow}, transparent 70%)` }}
-      />
-
-      {/* Icon */}
-      <motion.div
-        whileHover={{ scale: 1.1, rotate: 5 }}
-        transition={{ type: "spring", stiffness: 400, damping: 20 }}
-        className={`relative z-10 w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-4 shadow-lg`}
-        style={{ boxShadow: `0 8px 24px ${glow}` }}
-      >
-        <Icon className="h-6 w-6 text-white" />
-      </motion.div>
-
-      {/* Badge */}
-      <div className="relative z-10 mb-3">
-        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-          style={{
-            background: `${glow.replace("0.3", "0.12")}`,
-            border: `1px solid ${glow.replace("0.3", "0.35")}`,
-            color: glow.includes("34,211") ? "#34d399" : glow.includes("139,92") ? "#5eead4" : "#10b981",
-          }}>
-          <Sparkles className="h-2.5 w-2.5" />
-          {badge}
-        </span>
-      </div>
-
-      <h3 className="relative z-10 text-lg font-bold text-white mb-2">{title}</h3>
-      <p className="relative z-10 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
-        {description}
-      </p>
-
-      {/* Bottom arrow on hover */}
-      <div className="relative z-10 mt-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-x-2 group-hover:translate-x-0">
-        <span className="text-xs font-semibold" style={{ color: "#10b981" }}>Explore</span>
-        <ArrowRight className="h-3 w-3" style={{ color: "#10b981" }} />
-      </div>
-    </motion.div>
-  )
-}
-
-/* ─── Step Card ─────────────────────────────────────────────────────────────── */
-const StepCard: React.FC<typeof steps[0] & { index: number }> = ({
-  num, title, desc, icon, color, index
-}) => {
-  const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: "-60px" })
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.7, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
-      className="relative"
-    >
-      <div
-        className="rounded-2xl border p-7 h-full"
-        style={{
-          background: "rgba(10,14,30,0.6)",
-          backdropFilter: "blur(16px)",
-          borderColor: `${color}25`,
-          boxShadow: `0 8px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)`,
-        }}
-      >
-        {/* Step number */}
-        <div className="text-7xl font-black mb-4 leading-none"
-          style={{
-            WebkitTextFillColor: "transparent",
-            WebkitTextStroke: `1px ${color}50`,
-          }}>
-          {num}
-        </div>
-
-        <div className="flex items-center gap-3 mb-3">
-          <span className="text-2xl">{icon}</span>
-          <h3 className="text-lg font-bold text-white">{title}</h3>
-        </div>
-
-        <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>
-          {desc}
-        </p>
-
-        {/* Color accent line */}
-        <div className="mt-5 h-0.5 w-16 rounded-full"
-          style={{ background: `linear-gradient(90deg, ${color}, transparent)` }} />
-      </div>
-    </motion.div>
-  )
-}
-
-/* ─── Floating AI Tag ───────────────────────────────────────────────────────── */
-const FloatingTag: React.FC<{ text: string; color: string; delay: number; className?: string }> = ({
-  text, color, delay, className
-}) => (
+/* ─── Premium Feature Card ──────────────────────────────── */
+const FeatureCard = ({ icon: Icon, title, desc, delay }: any) => (
   <motion.div
-    initial={{ opacity: 0, scale: 0.8, y: 20 }}
-    animate={{ opacity: 1, scale: 1, y: 0 }}
-    transition={{ delay, duration: 0.6, ease: "backOut" }}
-    className={`absolute hidden lg:flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold shadow-xl z-20 ${className}`}
-    style={{
-      background: "rgba(10,14,30,0.8)",
-      backdropFilter: "blur(12px)",
-      border: `1px solid ${color}35`,
-      color,
-    }}
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: "-50px" }}
+    transition={{ duration: 0.7, delay }}
+    className="group relative p-[1px] rounded-3xl overflow-hidden cursor-default"
   >
-    <motion.div
-      animate={{ scale: [1, 1.3, 1] }}
-      transition={{ duration: 2, repeat: Infinity, delay }}
-      className="h-1.5 w-1.5 rounded-full"
-      style={{ background: color }}
-    />
-    {text}
+    {/* Animated glowing border */}
+    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/50 to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 animate-spin-slow" />
+    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-white/0 opacity-100" />
+
+    <div className="relative h-full bg-[#09090b]/80 backdrop-blur-xl rounded-3xl p-8 z-10 flex flex-col items-start overflow-hidden">
+      {/* Glow on hover */}
+      <div className="absolute -inset-x-12 -top-12 h-32 w-32 bg-emerald-500/20 blur-[50px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+      <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center border border-emerald-500/30 mb-6 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+        <Icon className="h-6 w-6 text-emerald-400" />
+      </div>
+
+      <h3 className="text-xl font-bold text-white mb-3 group-hover:text-emerald-400 transition-colors duration-300">
+        {title}
+      </h3>
+      <p className="text-white/60 leading-relaxed text-sm">
+        {desc}
+      </p>
+    </div>
   </motion.div>
 )
 
-/* ─── Neural Wave SVG ───────────────────────────────────────────────────────── */
-const WAVE_PATHS = [
-  "M0,160 C360,80 720,200 1080,120 L1440,100 L1440,320 L0,320 Z",
-  "M0,180 C360,100 720,180 1080,140 L1440,120 L1440,320 L0,320 Z",
-  "M0,140 C360,200 720,100 1080,160 L1440,140 L1440,320 L0,320 Z",
-  "M0,200 C360,120 720,220 1080,100 L1440,160 L1440,320 L0,320 Z",
-]
-
-const NeuralWave: React.FC = () => (
-  <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-    <svg
-      className="absolute bottom-0 left-0 w-full opacity-[0.04]"
-      viewBox="0 0 1440 320"
-      preserveAspectRatio="none"
-    >
-      <defs>
-        <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#10b981" />
-          <stop offset="50%" stopColor="#14b8a6" />
-          <stop offset="100%" stopColor="#2dd4bf" />
-        </linearGradient>
-      </defs>
-      {WAVE_PATHS.map((d, i) => (
-        <motion.path
-          key={i}
-          d={d}
-          fill="url(#waveGrad)"
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{
-            duration: 6 + i * 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 1.5,
-          }}
-        />
-      ))}
-    </svg>
-  </div>
-)
-
-/* ─── Main Component ────────────────────────────────────────────────────────── */
-const LandingPage: React.FC = () => {
-  const featuresRef = useRef(null)
-  const howItWorksRef = useRef(null)
-
+/* ─── Main Landing Page Component ────────────────────────── */
+const LandingPage = () => {
   return (
-    <div className="relative overflow-hidden bg-background">
-      {/* Grid overlay */}
-      <div className="grid-overlay" />
+    <div className="min-h-screen bg-[#050505] selection:bg-emerald-500/30 text-white overflow-x-hidden font-sans relative">
+      <NoiseBackground />
 
-      {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <NeuralWave />
+      {/* ── Fixed 3D Background ── */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <Canvas camera={{ position: [0, 0, 8], fov: 45 }} dpr={[1, 2]}>
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[10, 10, 5]} intensity={2} color="#10b981" />
+          <directionalLight position={[-10, -10, -5]} intensity={1} color="#3b82f6" />
+          <Environment preset="city" />
+          <CameraRig />
+          <EducationalScene />
+          <Stars radius={100} depth={50} count={4000} factor={4} saturation={0} fade speed={1.5} />
+        </Canvas>
+      </div>
 
-        {/* Background hero glows */}
-        <div className="hero-glow bg-emerald-500/10 top-1/4 -left-1/4" />
-        <div className="hero-glow bg-teal-500/10 top-1/3 -right-1/4" />
-
-        {/* Floating AI Tags */}
-        <FloatingTag text={aiTags[0].text} color={aiTags[0].color} delay={1.5} className="top-1/4 left-8" />
-        <FloatingTag text={aiTags[1].text} color={aiTags[1].color} delay={2.0} className="top-1/3 right-4" />
-        <FloatingTag text={aiTags[2].text} color={aiTags[2].color} delay={2.5} className="bottom-1/3 left-16" />
-        <FloatingTag text={aiTags[3].text} color={aiTags[3].color} delay={3.0} className="bottom-1/4 right-16" />
-
-        <div className="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center pt-24 pb-16">
-          {/* Left — Text */}
-          <div className="text-center lg:text-left">
-            {/* AI Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 ai-badge mb-6"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Powered by Gemini AI</span>
-              <span className="h-1 w-1 rounded-full bg-current opacity-40" />
-              <span>v2.0</span>
-            </motion.div>
-
-            {/* Main Heading */}
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="text-5xl sm:text-6xl xl:text-7xl font-black leading-[1.05] mb-6 text-balance"
-            >
-              <span className="text-white">The Future of </span>
-              <br />
-              <span
-                className="bg-clip-text text-transparent"
-                style={{
-                  backgroundImage: "linear-gradient(135deg, #10b981 0%, #14b8a6 50%, #5eead4 100%)",
-                  backgroundSize: "200% 200%",
-                  animation: "gradient-shift 4s ease infinite",
-                }}
-              >
-                Intelligent Learning
-              </span>
-            </motion.h1>
-
-            {/* Typing Subtitle */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.3 }}
-              className="text-xl sm:text-2xl mb-4 font-medium min-h-[2rem]"
-              style={{ color: "rgba(255,255,255,0.65)" }}
-            >
-              <TypingText />
-            </motion.p>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.4 }}
-              className="text-base sm:text-lg mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed"
-              style={{ color: "rgba(255,255,255,0.45)" }}
-            >
-              Generate unique AI assessments, practice coding, track your progress with intelligent analytics,
-              and compete with peers on live leaderboards.
-            </motion.p>
-
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.5 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center"
-            >
-              <Link to="/signup">
-                <Button variant="glow" size="lg" className="min-w-[200px] text-base">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Start Learning Free
-                </Button>
-              </Link>
-              <Link to="/login">
-                <Button variant="ghost-glow" size="lg" className="min-w-[160px] text-base">
-                  Sign In
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
-            </motion.div>
-
-            {/* Trust indicators */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.9 }}
-              className="flex items-center gap-6 mt-8 justify-center lg:justify-start"
-            >
-              {[
-                { icon: "✓", text: "No credit card" },
-                { icon: "✓", text: "Free forever" },
-                { icon: "✓", text: "Start in 60s" },
-              ].map((item) => (
-                <div key={item.text} className="flex items-center gap-1.5 text-sm"
-                  style={{ color: "rgba(255,255,255,0.4)" }}>
-                  <CheckCircle2 className="h-3.5 w-3.5" style={{ color: "#34d399" }} />
-                  {item.text}
-                </div>
-              ))}
-            </motion.div>
+      {/* ── Navbar ───────────────────────────────────────── */}
+      <nav className="fixed top-0 w-full z-50 px-6 py-4 pointer-events-none">
+        <div className="max-w-7xl mx-auto flex items-center justify-between p-2 rounded-2xl bg-[#09090b]/40 backdrop-blur-xl border border-white/5 shadow-2xl pointer-events-auto">
+          <div className="flex items-center gap-2 px-4">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+              <Brain className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-bold text-xl tracking-tight text-white">EduLearn</span>
           </div>
 
-          {/* Right — 3D Card */}
-          <motion.div
-            initial={{ opacity: 0, x: 60 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.9, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="flex justify-center lg:justify-end"
-          >
-            <HeroCard />
-          </motion.div>
-        </div>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/70">
+            <a href="#features" className="hover:text-emerald-400 transition-colors">Features</a>
+            <a href="#how-it-works" className="hover:text-emerald-400 transition-colors">How it Works</a>
+            <a href="#testimonials" className="hover:text-emerald-400 transition-colors">Testimonials</a>
+          </div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.8 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-        >
-          <span className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>Scroll to explore</span>
+          <div className="flex items-center gap-3 pr-2">
+            <Link to="/login" className="px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors">
+              Sign In
+            </Link>
+            <Link to="/signup" className="group relative px-5 py-2 text-sm font-semibold text-black bg-white rounded-xl overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]">
+              <span className="relative z-10 flex items-center gap-1">
+                Get Started <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* ── Hero Section (Centered) ──────────────────────── */}
+      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 flex items-center justify-center min-h-[95vh] z-20 pointer-events-none">
+
+        <div className="max-w-4xl mx-auto px-6 w-full flex flex-col items-center justify-center text-center pointer-events-auto">
+
           <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="w-5 h-8 rounded-full border flex items-start justify-center pt-1.5"
-            style={{ borderColor: "rgba(255,255,255,0.2)" }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-emerald-400 mb-8 backdrop-blur-md shadow-lg"
           >
-            <div className="w-1 h-2 rounded-full" style={{ background: "#10b981" }} />
+            <SparklesIcon className="w-3.5 h-3.5" />
+            <span>The Next Generation of Education</span>
           </motion.div>
-        </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="text-6xl sm:text-7xl lg:text-8xl font-black tracking-tighter leading-[1.05] mb-6 drop-shadow-2xl"
+          >
+            Learn faster.
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 animate-gradient-x">
+              Code smarter.
+            </span>
+          </motion.h1>
+
+          <TypingSubtitle />
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="text-lg text-white/70 mb-10 max-w-2xl mt-6 leading-relaxed backdrop-blur-md p-4 rounded-2xl bg-black/20 border border-white/5 shadow-2xl"
+          >
+            A unified, intelligent platform combining interactive AI assessments, real-time code execution, and deeply personalized learning analytics.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center"
+          >
+            <Link to="/signup" className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-[0_0_40px_rgba(16,185,129,0.3)] hover:shadow-[0_0_60px_rgba(16,185,129,0.5)]">
+              Start for free
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <a href="#features" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-semibold text-lg transition-colors border border-white/10 backdrop-blur-xl">
+              Explore platform
+            </a>
+          </motion.div>
+
+        </div>
       </section>
 
-      {/* ── FEATURES ────────────────────────────────────────────────────────── */}
-      <section ref={featuresRef} className="relative py-28 px-4 sm:px-6 lg:px-8">
-        {/* Section glow */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="hero-glow bg-emerald-500/5 top-0 left-1/4" />
-        </div>
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 ai-badge mb-4"
-            >
-              <Zap className="h-3 w-3" />
-              Core Features
-            </motion.div>
-
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-4xl sm:text-5xl font-black text-white mb-4"
-            >
-              Everything you need to{" "}
-              <span
-                className="bg-clip-text text-transparent"
-                style={{ backgroundImage: "linear-gradient(135deg, #10b981, #14b8a6)" }}
-              >
-                excel
+      {/* ── Logos Section ────────────────────────────────── */}
+      <section className="py-10 border-y border-white/5 bg-black/40 backdrop-blur-sm relative z-20">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col items-center">
+          <p className="text-sm font-semibold text-white/40 uppercase tracking-widest mb-6">Trusted by Forward-Thinking Institutions</p>
+          <div className="flex flex-wrap justify-center gap-12 sm:gap-24 opacity-50 grayscale transition-all hover:grayscale-0 hover:opacity-100">
+            {/* Mock Logos */}
+            {['MIT', 'Stanford', 'Harvard', 'Oxford', 'Cambridge'].map((uni) => (
+              <span key={uni} className="text-2xl font-bold tracking-tight text-white hover:text-emerald-400 transition-colors cursor-default drop-shadow-md">
+                {uni}
               </span>
-            </motion.h2>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg max-w-3xl mx-auto"
-              style={{ color: "rgba(255,255,255,0.45)" }}
-            >
-              A full-stack AI learning platform built for the next generation of students and educators.
-            </motion.p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <FeatureCard key={feature.title} {...feature} index={index} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ────────────────────────────────────────────────────── */}
-      <section ref={howItWorksRef} className="relative py-28 px-4 sm:px-6 lg:px-8">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="hero-glow bg-teal-500/5 top-1/2 right-0" />
-        </div>
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center gap-2 ai-badge mb-4"
-            >
-              <Brain className="h-3 w-3" />
-              How It Works
-            </motion.div>
-
+      {/* ── Features Grid ────────────────────────────────── */}
+      <section id="features" className="py-32 relative z-20 bg-gradient-to-b from-transparent via-[#050505]/80 to-[#050505]">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-24">
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-4xl sm:text-5xl font-black text-white mb-4"
+              className="text-4xl md:text-6xl font-black mb-6 drop-shadow-lg"
             >
-              Three steps to{" "}
-              <span className="bg-clip-text text-transparent"
-                style={{ backgroundImage: "linear-gradient(135deg, #2dd4bf, #14b8a6)" }}>
-                transform
-              </span>{" "}
-              your learning
+              Built for Excellence.
             </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-lg text-white/60 max-w-2xl mx-auto"
+            >
+              Everything you need to run, evaluate, and scale educational experiences. Powered by cutting-edge technology.
+            </motion.p>
           </div>
 
-          {/* Animated connector line */}
-          <div className="relative">
-            <div className="hidden lg:block absolute top-16 left-[calc(16%+2rem)] right-[calc(16%+2rem)] h-px z-0">
-              <motion.div
-                initial={{ scaleX: 0 }}
-                whileInView={{ scaleX: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
-                className="h-full origin-left"
-                style={{ background: "linear-gradient(90deg, #10b981, #14b8a6, #2dd4bf)" }}
-              />
-              {/* Connector dots */}
-              <div className="absolute -top-1.5 left-0 h-3 w-3 rounded-full bg-[#10b981]" />
-              <div className="absolute -top-1.5 right-0 h-3 w-3 rounded-full bg-[#2dd4bf]" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-              {steps.map((step, index) => (
-                <StepCard key={step.num} {...step} index={index} />
-              ))}
-            </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <FeatureCard
+              icon={Brain}
+              title="AI Assessments"
+              desc="Generate unique, adaptive questions with Gemini AI. Tailored perfectly to individual student learning styles."
+              delay={0}
+            />
+            <FeatureCard
+              icon={Code2}
+              title="Live Code Editor"
+              desc="15+ programming languages supported out of the box with real-time compilation and intelligent error suggestions."
+              delay={0.1}
+            />
+            <FeatureCard
+              icon={LineChart}
+              title="Smart Analytics"
+              desc="Uncover deep insights into performance trajectories. Our AI detects invisible patterns to suggest micro-improvements."
+              delay={0.2}
+            />
+            <FeatureCard
+              icon={Users}
+              title="Batch Management"
+              desc="A command center for educators. Assign tests, track progress, and manage thousands of students effortlessly."
+              delay={0.3}
+            />
+            <FeatureCard
+              icon={Shield}
+              title="Proctoring Ready"
+              desc="Secure testing environments with tab-tracking, copy-paste prevention, and AI-driven behavioral analysis."
+              delay={0.4}
+            />
+            <FeatureCard
+              icon={Rocket}
+              title="Scalable Infrastructure"
+              desc="Built on modern cloud architecture to handle thousands of concurrent test-takers without breaking a sweat."
+              delay={0.5}
+            />
           </div>
         </div>
       </section>
 
-      {/* ── CTA ─────────────────────────────────────────────────────────────── */}
-      <section className="relative py-28 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
+      {/* ── Immersive CTA ────────────────────────────────── */}
+      <section className="py-40 relative overflow-hidden z-20 bg-[#050505]">
+        <div className="absolute inset-0 bg-emerald-900/10" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/20 blur-[150px] rounded-full pointer-events-none" />
+
+        <div className="max-w-5xl mx-auto px-6 relative z-10 text-center">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="relative rounded-3xl border p-16 text-center overflow-hidden"
-            style={{
-              background: "rgba(10,14,30,0.7)",
-              backdropFilter: "blur(20px)",
-              borderColor: "rgba(16,185,129,0.15)",
-              boxShadow: "0 0 80px rgba(16,185,129,0.08), 0 40px 80px rgba(0,0,0,0.4)",
-            }}
+            className="text-5xl md:text-7xl font-black mb-8 leading-tight drop-shadow-2xl"
           >
-            {/* Background shimmer */}
-            <div className="absolute inset-0 pointer-events-none rounded-3xl overflow-hidden">
-              <div className="absolute -top-1/2 -left-1/2 w-full h-full rounded-full animate-spin-slow opacity-10"
-                style={{ background: "conic-gradient(from 0deg, #10b981, #14b8a6, #2dd4bf, transparent)" }} />
-            </div>
+            Ready to upgrade your <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">
+              learning stack?
+            </span>
+          </motion.h2>
 
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 ai-badge mb-6">
-                <Sparkles className="h-3.5 w-3.5" />
-                Join 10,000+ learners
-              </div>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-xl text-emerald-100/70 mb-12 max-w-2xl mx-auto"
+          >
+            Join the educators and students who are already experiencing the next generation of digital learning.
+          </motion.p>
 
-              <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
-                Ready to Transform Your{" "}
-                <span className="bg-clip-text text-transparent"
-                  style={{ backgroundImage: "linear-gradient(135deg, #10b981, #14b8a6)" }}>
-                  Learning?
-                </span>
-              </h2>
-
-              <p className="text-lg mb-10 max-w-2xl mx-auto" style={{ color: "rgba(255,255,255,0.5)" }}>
-                Join thousands of students and teachers already experiencing the future of education.
-                Start your journey today and unlock your full potential.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Link to="/signup">
-                  <Button variant="glow" size="lg" className="min-w-[200px] text-base">
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Get Started Free
-                  </Button>
-                </Link>
-                <Link to="/login">
-                  <Button variant="ghost-glow" size="lg" className="min-w-[160px] text-base">
-                    Sign In
-                  </Button>
-                </Link>
-              </div>
-
-              <p className="mt-8 text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>
-                No credit card required • Free forever • Start in 60 seconds
-              </p>
-            </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
+            <Link to="/signup" className="group relative inline-flex items-center justify-center gap-3 px-10 py-5 bg-white text-black rounded-3xl font-bold text-xl transition-all hover:scale-105 hover:shadow-[0_0_80px_rgba(255,255,255,0.4)]">
+              Get Started for Free
+              <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </motion.div>
         </div>
       </section>
 
-      {/* ── Footer ────────────────────────────────────────────────────────────── */}
-      <footer className="border-t py-8 px-8 text-center"
-        style={{ borderColor: "rgba(255,255,255,0.05)" }}>
-        <p className="text-sm" style={{ color: "rgba(255,255,255,0.25)" }}>
-          © 2026 EduLearn. Built with ❤️ and Gemini AI.
-        </p>
+      {/* ── Footer ───────────────────────────────────────── */}
+      <footer className="border-t border-white/10 py-12 bg-[#050505] relative z-20">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2">
+            <Brain className="w-6 h-6 text-emerald-500" />
+            <span className="font-bold text-xl text-white">EduLearn</span>
+          </div>
+          <p className="text-white/40 text-sm font-medium">
+            © {new Date().getFullYear()} EduLearn Inc. All rights reserved. Built with ❤️ and Gemini AI.
+          </p>
+          <div className="flex gap-6 text-sm font-medium text-white/50">
+            <a href="#" className="hover:text-emerald-400 transition-colors">Privacy</a>
+            <a href="#" className="hover:text-emerald-400 transition-colors">Terms</a>
+            <a href="#" className="hover:text-emerald-400 transition-colors">Contact</a>
+          </div>
+        </div>
       </footer>
     </div>
   )
