@@ -15,9 +15,9 @@ interface LoginProps {
 }
 
 const BRAND_FEATURES = [
-  { icon: Brain, text: "AI-Powered Assessments", color: "#38bdf8" },
-  { icon: BarChart3, text: "Smart Performance Analytics", color: "#8b5cf6" },
-  { icon: Trophy, text: "Live Leaderboards", color: "#22d3ee" },
+  { icon: Brain, text: "AI-Powered Assessments", color: "#10b981" },
+  { icon: BarChart3, text: "Smart Performance Analytics", color: "#f59e0b" },
+  { icon: Trophy, text: "Live Leaderboards", color: "#34d399" },
   { icon: Zap, text: "ThinkTrace AI Interview", color: "#34d399" },
 ]
 
@@ -78,15 +78,15 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
         {/* Animated background */}
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-[500px] h-[500px] rounded-full opacity-20"
-            style={{ background: "radial-gradient(circle, #38bdf8, transparent 70%)", filter: "blur(80px)",
+            style={{ background: "radial-gradient(circle, #10b981, transparent 70%)", filter: "blur(80px)",
               animation: "orb-drift 14s ease-in-out infinite alternate" }} />
           <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full opacity-15"
-            style={{ background: "radial-gradient(circle, #8b5cf6, transparent 70%)", filter: "blur(80px)",
+            style={{ background: "radial-gradient(circle, #f59e0b, transparent 70%)", filter: "blur(80px)",
               animation: "orb-drift 18s ease-in-out infinite alternate-reverse" }} />
           {/* Grid lines */}
           <div className="absolute inset-0 opacity-[0.04]"
             style={{
-              backgroundImage: "linear-gradient(rgba(56,189,248,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,0.5) 1px, transparent 1px)",
+              backgroundImage: "linear-gradient(rgba(16, 185, 129,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129,0.5) 1px, transparent 1px)",
               backgroundSize: "60px 60px",
             }} />
         </div>
@@ -100,8 +100,8 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
             className="flex items-center gap-3 mb-12"
           >
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl text-white font-black text-lg shadow-xl"
-              style={{ background: "linear-gradient(135deg, #38bdf8, #8b5cf6)",
-                boxShadow: "0 0 30px rgba(56,189,248,0.4)" }}>
+              style={{ background: "linear-gradient(135deg, #10b981, #f59e0b)",
+                boxShadow: "0 0 30px rgba(16, 185, 129,0.4)" }}>
               E
             </div>
             <span className="text-2xl font-black text-white font-heading">EduLearn</span>
@@ -116,7 +116,7 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
             <h1 className="text-5xl font-black leading-tight text-white mb-4">
               Welcome back to{" "}
               <span className="bg-clip-text text-transparent"
-                style={{ backgroundImage: "linear-gradient(135deg, #38bdf8, #8b5cf6)" }}>
+                style={{ backgroundImage: "linear-gradient(135deg, #10b981, #f59e0b)" }}>
                 intelligent
               </span>{" "}
               learning
@@ -157,18 +157,18 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
             transition={{ delay: 0.9 }}
             className="mt-12 rounded-2xl border p-5"
             style={{
-              background: "rgba(56,189,248,0.05)",
-              borderColor: "rgba(56,189,248,0.15)",
+              background: "rgba(16, 185, 129,0.05)",
+              borderColor: "rgba(16, 185, 129,0.15)",
               backdropFilter: "blur(12px)",
             }}
           >
             <div className="flex items-center gap-3 mb-2">
-              <Sparkles className="h-4 w-4" style={{ color: "#38bdf8" }} />
-              <span className="text-xs font-bold" style={{ color: "#38bdf8" }}>AI INSIGHT</span>
+              <Sparkles className="h-4 w-4" style={{ color: "#10b981" }} />
+              <span className="text-xs font-bold" style={{ color: "#10b981" }}>AI INSIGHT</span>
             </div>
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
               Students using EduLearn AI see a{" "}
-              <strong style={{ color: "#38bdf8" }}>40% improvement</strong> in exam performance
+              <strong style={{ color: "#10b981" }}>40% improvement</strong> in exam performance
               within the first 4 weeks.
             </p>
           </motion.div>
@@ -179,7 +179,7 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
       <div className="flex-1 flex items-center justify-center px-6 py-12 relative">
         {/* Subtle right panel glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(139,92,246,0.08), transparent 70%)", filter: "blur(60px)" }} />
+          style={{ background: "radial-gradient(circle, rgba(245, 158, 11,0.08), transparent 70%)", filter: "blur(60px)" }} />
 
         <motion.div
           initial={{ opacity: 0, x: 40 }}
@@ -190,7 +190,7 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-3 mb-8 justify-center">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white font-black"
-              style={{ background: "linear-gradient(135deg, #38bdf8, #8b5cf6)", boxShadow: "0 0 20px rgba(56,189,248,0.3)" }}>
+              style={{ background: "linear-gradient(135deg, #10b981, #f59e0b)", boxShadow: "0 0 20px rgba(16, 185, 129,0.3)" }}>
               E
             </div>
             <span className="text-xl font-black text-white">EduLearn</span>
@@ -225,7 +225,7 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     required
-                    className="w-full pl-4 pr-4 py-3 rounded-xl border text-white placeholder:text-white/25 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
+                    className="w-full pl-4 pr-4 py-3 rounded-xl border text-white placeholder:text-white/25 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
                     style={{
                       background: "rgba(255,255,255,0.04)",
                       borderColor: "rgba(255,255,255,0.1)",
@@ -246,7 +246,7 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full pl-4 pr-12 py-3 rounded-xl border text-white placeholder:text-white/25 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
+                    className="w-full pl-4 pr-12 py-3 rounded-xl border text-white placeholder:text-white/25 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
                     style={{
                       background: "rgba(255,255,255,0.04)",
                       borderColor: "rgba(255,255,255,0.1)",
@@ -283,7 +283,7 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
                 Don't have an account?{" "}
                 <Link to="/signup"
                   className="font-semibold hover:opacity-80 transition-opacity inline-flex items-center gap-1"
-                  style={{ color: "#38bdf8" }}>
+                  style={{ color: "#10b981" }}>
                   Create account <ArrowRight className="h-3 w-3" />
                 </Link>
               </p>

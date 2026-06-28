@@ -220,22 +220,22 @@ const Dashboard: React.FC = () => {
               </motion.div>
 
               <motion.div variants={ANIMATION_VARIANTS.slideUp}>
-                <Card className="p-7 h-full group border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-900/10 backdrop-blur-md overflow-hidden relative">
-                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all duration-700"></div>
+                <Card className="p-7 h-full group border-teal-500/20 bg-teal-50/50 dark:bg-teal-900/10 backdrop-blur-md overflow-hidden relative">
+                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-teal-500/10 rounded-full blur-3xl group-hover:bg-teal-500/20 transition-all duration-700"></div>
 
                   <div className="flex items-center mb-6 relative z-10">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 text-white flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-purple-600 shadow-lg shadow-teal-500/30 text-white flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     </div>
-                    <h3 className="text-2xl font-bold font-heading text-indigo-900 dark:text-indigo-100">ThinkTrace Interview</h3>
+                    <h3 className="text-2xl font-bold font-heading text-teal-900 dark:text-teal-100">ThinkTrace Interview</h3>
                   </div>
                   <p className="text-muted-foreground mb-8 leading-relaxed relative z-10">
                     Test your thinking process, not just your knowledge, in an adaptive AI conversation.
                   </p>
                   <Link to="/thinktrace" state={{ topic: "Programming Fundamentals", difficulty: "medium", subject_area: "Computer Science", question_count: 5 }} className="relative z-10 flex h-full items-end pb-1 pb-1">
-                    <Button className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white border-none shadow-lg shadow-indigo-500/25">
+                    <Button className="w-full bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-500 hover:to-purple-500 text-white border-none shadow-lg shadow-teal-500/25">
                       Launch Session
                     </Button>
                   </Link>

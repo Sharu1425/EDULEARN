@@ -18,8 +18,8 @@ const orbDefs = [
     },
     duration: 14,
     // dark / light colors
-    darkBg: "radial-gradient(circle, rgba(56, 189, 248, 0.18) 0%, transparent 70%)",
-    lightBg: "radial-gradient(circle, rgba(99, 102, 241, 0.10) 0%, transparent 70%)",
+    darkBg: "radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, transparent 70%)",
+    lightBg: "radial-gradient(circle, rgba(20, 184, 166, 0.10) 0%, transparent 70%)",
     style: { top: "-100px", left: "-100px", width: "500px", height: "500px" },
   },
   {
@@ -30,7 +30,7 @@ const orbDefs = [
       scale: [1, 0.95, 1.08, 0.98, 1],
     },
     duration: 18,
-    darkBg: "radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)",
+    darkBg: "radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%)",
     lightBg: "radial-gradient(circle, rgba(14, 165, 233, 0.10) 0%, transparent 70%)",
     style: { top: "30%", right: "-150px", width: "600px", height: "600px" },
   },
@@ -43,7 +43,7 @@ const orbDefs = [
     },
     duration: 16,
     darkBg: "radial-gradient(circle, rgba(34, 211, 238, 0.12) 0%, transparent 70%)",
-    lightBg: "radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%)",
+    lightBg: "radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%)",
     style: { bottom: "-80px", left: "30%", width: "400px", height: "400px" },
   },
 ]

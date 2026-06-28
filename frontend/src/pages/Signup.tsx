@@ -20,9 +20,9 @@ interface SignupProps {
 type Role = "student" | "teacher" | "admin"
 
 const ROLES: { id: Role; label: string; icon: React.FC<any>; desc: string; color: string }[] = [
-  { id: "student", label: "Student", icon: GraduationCap, desc: "Learn & grow", color: "#38bdf8" },
-  { id: "teacher", label: "Teacher", icon: BookOpen, desc: "Teach & inspire", color: "#8b5cf6" },
-  { id: "admin", label: "Admin", icon: Shield, desc: "Manage platform", color: "#22d3ee" },
+  { id: "student", label: "Student", icon: GraduationCap, desc: "Learn & grow", color: "#10b981" },
+  { id: "teacher", label: "Teacher", icon: BookOpen, desc: "Teach & inspire", color: "#f59e0b" },
+  { id: "admin", label: "Admin", icon: Shield, desc: "Manage platform", color: "#34d399" },
 ]
 
 const Signup: React.FC<SignupProps> = ({ setUser }) => {
@@ -82,14 +82,14 @@ const Signup: React.FC<SignupProps> = ({ setUser }) => {
       <div className="hidden lg:flex lg:w-[45%] relative flex-col items-center justify-center px-16 overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] rounded-full opacity-15"
-            style={{ background: "radial-gradient(circle, #8b5cf6, transparent 70%)", filter: "blur(80px)",
+            style={{ background: "radial-gradient(circle, #f59e0b, transparent 70%)", filter: "blur(80px)",
               animation: "orb-drift 16s ease-in-out infinite alternate" }} />
           <div className="absolute bottom-1/4 right-0 w-[300px] h-[300px] rounded-full opacity-12"
-            style={{ background: "radial-gradient(circle, #22d3ee, transparent 70%)", filter: "blur(60px)",
+            style={{ background: "radial-gradient(circle, #34d399, transparent 70%)", filter: "blur(60px)",
               animation: "orb-drift 12s ease-in-out infinite alternate-reverse" }} />
           <div className="absolute inset-0 opacity-[0.04]"
             style={{
-              backgroundImage: "linear-gradient(rgba(139,92,246,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.5) 1px, transparent 1px)",
+              backgroundImage: "linear-gradient(rgba(245, 158, 11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245, 158, 11,0.5) 1px, transparent 1px)",
               backgroundSize: "60px 60px",
             }} />
         </div>
@@ -102,7 +102,7 @@ const Signup: React.FC<SignupProps> = ({ setUser }) => {
             className="flex items-center gap-3 mb-10"
           >
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl text-white font-black text-lg"
-              style={{ background: "linear-gradient(135deg, #38bdf8, #8b5cf6)", boxShadow: "0 0 30px rgba(56,189,248,0.4)" }}>
+              style={{ background: "linear-gradient(135deg, #10b981, #f59e0b)", boxShadow: "0 0 30px rgba(16, 185, 129,0.4)" }}>
               E
             </div>
             <span className="text-2xl font-black text-white font-heading">EduLearn</span>
@@ -116,7 +116,7 @@ const Signup: React.FC<SignupProps> = ({ setUser }) => {
             <h1 className="text-4xl font-black leading-tight text-white mb-4">
               Join the future of{" "}
               <span className="bg-clip-text text-transparent"
-                style={{ backgroundImage: "linear-gradient(135deg, #8b5cf6, #22d3ee)" }}>
+                style={{ backgroundImage: "linear-gradient(135deg, #f59e0b, #34d399)" }}>
                 AI education
               </span>
             </h1>
@@ -162,7 +162,7 @@ const Signup: React.FC<SignupProps> = ({ setUser }) => {
               <div key={label} className="rounded-xl border p-3 text-center"
                 style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.06)" }}>
                 <div className="text-xl font-black bg-clip-text text-transparent"
-                  style={{ backgroundImage: "linear-gradient(135deg, #38bdf8, #8b5cf6)" }}>
+                  style={{ backgroundImage: "linear-gradient(135deg, #10b981, #f59e0b)" }}>
                   {val}
                 </div>
                 <div className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>{label}</div>
@@ -175,7 +175,7 @@ const Signup: React.FC<SignupProps> = ({ setUser }) => {
       {/* ── Right Panel — Form ────────────────────────────────────────────── */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 relative overflow-y-auto">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(56,189,248,0.06), transparent 70%)", filter: "blur(60px)" }} />
+          style={{ background: "radial-gradient(circle, rgba(16, 185, 129,0.06), transparent 70%)", filter: "blur(60px)" }} />
 
         <motion.div
           initial={{ opacity: 0, x: 40 }}
@@ -186,7 +186,7 @@ const Signup: React.FC<SignupProps> = ({ setUser }) => {
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-3 mb-8 justify-center">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white font-black"
-              style={{ background: "linear-gradient(135deg, #38bdf8, #8b5cf6)", boxShadow: "0 0 20px rgba(56,189,248,0.3)" }}>
+              style={{ background: "linear-gradient(135deg, #10b981, #f59e0b)", boxShadow: "0 0 20px rgba(16, 185, 129,0.3)" }}>
               E
             </div>
             <span className="text-xl font-black text-white">EduLearn</span>
@@ -317,7 +317,7 @@ const Signup: React.FC<SignupProps> = ({ setUser }) => {
                 Already have an account?{" "}
                 <Link to="/login"
                   className="font-semibold hover:opacity-80 transition-opacity inline-flex items-center gap-1"
-                  style={{ color: "#38bdf8" }}>
+                  style={{ color: "#10b981" }}>
                   Sign in <ArrowRight className="h-3 w-3" />
                 </Link>
               </p>

@@ -88,13 +88,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
       title: "Total Attempts",
       value: stats.totalAttempts,
       icon: "📊",
-      color: "from-blue-500 to-cyan-500",
+      color: "from-blue-500 to-emerald-500",
     },
     {
       title: "Average Score",
       value: `${stats.averageScore}%`,
       icon: "📈",
-      color: "from-blue-500 to-cyan-500",
+      color: "from-blue-500 to-emerald-500",
     },
     {
       title: "Best Score",

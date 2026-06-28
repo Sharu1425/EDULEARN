@@ -41,7 +41,7 @@ export default function TeacherThinkTraceAnalytics() {
       {/* Overview Stats */}
       <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
         <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg text-indigo-600 dark:text-indigo-400">
+          <div className="p-2 bg-teal-50 dark:bg-teal-500/10 rounded-lg text-teal-600 dark:text-teal-400">
             <TrendingUp className="w-5 h-5" />
           </div>
           <h3 className="font-semibold text-zinc-700 dark:text-zinc-300">Average Skill Score</h3>

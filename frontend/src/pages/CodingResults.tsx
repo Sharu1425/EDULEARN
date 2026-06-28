@@ -217,10 +217,10 @@ const CodingResults: React.FC = () => {
           variants={ANIMATION_VARIANTS.slideDown}
           className="text-center mb-12"
         >
-          <h2 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400 mb-4">
+          <h2 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent mb-4">
             Coding Assessment Results
           </h2>
-          <p className="text-purple-200 text-xl">{title}</p>
+          <p className="text-muted-foreground text-xl">{title}</p>
         </motion.div>
 
         {/* Score Card */}
@@ -228,7 +228,7 @@ const CodingResults: React.FC = () => {
           variants={ANIMATION_VARIANTS.slideUp}
           className="max-w-4xl mx-auto mb-8"
         >
-          <Card className="p-8 text-center bg-gradient-to-br from-purple-900/40 to-blue-900/40 border-2 border-purple-500/30">
+          <Card className="p-8 text-center border-0 border-border shadow-sm">
             {/* Circular Score */}
             <motion.div
               initial={{ scale: 0 }}
@@ -246,14 +246,14 @@ const CodingResults: React.FC = () => {
               
               {/* Result Message */}
               <div className="flex items-center justify-center space-x-2 mb-6">
-                <h3 className="text-2xl font-bold text-white">
+                <h3 className="text-2xl font-bold text-foreground">
                   {allPassed ? " All Tests Passed!" : `${passedTests}/${totalTests} Tests Passed`}
                 </h3>
               </div>
             </motion.div>
 
             {/* Progress Bar */}
-            <div className="w-full bg-purple-900/50 rounded-full h-4 mb-8">
+            <div className="w-full bg-muted rounded-full h-4 mb-8">
               <motion.div 
                 initial={{ width: 0 }}
                 animate={{ width: `${parseFloat(percentage)}%` }}
@@ -295,15 +295,15 @@ const CodingResults: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.7 + index * 0.1 }}
-                  className="p-5 rounded-lg bg-purple-900/30 border border-purple-500/30 text-center"
+                  className="p-5 rounded-lg bg-card border border-border shadow-sm text-center"
                 >
-                  <div className="flex justify-center mb-3 text-white">
+                  <div className="flex justify-center mb-3 text-foreground">
                     {stat.icon}
                   </div>
-                  <p className="text-white font-bold text-xl mb-1">
+                  <p className="text-foreground font-bold text-xl mb-1">
                     {stat.value}
                   </p>
-                  <p className="text-white/80 text-sm">{stat.label}</p>
+                  <p className="text-foreground/80 text-sm">{stat.label}</p>
                 </motion.div>
               ))}
             </div>
@@ -317,8 +317,8 @@ const CodingResults: React.FC = () => {
             className="max-w-4xl mx-auto mb-8"
           >
             <Card className="p-6">
-              <h3 className="text-2xl font-bold text-purple-200 mb-4">Problem Statement</h3>
-              <p className="text-purple-100 text-lg leading-relaxed whitespace-pre-line">
+              <h3 className="text-2xl font-bold text-muted-foreground mb-4">Problem Statement</h3>
+              <p className="text-foreground text-lg leading-relaxed whitespace-pre-line">
                 {problemData.problem_statement || problemData.description || ""}
               </p>
             </Card>
@@ -333,20 +333,20 @@ const CodingResults: React.FC = () => {
           >
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-purple-200">Test Results</h3>
+                <h3 className="text-2xl font-bold text-muted-foreground">Test Results</h3>
                 <div className="flex items-center space-x-4">
                   <div
                     className={`px-3 py-1 rounded-full text-sm font-medium ${
                       allPassed
-                        ? "bg-green-900/30 text-green-300 border border-green-500/30"
-                        : "bg-red-900/30 text-red-300 border border-red-500/30"
+                        ? "bg-green-500/20 text-green-600 dark:text-green-600 dark:text-green-400 border border-green-500/30"
+                        : "bg-red-500/10 text-red-600 dark:text-red-600 dark:text-red-400 border border-red-500/30"
                     }`}
                   >
                     {passedTests}/{totalTests} passed
                   </div>
                   <button
                     onClick={() => setExpandedTests(new Set(testResults.map((_: any, i: number) => i)))}
-                    className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                    className="text-xs text-primary hover:text-muted-foreground transition-colors"
                   >
                     {expandedTests.size === testResults.length ? "Collapse All" : "Expand All"}
                   </button>
@@ -361,8 +361,8 @@ const CodingResults: React.FC = () => {
                       key={index}
                       className={`p-4 rounded-lg border transition-all duration-200 ${
                         result.passed
-                          ? "bg-green-900/20 border-green-500/30 hover:bg-green-900/30"
-                          : "bg-red-900/20 border-red-500/30 hover:bg-red-900/30"
+                          ? "bg-green-500/10 dark:bg-green-900/20 border-green-500/30 hover:bg-green-500/20"
+                          : "bg-red-500/10 border-red-500/30 hover:bg-red-500/20"
                       }`}
                     >
                       <div className="flex items-center justify-between mb-3">
@@ -371,16 +371,16 @@ const CodingResults: React.FC = () => {
                           className="font-medium flex items-center space-x-3 hover:opacity-80 transition-opacity group"
                         >
                           <div className="flex items-center space-x-2">
-                            <span className="text-sm font-medium text-purple-300">Test {index + 1}:</span>
+                            <span className="text-sm font-medium text-muted-foreground">Test {index + 1}:</span>
                             <span
-                              className={`font-semibold ${result.passed ? "text-green-400" : "text-red-400"}`}
+                              className={`font-semibold ${result.passed ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
                             >
                               {result.passed ? "✅ Passed" : "❌ Failed"}
                             </span>
                           </div>
                           <div className="flex items-center space-x-2">
                             {result.execution_time && (
-                              <span className="text-xs text-purple-400">{result.execution_time}ms</span>
+                              <span className="text-xs text-primary">{result.execution_time}ms</span>
                             )}
                             <span className="text-lg group-hover:scale-110 transition-transform">
                               {isExpanded ? "▼" : "▶"}
@@ -396,14 +396,14 @@ const CodingResults: React.FC = () => {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="space-y-4 mt-4 pt-4 border-t border-purple-500/20"
+                            className="space-y-4 mt-4 pt-4 border-t border-border"
                           >
                             {/* Test Case Input */}
                             <div>
                               <div className="flex items-center space-x-2 mb-2">
-                                <span className="text-sm font-medium text-purple-300">Input:</span>
+                                <span className="text-sm font-medium text-muted-foreground">Input:</span>
                               </div>
-                              <div className="p-3 bg-black/30 rounded-lg border border-purple-500/20 font-mono text-sm">
+                              <div className="p-3 bg-muted/50 rounded-lg border border-border font-mono text-sm">
                                 {result.input ? (
                                   typeof result.input === "string" ? (
                                     result.input
@@ -411,7 +411,7 @@ const CodingResults: React.FC = () => {
                                     JSON.stringify(result.input, null, 2)
                                   )
                                 ) : (
-                                  <span className="text-purple-400 opacity-75">No input data</span>
+                                  <span className="text-primary opacity-75">No input data</span>
                                 )}
                               </div>
                             </div>
@@ -422,9 +422,9 @@ const CodingResults: React.FC = () => {
                                 {result.error && (
                                   <div>
                                     <div className="flex items-center space-x-2 mb-2">
-                                      <span className="text-sm font-medium text-red-300">Error:</span>
+                                      <span className="text-sm font-medium text-red-600 dark:text-red-600 dark:text-red-400">Error:</span>
                                     </div>
-                                    <div className="p-3 bg-red-900/30 rounded-lg border border-red-500/30 text-red-200 text-sm font-mono">
+                                    <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/30 text-red-700 dark:text-red-200 text-sm font-mono">
                                       {typeof result.error === "string"
                                         ? result.error
                                         : JSON.stringify(result.error)}
@@ -436,29 +436,29 @@ const CodingResults: React.FC = () => {
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                   <div>
                                     <div className="flex items-center space-x-2 mb-2">
-                                      <span className="text-sm font-medium text-green-300">Expected Output:</span>
+                                      <span className="text-sm font-medium text-green-600 dark:text-green-600 dark:text-green-400">Expected Output:</span>
                                     </div>
-                                    <div className="p-3 bg-green-900/20 rounded-lg border border-green-500/30 text-green-200 text-sm font-mono">
+                                    <div className="p-3 bg-green-500/10 dark:bg-green-900/20 rounded-lg border border-green-500/30 text-green-700 dark:text-green-200 text-sm font-mono">
                                       {result.expected !== undefined && result.expected !== null ? (
                                         typeof result.expected === "string"
                                           ? result.expected
                                           : JSON.stringify(result.expected, null, 2)
                                       ) : (
-                                        <span className="text-green-400 opacity-75">No expected output</span>
+                                        <span className="text-green-600 dark:text-green-400 opacity-75">No expected output</span>
                                       )}
                                     </div>
                                   </div>
                                   <div>
                                     <div className="flex items-center space-x-2 mb-2">
-                                      <span className="text-sm font-medium text-red-300">Your Output:</span>
+                                      <span className="text-sm font-medium text-red-600 dark:text-red-600 dark:text-red-400">Your Output:</span>
                                     </div>
-                                    <div className="p-3 bg-red-900/20 rounded-lg border border-red-500/30 text-red-200 text-sm font-mono">
+                                    <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/30 text-red-700 dark:text-red-200 text-sm font-mono">
                                       {result.output ? (
                                         typeof result.output === "string"
                                           ? result.output
                                           : JSON.stringify(result.output, null, 2)
                                       ) : (
-                                        <span className="text-red-400 opacity-75">No output</span>
+                                        <span className="text-red-600 dark:text-red-400 opacity-75">No output</span>
                                       )}
                                     </div>
                                   </div>
@@ -468,9 +468,9 @@ const CodingResults: React.FC = () => {
 
                             {/* Success Message */}
                             {result.passed && (
-                              <div className="flex items-center space-x-2 p-3 bg-green-900/20 rounded-lg border border-green-500/30">
-                                <span className="text-green-400">✅</span>
-                                <span className="text-green-300 text-sm font-medium">
+                              <div className="flex items-center space-x-2 p-3 bg-green-500/10 dark:bg-green-900/20 rounded-lg border border-green-500/30">
+                                <span className="text-green-600 dark:text-green-400">✅</span>
+                                <span className="text-green-600 dark:text-green-600 dark:text-green-400 text-sm font-medium">
                                   Output matches expected result
                                 </span>
                               </div>
@@ -492,25 +492,25 @@ const CodingResults: React.FC = () => {
             variants={ANIMATION_VARIANTS.slideUp}
             className="max-w-4xl mx-auto mb-8"
           >
-            <Card className={`p-6 border-2 transition-all duration-500 ${isPollingFeedback ? 'border-blue-500/30 bg-blue-900/10' : 'border-purple-500/30'}`}>
+            <Card className={`p-6 border-2 transition-all duration-500 ${isPollingFeedback ? 'border-border bg-muted/50' : 'border-border'}`}>
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${isPollingFeedback ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}`}>
+                  <div className={`p-2 rounded-lg ${isPollingFeedback ? 'bg-muted text-foreground' : 'bg-purple-500/20 text-primary'}`}>
                     <Brain className={`w-6 h-6 ${isPollingFeedback ? 'animate-pulse' : ''}`} />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-white">AI Code Insights</h3>
-                    <p className="text-purple-300/70 text-sm">
+                    <h3 className="text-2xl font-bold text-foreground">AI Code Insights</h3>
+                    <p className="text-muted-foreground/70 text-sm">
                       {isPollingFeedback ? "Analyzing your solution..." : "Neural analysis of your code"}
                     </p>
                   </div>
                 </div>
                 {!isPollingFeedback && aiFeedback?.overall_score && (
                   <div className="text-right">
-                    <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                    <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
                       {aiFeedback.overall_score}/100
                     </div>
-                    <div className="text-xs text-purple-400 px-2">Quality Score</div>
+                    <div className="text-xs text-primary px-2">Quality Score</div>
                   </div>
                 )}
               </div>
@@ -534,28 +534,28 @@ const CodingResults: React.FC = () => {
                       />
                     ))}
                   </div>
-                  <p className="text-blue-300 font-medium animate-pulse">Consulting the AI brain...</p>
+                  <p className="text-foreground font-medium animate-pulse">Consulting the AI brain...</p>
                 </div>
               ) : (
                 <div className="space-y-6">
                   {/* Correctness & Performance */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {aiFeedback.correctness && (
-                      <div className="bg-purple-900/20 rounded-xl p-4 border border-purple-500/20">
-                        <div className="flex items-center space-x-2 mb-3 text-green-400">
+                      <div className="bg-muted/50 rounded-xl p-4 border border-border">
+                        <div className="flex items-center space-x-2 mb-3 text-green-600 dark:text-green-400">
                           <ShieldCheck className="w-5 h-5" />
                           <h4 className="font-bold">Correctness</h4>
                         </div>
                         <ul className="space-y-2">
                           {aiFeedback.correctness.issues?.map((issue: string, i: number) => (
-                            <li key={i} className="text-sm text-purple-100 flex items-start space-x-2">
-                              <span className="text-red-400 mt-1">•</span>
+                            <li key={i} className="text-sm text-foreground flex items-start space-x-2">
+                              <span className="text-red-600 dark:text-red-400 mt-1">•</span>
                               <span>{issue}</span>
                             </li>
                           ))}
                           {aiFeedback.correctness.suggestions?.map((suggestion: string, i: number) => (
-                            <li key={i} className="text-sm text-green-100 flex items-start space-x-2">
-                              <span className="text-green-400 mt-1">•</span>
+                            <li key={i} className="text-sm text-foreground flex items-start space-x-2">
+                              <span className="text-green-600 dark:text-green-400 mt-1">•</span>
                               <span>{suggestion}</span>
                             </li>
                           ))}
@@ -563,22 +563,22 @@ const CodingResults: React.FC = () => {
                       </div>
                     )}
                     {aiFeedback.performance && (
-                      <div className="bg-purple-900/20 rounded-xl p-4 border border-purple-500/20">
-                        <div className="flex items-center space-x-2 mb-3 text-blue-400">
+                      <div className="bg-muted/50 rounded-xl p-4 border border-border">
+                        <div className="flex items-center space-x-2 mb-3 text-emerald-600 dark:text-emerald-400">
                           <Zap className="w-5 h-5" />
                           <h4 className="font-bold">Performance</h4>
                         </div>
                         <div className="mb-3 space-y-1">
-                          <div className="text-xs text-purple-400 uppercase tracking-wider">Complexity</div>
+                          <div className="text-xs text-primary uppercase tracking-wider">Complexity</div>
                           <div className="flex space-x-4">
-                            <span className="text-sm bg-purple-500/10 px-2 py-0.5 rounded text-purple-200">Time: {aiFeedback.performance.time_complexity}</span>
-                            <span className="text-sm bg-purple-500/10 px-2 py-0.5 rounded text-purple-200">Space: {aiFeedback.performance.space_complexity}</span>
+                            <span className="text-sm bg-purple-500/10 px-2 py-0.5 rounded text-muted-foreground">Time: {aiFeedback.performance.time_complexity}</span>
+                            <span className="text-sm bg-purple-500/10 px-2 py-0.5 rounded text-muted-foreground">Space: {aiFeedback.performance.space_complexity}</span>
                           </div>
                         </div>
                         <ul className="space-y-2">
                           {aiFeedback.performance.optimizations?.map((opt: string, i: number) => (
-                            <li key={i} className="text-sm text-purple-100 flex items-start space-x-2">
-                              <span className="text-blue-400 mt-1">•</span>
+                            <li key={i} className="text-sm text-foreground flex items-start space-x-2">
+                              <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                               <span>{opt}</span>
                             </li>
                           ))}
@@ -589,27 +589,27 @@ const CodingResults: React.FC = () => {
 
                   {/* Best Practices */}
                   {aiFeedback.code_quality && (
-                    <div className="bg-purple-900/20 rounded-xl p-4 border border-purple-500/20">
+                    <div className="bg-muted/50 rounded-xl p-4 border border-border">
                       <div className="flex items-center space-x-2 mb-3 text-yellow-400">
                         <Lightbulb className="w-5 h-5" />
                         <h4 className="font-bold">Best Practices & Quality</h4>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <div className="text-xs text-purple-400 uppercase tracking-wider mb-2">Techniques</div>
+                          <div className="text-xs text-primary uppercase tracking-wider mb-2">Techniques</div>
                           <div className="flex flex-wrap gap-2">
                             {aiFeedback.code_quality.best_practices?.map((practice: string, i: number) => (
-                              <span key={i} className="text-xs bg-green-500/10 text-green-300 px-2 py-1 rounded border border-green-500/20">
+                              <span key={i} className="text-xs bg-green-500/10 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-1 rounded border border-green-500/20">
                                 {practice}
                               </span>
                             ))}
                           </div>
                         </div>
                         <div>
-                          <div className="text-xs text-purple-400 uppercase tracking-wider mb-2">Code Smells</div>
+                          <div className="text-xs text-primary uppercase tracking-wider mb-2">Code Smells</div>
                           <div className="flex flex-wrap gap-2">
                             {aiFeedback.code_quality.code_smells?.map((smell: string, i: number) => (
-                              <span key={i} className="text-xs bg-red-500/10 text-red-300 px-2 py-1 rounded border border-red-500/20">
+                              <span key={i} className="text-xs bg-red-500/10 text-red-700 dark:text-red-400 px-2 py-1 rounded border border-red-500/20">
                                 {smell}
                               </span>
                             ))}
@@ -621,11 +621,11 @@ const CodingResults: React.FC = () => {
 
                   {/* Alternative Approach */}
                   {aiFeedback.alternative_approaches && aiFeedback.alternative_approaches.length > 0 && (
-                    <div className="bg-indigo-900/20 rounded-xl p-4 border border-indigo-500/20">
-                      <h4 className="font-bold text-indigo-300 mb-3">Alternative Approach: {aiFeedback.alternative_approaches[0].approach}</h4>
-                      <p className="text-sm text-purple-100 mb-3">{aiFeedback.alternative_approaches[0].description}</p>
+                    <div className="bg-teal-500/10 dark:bg-teal-900/20 rounded-xl p-4 border border-teal-500/20">
+                      <h4 className="font-bold text-teal-700 dark:text-teal-300 mb-3">Alternative Approach: {aiFeedback.alternative_approaches[0].approach}</h4>
+                      <p className="text-sm text-foreground mb-3">{aiFeedback.alternative_approaches[0].description}</p>
                       <div className="flex space-x-4">
-                        <span className="text-xs bg-indigo-500/10 px-2 py-1 rounded text-indigo-200">Complexity: {aiFeedback.alternative_approaches[0].complexity}</span>
+                        <span className="text-xs bg-teal-500/10 dark:bg-teal-900/20 px-2 py-1 rounded text-teal-700 dark:text-teal-200">Complexity: {aiFeedback.alternative_approaches[0].complexity}</span>
                       </div>
                     </div>
                   )}
@@ -634,7 +634,7 @@ const CodingResults: React.FC = () => {
                   {aiFeedback.learning_points && (
                     <div className="flex flex-wrap gap-2">
                       {aiFeedback.learning_points.map((point: string, i: number) => (
-                        <span key={i} className="text-xs bg-purple-500/10 text-purple-300 px-3 py-1 rounded-full border border-purple-500/20 italic">
+                        <span key={i} className="text-xs bg-purple-500/10 text-muted-foreground px-3 py-1 rounded-full border border-border italic">
                           # {point}
                         </span>
                       ))}
@@ -653,12 +653,12 @@ const CodingResults: React.FC = () => {
             className="max-w-4xl mx-auto mb-8"
           >
             <Card className="p-6">
-              <h3 className="text-2xl font-bold text-purple-200 mb-4">Your Solution</h3>
-              <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
+              <h3 className="text-2xl font-bold text-muted-foreground mb-4">Your Solution</h3>
+              <div className="bg-muted rounded-lg p-4 border border-border">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-400">Language: {language}</span>
+                  <span className="text-sm text-muted-foreground">Language: {language}</span>
                 </div>
-                <pre className="text-sm text-gray-100 overflow-x-auto">
+                <pre className="text-sm text-foreground overflow-x-auto">
                   <code>{code}</code>
                 </pre>
               </div>
@@ -672,16 +672,16 @@ const CodingResults: React.FC = () => {
             variants={ANIMATION_VARIANTS.slideUp}
             className="max-w-4xl mx-auto mb-8"
           >
-            <Card className="p-6 border-2 border-green-500/30 bg-green-900/10 shadow-lg shadow-green-500/10">
-              <h3 className="text-2xl font-bold text-green-300 mb-4 flex items-center gap-2">
+            <Card className="p-6 border border-border bg-green-900/10 shadow-lg shadow-green-500/10">
+              <h3 className="text-2xl font-bold text-green-600 dark:text-green-600 dark:text-green-400 mb-4 flex items-center gap-2">
                 <CheckCircle className="w-6 h-6" />
                 Actual Answer
               </h3>
-              <div className="bg-black/40 rounded-lg p-4 border border-green-500/20">
+              <div className="bg-muted rounded-lg p-4 border border-green-500/20">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-green-400 uppercase tracking-wider">Reference Implementation</span>
+                  <span className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wider">Reference Implementation</span>
                 </div>
-                <pre className="text-sm text-green-50/90 font-mono overflow-x-auto">
+                <pre className="text-sm text-green-800 dark:text-green-200 font-mono overflow-x-auto">
                   <code>{problemData.reference_solution}</code>
                 </pre>
               </div>

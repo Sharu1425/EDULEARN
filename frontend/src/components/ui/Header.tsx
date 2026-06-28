@@ -49,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, collapsed = false, onToggl
         <Link to="/" className="flex items-center gap-2.5 min-w-0">
             <div
                 className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl text-sm font-bold text-white"
-                style={{ background: "linear-gradient(135deg, #38bdf8, #818cf8)", boxShadow: "0 0 18px rgba(56,189,248,0.35)" }}
+                style={{ background: "linear-gradient(135deg, #10b981, #14b8a6)", boxShadow: "0 0 18px rgba(16,185,129,0.35)" }}
             >
                 <span className="relative z-10 font-heading font-black">E</span>
                 <div className="absolute inset-0 animate-spin-slow opacity-25"
@@ -122,7 +122,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, collapsed = false, onToggl
                         className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-primary"
                         aria-label="Toggle theme"
                     >
-                        {isDark ? <Sun className="h-4 w-4 text-yellow-400" /> : <Moon className="h-4 w-4 text-indigo-500" />}
+                        {isDark ? <Sun className="h-4 w-4 text-yellow-400" /> : <Moon className="h-4 w-4 text-teal-500" />}
                     </motion.button>
 
                     <motion.button
@@ -132,7 +132,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, collapsed = false, onToggl
                         aria-label="Notifications"
                     >
                         <Bell className="h-4 w-4" />
-                        <span className="absolute right-1.5 top-1.5 h-2 w-2 animate-pulse rounded-full border-2 border-background bg-cyan-400" />
+                        <span className="absolute right-1.5 top-1.5 h-2 w-2 animate-pulse rounded-full border-2 border-background bg-emerald-400" />
                     </motion.button>
 
                     <motion.div
@@ -162,14 +162,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, collapsed = false, onToggl
                             className="flex items-center gap-3 rounded-full border border-transparent py-1 pl-1 pr-3 transition-all hover:border-border/30 hover:bg-muted/40"
                         >
                             <div className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold uppercase text-white"
-                                style={{ background: "linear-gradient(135deg, #38bdf8, #8b5cf6)" }}>
+                                style={{ background: "linear-gradient(135deg, #10b981, #14b8a6)" }}>
                                 {(user?.name || user?.username || user?.email || "U")[0]}
                             </div>
                             <div className="hidden flex-col items-start pr-1 md:flex">
                                 <span className="max-w-[110px] truncate text-sm font-semibold leading-tight text-foreground">
                                     {user?.name || user?.username || user?.email?.split("@")[0] || "User"}
                                 </span>
-                                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: isDark ? "#38bdf8" : "#6366f1" }}>
+                                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: isDark ? "#34d399" : "#059669" }}>
                                     {user?.role || "Student"}
                                 </span>
                             </div>

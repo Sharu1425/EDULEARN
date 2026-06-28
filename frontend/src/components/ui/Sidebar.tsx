@@ -45,13 +45,13 @@ const NavItem: React.FC<NavItemProps> = ({ path, label, icon, collapsed, isDark,
     const Icon = ICON_MAP[icon]
 
     const activePillBg = isDark
-        ? "linear-gradient(135deg, rgba(56,189,248,0.18), rgba(139,92,246,0.18))"
-        : "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(14,165,233,0.12))"
-    const activePillBorder = isDark ? "rgba(56,189,248,0.25)" : "rgba(99,102,241,0.35)"
+        ? "linear-gradient(135deg, rgba(52,211,153,0.18), rgba(45,212,191,0.18))"
+        : "linear-gradient(135deg, rgba(16,185,129,0.12), rgba(20,184,166,0.12))"
+    const activePillBorder = isDark ? "rgba(52,211,153,0.25)" : "rgba(16,185,129,0.35)"
     const activeAccentBar = isDark
-        ? "linear-gradient(to bottom, #38bdf8, #8b5cf6)"
-        : "linear-gradient(to bottom, #6366f1, #0ea5e9)"
-    const activeIconColor = isDark ? "text-cyan-300" : "text-indigo-600"
+        ? "linear-gradient(to bottom, #34d399, #2dd4bf)"
+        : "linear-gradient(to bottom, #10b981, #14b8a6)"
+    const activeIconColor = isDark ? "text-emerald-400" : "text-emerald-600"
 
     return (
         <Link
@@ -62,7 +62,7 @@ const NavItem: React.FC<NavItemProps> = ({ path, label, icon, collapsed, isDark,
                 "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium select-none",
                 "transition-all duration-200 active:scale-[0.97]",
                 active
-                    ? isDark ? "text-white" : "text-indigo-700"
+                    ? isDark ? "text-white" : "text-teal-700"
                     : isDark
                         ? "text-muted-foreground hover:text-white hover:bg-white/5"
                         : "text-slate-600 hover:text-slate-900 hover:bg-slate-900/5"
@@ -76,7 +76,7 @@ const NavItem: React.FC<NavItemProps> = ({ path, label, icon, collapsed, isDark,
                     style={{
                         background: activePillBg,
                         border: `1px solid ${activePillBorder}`,
-                        boxShadow: isDark ? "0 0 16px rgba(56,189,248,0.10)" : "0 0 16px rgba(99,102,241,0.08)",
+                        boxShadow: isDark ? "0 0 16px rgba(52,211,153,0.10)" : "0 0 16px rgba(16,185,129,0.08)",
                     }}
                     transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
                 />
@@ -150,7 +150,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ collapsed, isDark, navI
             <div className={cn("flex items-center justify-between p-4 min-h-[64px] border-b", isDark ? "border-white/5" : "border-slate-200/70")}>
                 <div className="flex items-center gap-2">
                     <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white text-xs font-black"
-                        style={{ background: "linear-gradient(135deg,#38bdf8,#8b5cf6)" }}>
+                        style={{ background: "linear-gradient(135deg,#10b981,#14b8a6)" }}>
                         E
                     </div>
                     <span className={cn("font-heading font-bold text-sm", isDark ? "text-white" : "text-slate-800")}>
@@ -222,7 +222,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user, collapsed, className }) => {
 
     // ── Theme-aware surface colors ──────────────────────────────────────────────
     const sidebarBg = isDark ? "rgba(10, 14, 28, 0.62)" : "rgba(248, 250, 252, 0.78)"
-    const sidebarBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(99, 102, 241, 0.12)"
+    const sidebarBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(20, 184, 166, 0.12)"
     const mobileBg = isDark ? "rgba(10, 14, 28, 0.9)" : "rgba(248, 250, 252, 0.92)"
 
     return (

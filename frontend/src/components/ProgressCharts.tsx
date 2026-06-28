@@ -360,8 +360,8 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({ user, analytics }) => {
                                 <LineChart data={progressData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
-                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="#0d9488" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.2)" />
@@ -392,10 +392,10 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({ user, analytics }) => {
                             <Line 
                                 type="monotone" 
                                 dataKey="score" 
-                                stroke="#6366f1" 
+                                stroke="#0d9488" 
                                 strokeWidth={3}
-                                dot={{ fill: '#6366f1', strokeWidth: 2, r: 4 }}
-                                activeDot={{ r: 6, stroke: '#6366f1', strokeWidth: 2, fill: '#ffffff' }}
+                                dot={{ fill: '#0d9488', strokeWidth: 2, r: 4 }}
+                                activeDot={{ r: 6, stroke: '#0d9488', strokeWidth: 2, fill: '#ffffff' }}
                             />
                         </LineChart>
                     </ResponsiveContainer>
@@ -449,7 +449,7 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({ user, analytics }) => {
                             />
                             <Bar 
                                 dataKey="score" 
-                                fill="#6366f1"
+                                fill="#0d9488"
                                 radius={[4, 4, 0, 0]}
                             />
                         </BarChart>

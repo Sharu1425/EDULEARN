@@ -129,7 +129,7 @@ const StudentResults: React.FC = () => {
   ]
 
   const statCards = [
-    { title: "Total Attempts", value: stats.totalAttempts, icon: <BookOpen className="w-6 h-6" />, color: "from-blue-500 to-indigo-500" },
+    { title: "Total Attempts", value: stats.totalAttempts, icon: <BookOpen className="w-6 h-6" />, color: "from-blue-500 to-teal-500" },
     { title: "Average Score", value: `${stats.averageScore}%`, icon: <Target className="w-6 h-6" />, color: "from-primary to-accent" },
     { title: "Best Score", value: `${stats.bestScore}%`, icon: <Award className="w-6 h-6" />, color: "from-amber-400 to-orange-500" },
     { title: "Topics Studied", value: stats.topicsStudied, icon: <Clock className="w-6 h-6" />, color: "from-emerald-400 to-teal-500" },
@@ -262,7 +262,7 @@ const StudentResults: React.FC = () => {
           {activeTab === "thinktrace" && (
             <Card className="p-6">
               <h3 className="text-xl font-bold font-heading text-foreground mb-6 flex items-center gap-2">
-                <Brain className="w-6 h-6 text-violet-500" />
+                <Brain className="w-6 h-6 text-amber-500" />
                 ThinkTrace Session History
               </h3>
 
@@ -272,11 +272,11 @@ const StudentResults: React.FC = () => {
                 <ErrorState title="Failed to Load" message={ttError} onRetry={fetchThinkTraceSessions} retryText="Retry" />
               ) : ttSessions.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="w-20 h-20 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🧠</div>
+                  <div className="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🧠</div>
                   <h4 className="text-lg font-semibold text-foreground mb-2">No ThinkTrace sessions yet</h4>
                   <p className="text-muted-foreground mb-6">Complete a ThinkTrace interview to see your cognitive profile here.</p>
                   <Link to="/assessment-choice">
-                    <Button variant="primary" className="!bg-gradient-to-r !from-violet-600 !to-purple-600">Start ThinkTrace</Button>
+                    <Button variant="primary" className="!bg-gradient-to-r !from-amber-600 !to-purple-600">Start ThinkTrace</Button>
                   </Link>
                 </div>
               ) : (
@@ -345,7 +345,7 @@ const StudentResults: React.FC = () => {
                   <h4 className="text-lg font-semibold text-foreground mb-2">No coding challenges yet</h4>
                   <p className="text-muted-foreground mb-6">Solve a coding problem to see your results here.</p>
                   <Link to="/coding">
-                    <Button variant="primary" className="!bg-gradient-to-r !from-blue-600 !to-cyan-600">Browse Coding problems</Button>
+                    <Button variant="primary" className="!bg-gradient-to-r !from-blue-600 !to-emerald-600">Browse Coding problems</Button>
                   </Link>
                 </div>
               ) : (

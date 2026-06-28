@@ -43,7 +43,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               <Button 
                 variant="primary" 
                 size="sm" 
-                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600" 
+                className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600" 
                 onClick={onAIGenerate}
               >
                 Generate Assessment
@@ -59,7 +59,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               <Button 
                 variant="primary" 
                 size="sm" 
-                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600" 
+                className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600" 
                 onClick={onCreateMCQ}
               >
                 Create MCQ
@@ -75,7 +75,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               <Button 
                 variant="primary" 
                 size="sm" 
-                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600" 
+                className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600" 
                 onClick={onCreateAICoding}
               >
                 Create AI Coding

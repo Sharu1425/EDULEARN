@@ -12,6 +12,7 @@ interface CardProps {
   size?: "sm" | "md" | "lg"
   /** Cursor-tracking light highlight on hover. Defaults to `hover`. */
   spotlight?: boolean
+  appearance?: "solid" | "glass"
   onClick?: () => void
 }
 
@@ -24,6 +25,7 @@ const Card: React.FC<CardProps> = ({
   hover = true,
   size,
   spotlight,
+  appearance = "solid",
   onClick,
 }) => {
   const ref = useRef<HTMLDivElement>(null)
@@ -44,24 +46,32 @@ const Card: React.FC<CardProps> = ({
       onClick={onClick}
       onMouseMove={enableSpotlight ? handleMove : undefined}
       className={cn(
-        // macOS-style vibrancy glass. `isolate` guarantees the spotlight overlay
-        // (-z-10) paints above the card background but below content, so children
-        // render directly without an extra wrapper. `ring-inset` is the specular
-        // inner rim that gives the "liquid glass" edge.
-        "group relative isolate overflow-hidden rounded-2xl border backdrop-blur-2xl backdrop-saturate-150 transition-all duration-300 ease-out-expo",
-        // Light mode
-        "bg-white/60 border-white/50 shadow-e2 ring-1 ring-inset ring-white/30",
-        // Dark mode
-        "dark:bg-[rgba(17,23,41,0.55)] dark:border-white/10 dark:shadow-e2-dark dark:ring-white/[0.06]",
-        // Hover — lift a tier + brighten the glass rim
-        hover && [
-          "hover:-translate-y-0.5 hover:shadow-e3 hover:ring-white/50",
-          "dark:hover:shadow-e3-dark dark:hover:border-white/15 dark:hover:bg-[rgba(17,23,41,0.7)] dark:hover:ring-white/10",
+        // Base
+        "group relative isolate overflow-hidden rounded-2xl border transition-all duration-300 ease-out-expo",
+        
+        // Solid appearance
+        appearance === "solid" && [
+          "bg-card border-border shadow-e2",
+          "dark:shadow-e2-dark"
         ],
-        // Optional accent ring + soft glow
+        
+        // Glass appearance
+        appearance === "glass" && [
+          "backdrop-blur-2xl backdrop-saturate-150",
+          "bg-white/60 border-white/50 shadow-e2 ring-1 ring-inset ring-white/30",
+          "dark:bg-[rgba(17,23,41,0.55)] dark:border-white/10 dark:shadow-e2-dark dark:ring-white/[0.06]"
+        ],
+
+        // Hover — lift a tier + brighten
+        hover && [
+          "hover:-translate-y-0.5 hover:shadow-e3 dark:hover:shadow-e3-dark",
+          appearance === "glass" && "hover:ring-white/50 dark:hover:border-white/15 dark:hover:bg-[rgba(17,23,41,0.7)] dark:hover:ring-white/10",
+        ],
+        
+        // Optional accent ring + soft glow (emerald)
         glow && [
           "ring-1 ring-inset ring-primary/15",
-          "dark:hover:shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_28px_rgba(34,211,238,0.10)]",
+          "dark:hover:shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_28px_rgba(52,211,153,0.10)]",
         ],
         size && SIZE_PADDING[size],
         onClick && "cursor-pointer",
@@ -75,7 +85,7 @@ const Card: React.FC<CardProps> = ({
           className="pointer-events-none absolute inset-0 -z-10 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           style={{
             background:
-              "radial-gradient(240px circle at var(--spot-x, 50%) var(--spot-y, 50%), rgba(56,189,248,0.10), transparent 60%)",
+              "radial-gradient(240px circle at var(--spot-x, 50%) var(--spot-y, 50%), rgba(52,211,153,0.10), transparent 60%)",
           }}
         />
       )}

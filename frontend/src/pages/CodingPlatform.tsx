@@ -226,7 +226,7 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
               <motion.div variants={ANIMATION_VARIANTS.slideUp}>
                 <Card size="sm" className="text-center group relative overflow-hidden">
                   <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <div className="text-2xl font-black text-blue-400 mb-1 drop-shadow-[0_0_10px_rgba(56,189,248,0.3)]">{Math.round(analytics.success_rate)}%</div>
+                  <div className="text-2xl font-black text-blue-400 mb-1 drop-shadow-[0_0_10px_rgba(16, 185, 129,0.3)]">{Math.round(analytics.success_rate)}%</div>
                   <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Rate</div>
                 </Card>
               </motion.div>
@@ -234,7 +234,7 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
               <motion.div variants={ANIMATION_VARIANTS.slideUp}>
                 <Card size="sm" className="text-center group relative overflow-hidden">
                   <div className="absolute inset-0 bg-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <div className="text-2xl font-black text-purple-400 mb-1 drop-shadow-[0_0_10px_rgba(139,92,246,0.3)]">{analytics.total_problems_attempted || 0}</div>
+                  <div className="text-2xl font-black text-purple-400 mb-1 drop-shadow-[0_0_10px_rgba(245, 158, 11,0.3)]">{analytics.total_problems_attempted || 0}</div>
                   <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Attempted</div>
                 </Card>
               </motion.div>

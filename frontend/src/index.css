@@ -7,32 +7,32 @@
 
 @layer base {
   :root {
-    /* Light Mode — Premium soft gradient palette */
-    --background: 220 30% 98%;
-    --foreground: 222 47% 8%;
+    /* Light Mode — Emerald Scholar palette */
+    --background: 150 30% 98%;
+    --foreground: 200 25% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 8%;
+    --card-foreground: 200 25% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 8%;
-    --primary: 243 75% 59%;
+    --popover-foreground: 200 25% 12%;
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 346 87% 60%;
+    --secondary: 178 80% 36%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 199 89% 48%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 348 83% 47%;
+    --muted: 150 18% 95%;
+    --muted-foreground: 200 12% 42%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 38 60% 12%;
+    --destructive: 350 75% 48%;
     --destructive-foreground: 0 0% 100%;
-    --success: 152 58% 38%;
+    --success: 152 60% 38%;
     --success-foreground: 0 0% 100%;
-    --warning: 35 92% 48%;
+    --warning: 38 92% 48%;
     --warning-foreground: 0 0% 100%;
-    --info: 199 89% 48%;
+    --info: 199 89% 46%;
     --info-foreground: 0 0% 100%;
-    --border: 214 32% 88%;
-    --input: 214 32% 91%;
-    --ring: 243 75% 59%;
+    --border: 150 16% 88%;
+    --input: 150 16% 91%;
+    --ring: 160 84% 39%;
     --radius: 1rem;
     --font-heading: "Space Grotesk", sans-serif;
     --font-sans: "Inter", sans-serif;
@@ -47,43 +47,43 @@
     --dur-4: 560ms;   /* page / hero reveals */
 
     /* Glow colors — light */
-    --glow-primary: rgba(99, 102, 241, 0.35);
-    --glow-accent: rgba(14, 165, 233, 0.3);
-    --glow-secondary: rgba(239, 68, 68, 0.25);
+    --glow-primary: rgba(16, 185, 129, 0.35); /* emerald */
+    --glow-accent: rgba(245, 158, 11, 0.3);   /* amber */
+    --glow-secondary: rgba(20, 184, 166, 0.25); /* teal */
   }
 
   .dark {
-    /* Dark Mode — Deep space palette */
-    --background: 222 47% 3%;
-    --foreground: 213 31% 97%;
-    --card: 222 47% 6%;
-    --card-foreground: 213 31% 97%;
-    --popover: 222 47% 6%;
-    --popover-foreground: 213 31% 97%;
-    --primary: 199 95% 55%;        /* Electric Blue #22d3ee */
-    --primary-foreground: 222 47% 5%;
-    --secondary: 271 91% 65%;      /* Neon Purple #8b5cf6 */
-    --secondary-foreground: 0 0% 100%;
-    --muted: 222 47% 11%;
-    --muted-foreground: 215 20% 60%;
-    --accent: 186 100% 50%;        /* Cyan #00f5ff */
-    --accent-foreground: 222 47% 5%;
-    --destructive: 348 83% 55%;
+    /* Dark Mode — Emerald Scholar palette */
+    --background: 200 40% 7%;
+    --foreground: 150 20% 96%;
+    --card: 205 35% 11%;
+    --card-foreground: 150 20% 96%;
+    --popover: 205 35% 11%;
+    --popover-foreground: 150 20% 96%;
+    --primary: 158 70% 50%;
+    --primary-foreground: 200 40% 7%;
+    --secondary: 173 75% 48%;
+    --secondary-foreground: 200 40% 7%;
+    --muted: 205 30% 15%;
+    --muted-foreground: 200 14% 62%;
+    --accent: 43 96% 56%;
+    --accent-foreground: 200 40% 7%;
+    --destructive: 350 80% 60%;
     --destructive-foreground: 0 0% 98%;
     --success: 152 62% 45%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 95% 55%;
-    --warning-foreground: 222 47% 8%;
-    --info: 199 95% 55%;
-    --info-foreground: 222 47% 5%;
-    --border: 222 47% 14%;
-    --input: 222 47% 9%;
-    --ring: 199 95% 55%;
+    --warning: 43 96% 56%;
+    --warning-foreground: 200 40% 7%;
+    --info: 199 90% 55%;
+    --info-foreground: 200 40% 5%;
+    --border: 205 25% 18%;
+    --input: 205 25% 15%;
+    --ring: 158 70% 50%;
 
     /* Glow colors — dark */
-    --glow-primary: rgba(34, 211, 238, 0.4);
-    --glow-accent: rgba(139, 92, 246, 0.35);
-    --glow-cyan: rgba(0, 245, 255, 0.25);
+    --glow-primary: rgba(52, 211, 153, 0.4);
+    --glow-accent: rgba(251, 191, 36, 0.35);
+    --glow-cyan: rgba(45, 212, 191, 0.25);
   }
 }
 
@@ -140,17 +140,17 @@
   /* Gradient Text */
   .gradient-text {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #a78bfa 100%);
+    background-image: linear-gradient(135deg, #34d399 0%, #2dd4bf 50%, #5eead4 100%);
   }
 
   .gradient-text-light {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #6366f1 0%, #0ea5e9 100%);
+    background-image: linear-gradient(135deg, #059669 0%, #0d9488 100%);
   }
 
   .gradient-text-gold {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    background-image: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   }
 
   .text-gradient-primary {
@@ -159,7 +159,7 @@
 
   /* Glow Effects */
   .glow-ring {
-    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.3), 0 0 20px rgba(34, 211, 238, 0.15);
+    box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.3), 0 0 20px rgba(52, 211, 153, 0.15);
   }
 
   .glow-primary {
@@ -167,36 +167,36 @@
   }
 
   .glow-cyan {
-    box-shadow: 0 0 25px rgba(34, 211, 238, 0.4), 0 0 60px rgba(34, 211, 238, 0.15);
+    box-shadow: 0 0 25px rgba(45, 212, 191, 0.4), 0 0 60px rgba(45, 212, 191, 0.15);
   }
 
   .glow-purple {
-    box-shadow: 0 0 25px rgba(139, 92, 246, 0.4), 0 0 60px rgba(139, 92, 246, 0.15);
+    box-shadow: 0 0 25px rgba(251, 191, 36, 0.4), 0 0 60px rgba(251, 191, 36, 0.15);
   }
 
   .glow-indigo {
-    box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 0 30px rgba(52, 211, 153, 0.3);
   }
 
   .hover-glow-border:hover {
-    border-color: rgba(34, 211, 238, 0.5);
-    box-shadow: 0 0 20px rgba(34, 211, 238, 0.2), inset 0 0 20px rgba(34, 211, 238, 0.03);
+    border-color: rgba(52, 211, 153, 0.5);
+    box-shadow: 0 0 20px rgba(52, 211, 153, 0.2), inset 0 0 20px rgba(52, 211, 153, 0.03);
   }
 
   /* AI Badge */
   .ai-badge {
     @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold;
-    background: linear-gradient(135deg, rgba(34, 211, 238, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
-    border: 1px solid rgba(34, 211, 238, 0.3);
-    color: #38bdf8;
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.15) 0%, rgba(45, 212, 191, 0.15) 100%);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    color: #34d399;
     backdrop-filter: blur(8px);
   }
 
   /* Light mode ai-badge */
   .light .ai-badge {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.10) 0%, rgba(14, 165, 233, 0.10) 100%);
-    border: 1px solid rgba(99, 102, 241, 0.25);
-    color: #4f46e5;
+    background: linear-gradient(135deg, rgba(5, 150, 105, 0.10) 0%, rgba(13, 148, 136, 0.10) 100%);
+    border: 1px solid rgba(5, 150, 105, 0.25);
+    color: #059669;
   }
 
   /* Text helpers */
@@ -292,7 +292,7 @@
 }
 
 .dark .text-glow {
-  text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+  text-shadow: 0 0 20px rgba(52, 211, 153, 0.5);
 }
 
 /* ─── Animated Background ─────────────────────────────────────────────────── */
@@ -308,19 +308,19 @@
 :root .app-bg,
 .light .app-bg {
   background:
-    radial-gradient(ellipse at 20% 10%, hsla(243, 75%, 92%, 0.8) 0px, transparent 55%),
-    radial-gradient(ellipse at 80% 20%, hsla(199, 89%, 90%, 0.7) 0px, transparent 50%),
-    radial-gradient(ellipse at 50% 90%, hsla(271, 60%, 93%, 0.6) 0px, transparent 55%);
-  background-color: hsl(220, 30%, 98%);
+    radial-gradient(ellipse at 20% 10%, hsla(160, 84%, 92%, 0.8) 0px, transparent 55%),
+    radial-gradient(ellipse at 80% 20%, hsla(178, 80%, 90%, 0.7) 0px, transparent 50%),
+    radial-gradient(ellipse at 50% 90%, hsla(38, 92%, 93%, 0.6) 0px, transparent 55%);
+  background-color: hsl(150, 30%, 98%);
 }
 
 /* Dark mode background */
 .dark .app-bg {
   background:
-    radial-gradient(ellipse at 15% 15%, rgba(15, 23, 42, 1) 0%, transparent 70%),
-    radial-gradient(ellipse at 85% 10%, rgba(2, 6, 23, 1) 0%, transparent 60%),
-    radial-gradient(ellipse at 50% 90%, rgba(2, 6, 23, 0.9) 0%, transparent 60%);
-  background-color: #020617;
+    radial-gradient(ellipse at 15% 15%, rgba(6, 24, 18, 1) 0%, transparent 70%),
+    radial-gradient(ellipse at 85% 10%, rgba(6, 20, 26, 1) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 90%, rgba(20, 16, 6, 0.9) 0%, transparent 60%);
+  background-color: #0b1410;
 }
 
 /* ─── Orb Layer ────────────────────────────────────────────────────────────── */
@@ -345,7 +345,7 @@
   height: 500px;
   top: -100px;
   left: -100px;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.18) 0%, transparent 70%);
   animation-duration: 14s;
   animation-delay: 0s;
 }
@@ -355,7 +355,7 @@
   height: 600px;
   top: 30%;
   right: -150px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, transparent 70%);
   animation-duration: 18s;
   animation-delay: -5s;
 }
@@ -365,7 +365,7 @@
   height: 400px;
   bottom: -80px;
   left: 30%;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.12) 0%, transparent 70%);
   animation-duration: 16s;
   animation-delay: -9s;
 }
@@ -373,15 +373,15 @@
 /* Light mode orbs */
 :root .orb-1,
 .light .orb-1 {
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%);
 }
 :root .orb-2,
 .light .orb-2 {
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.1) 0%, transparent 70%);
 }
 :root .orb-3,
 .light .orb-3 {
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.08) 0%, transparent 70%);
 }
 
 /* ─── Grid overlay (neural net feeling) ─────────────────────────────────── */
@@ -396,8 +396,8 @@
 .light .grid-overlay {
   opacity: 0.03;
   background-image:
-    linear-gradient(rgba(30, 41, 59, 0.6) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(30, 41, 59, 0.6) 1px, transparent 1px);
+    linear-gradient(rgba(15, 23, 42, 0.6) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.6) 1px, transparent 1px);
   background-size: 60px 60px;
 }
 
@@ -405,8 +405,8 @@
 .dark .grid-overlay {
   opacity: 0.04;
   background-image:
-    linear-gradient(rgba(56, 189, 248, 0.4) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(56, 189, 248, 0.4) 1px, transparent 1px);
+    linear-gradient(rgba(52, 211, 153, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 211, 153, 0.4) 1px, transparent 1px);
   background-size: 60px 60px;
 }
 
@@ -430,7 +430,7 @@
   position: absolute;
   inset: -1px;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.6), rgba(139, 92, 246, 0.6));
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.6), rgba(45, 212, 191, 0.6));
   z-index: -1;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -477,12 +477,12 @@
 
 /* Dark cursor glow */
 .dark .cursor-glow {
-  background: radial-gradient(circle closest-side, rgba(34, 211, 238, 0.06) 0%, transparent 100%);
+  background: radial-gradient(circle closest-side, rgba(52, 211, 153, 0.06) 0%, transparent 100%);
 }
 
 /* Light cursor glow */
 .light .cursor-glow {
-  background: radial-gradient(circle closest-side, rgba(99, 102, 241, 0.05) 0%, transparent 100%);
+  background: radial-gradient(circle closest-side, rgba(16, 185, 129, 0.05) 0%, transparent 100%);
 }
 
 /* ─── Typing cursor ──────────────────────────────────────────────────────── */
@@ -506,14 +506,14 @@
 }
 
 .dark .feature-card:hover {
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(34, 211, 238, 0.2);
-  border-color: rgba(34, 211, 238, 0.25);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(52, 211, 153, 0.2);
+  border-color: rgba(52, 211, 153, 0.25);
 }
 
 .light .feature-card:hover,
 :root .feature-card:hover {
-  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(99, 102, 241, 0.2);
-  border-color: rgba(99, 102, 241, 0.25);
+  box-shadow: 0 20px 60px rgba(16, 185, 129, 0.12), 0 0 0 1px rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.25);
 }
 
 /* ─── Custom Scrollbar ───────────────────────────────────────────────────── */
@@ -568,8 +568,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.3); }
-  50%       { box-shadow: 0 0 40px rgba(34, 211, 238, 0.6), 0 0 80px rgba(34, 211, 238, 0.2); }
+  0%, 100% { box-shadow: 0 0 20px rgba(52, 211, 153, 0.3); }
+  50%       { box-shadow: 0 0 40px rgba(52, 211, 153, 0.6), 0 0 80px rgba(52, 211, 153, 0.2); }
 }
 
 @keyframes gradient-shift {

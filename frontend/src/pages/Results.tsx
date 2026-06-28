@@ -108,7 +108,7 @@ const Results: React.FC<ResultsProps> = ({ }) => {
                     variants={ANIMATION_VARIANTS.slideDown}
                     className="text-center mb-12"
                 >
-                    <h2 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400 mb-4">
+                    <h2 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400 mb-4">
                         Assessment Results
                     </h2>
                     <p className="text-purple-200 text-xl">Here's how you performed</p>
@@ -263,7 +263,7 @@ const Results: React.FC<ResultsProps> = ({ }) => {
                         >
                             <Card className="p-8">
                                 <div className="text-center mb-8">
-                                    <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400 mb-4">
+                                    <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400 mb-4">
                                         Question Review
                                     </h3>
                                     {/* Explanations available instantly */}

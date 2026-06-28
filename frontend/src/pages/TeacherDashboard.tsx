@@ -9,6 +9,7 @@ import { useAuth } from "../hooks/useAuth"
 import api from "../utils/api"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
+import PageShell from "../components/ui/PageShell"
 import assessmentService from "../api/assessmentService"
 import { ANIMATION_VARIANTS } from "../utils/constants"
 import { Sparkles, Users, BookOpen, Video, BarChart3 } from "lucide-react"
@@ -60,42 +61,40 @@ const TeacherDashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const studentsResponse = await api.get("/api/teacher/students")
-      if (studentsResponse.data.success) {
-        setStudents(studentsResponse.data.students)
+      const [studentsRes, batchesRes, assessmentsRes] = await Promise.allSettled([
+        api.get("/api/teacher/students"),
+        api.get("/api/teacher/batches"),
+        assessmentService.getTeacherAssessments()
+      ])
+
+      if (studentsRes.status === 'fulfilled' && studentsRes.value.data.success) {
+        setStudents(studentsRes.value.data.students)
       }
 
-      const batchesResponse = await api.get("/api/teacher/batches")
-      console.log("DEBUG [TEACHER] Raw batches response:", batchesResponse.data)
-      
-      if (batchesResponse.data && Array.isArray(batchesResponse.data)) {
-        const formattedBatches = batchesResponse.data.map((batch: any) => {
-          const bId = batch.id || batch._id || batch.batch_id
-          const bName = batch.name || batch.batch_name || "Unnamed Batch"
-          const bCount = batch.student_count || batch.total_students || 0
+      if (batchesRes.status === 'fulfilled') {
+        const data = batchesRes.value.data
+        if (data && Array.isArray(data)) {
+          const formattedBatches = data.map((batch: any) => {
+            const bId = batch.id || batch._id || batch.batch_id
+            const bName = batch.name || batch.batch_name || "Unnamed Batch"
+            const bCount = batch.student_count || batch.total_students || 0
+            
+            return {
+              id: bId,
+              name: bName,
+              studentCount: bCount,
+              createdAt: batch.created_at || new Date().toISOString().split("T")[0],
+            }
+          }).filter(b => b.id)
           
-          return {
-            id: bId,
-            name: bName,
-            studentCount: bCount,
-            createdAt: batch.created_at || new Date().toISOString().split("T")[0],
-          }
-        }).filter(b => b.id) // Only include if has ID
-        
-        console.log("DEBUG [TEACHER] Formatted batches:", formattedBatches)
-        setBatches(formattedBatches)
-      } else {
-        console.warn("DEBUG [TEACHER] Batches response not an array:", batchesResponse.data)
-        setBatches([])
+          setBatches(formattedBatches)
+        } else {
+          setBatches([])
+        }
       }
       
-      try {
-        const assessmentsData = await assessmentService.getTeacherAssessments()
-        if (assessmentsData && Array.isArray(assessmentsData)) {
-          setAssessmentsCount(assessmentsData.length)
-        }
-      } catch (err) {
-        console.error("❌ [TEACHER] Failed to fetch assessments count:", err)
+      if (assessmentsRes.status === 'fulfilled' && assessmentsRes.value && Array.isArray(assessmentsRes.value)) {
+        setAssessmentsCount(assessmentsRes.value.length)
       }
     } catch (err) {
       console.error("❌ [TEACHER] Failed to fetch dashboard data:", err)
@@ -145,36 +144,20 @@ const TeacherDashboard: React.FC = () => {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen pt-20 px-4 flex items-center justify-center relative z-10">
-        <div className="text-center">
-          <Sparkles className="h-8 w-8 mx-auto mb-4 text-cyan-400 animate-pulse" />
-          <h1 className="text-2xl font-bold gradient-text mb-2">Loading Teacher Dashboard...</h1>
-          <p className="text-muted-foreground">Please wait while we load your data.</p>
-        </div>
-      </div>
-    )
-  }
-
   const selectableBatches = batches.filter(b => b.id !== 'all')
 
   return (
-    <>
-      <div className="min-h-screen pt-16 px-4 sm:px-6 lg:px-8 relative z-10">
+    <PageShell
+      title={`Welcome back, ${user?.name || (user?.email ? user.email.split('@')[0] : "Teacher")}!`}
+      subtitle="Ready to manage your classroom?"
+    >
+      <div className="relative z-10">
         <motion.div
           variants={ANIMATION_VARIANTS.fadeIn}
           initial="initial"
           animate="animate"
-          className="max-w-6xl mx-auto py-8"
+          className="max-w-7xl mx-auto py-2"
         >
-          {/* Header */}
-          <motion.div variants={ANIMATION_VARIANTS.slideDown} className="mb-8">
-            <h1 className="text-3xl sm:text-4xl font-black gradient-text mb-1">Teacher Dashboard</h1>
-            <p className="text-muted-foreground">
-              Welcome back, {user?.name || user?.email || "Teacher"}!
-            </p>
-          </motion.div>
 
             {/* Quick Stats */}
             <motion.div
@@ -186,14 +169,14 @@ const TeacherDashboard: React.FC = () => {
               {[
                 {
                   label: "Total Students", value: students.length,
-                  gradient: "from-cyan-400 to-blue-500",
+                  gradient: "from-emerald-400 to-blue-500",
                   glow: "rgba(34,211,238,0.3)",
                   Icon: Users,
                 },
                 {
                   label: "Active Batches", value: selectableBatches.length,
-                  gradient: "from-violet-400 to-purple-500",
-                  glow: "rgba(139,92,246,0.3)",
+                  gradient: "from-amber-400 to-purple-500",
+                  glow: "rgba(245, 158, 11,0.3)",
                   Icon: BookOpen,
                 },
                 {
@@ -238,7 +221,7 @@ const TeacherDashboard: React.FC = () => {
           >
             {[
               {
-                gradient: "from-cyan-400 to-blue-500",
+                gradient: "from-emerald-400 to-blue-500",
                 glow: "rgba(34,211,238,0.3)",
                 Icon: Users,
                 title: "Student Management",
@@ -256,8 +239,8 @@ const TeacherDashboard: React.FC = () => {
                 onClick: handleNavigateToAssessmentManagement,
               },
               {
-                gradient: "from-purple-400 to-violet-500",
-                glow: "rgba(139,92,246,0.3)",
+                gradient: "from-purple-400 to-amber-500",
+                glow: "rgba(245, 158, 11,0.3)",
                 Icon: BarChart3,
                 title: "Results & Analytics",
                 desc: "View detailed performance metrics and class insights to track student progress.",
@@ -404,7 +387,7 @@ const TeacherDashboard: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </PageShell>
   )
 }
 

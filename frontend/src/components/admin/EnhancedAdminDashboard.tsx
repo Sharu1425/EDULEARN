@@ -127,7 +127,7 @@ const EnhancedAdminDashboard: React.FC = () => {
             className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
           >
             <div className="flex justify-between items-start mb-4">
-              <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
+              <div className="p-2 rounded-xl bg-teal-500/10 text-teal-500">
                 <BrainCircuit className="w-6 h-6" />
               </div>
             </div>

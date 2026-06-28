@@ -111,14 +111,14 @@ export default function ThinkTraceResultDetail() {
 
             {/* Executive Strategy */}
             {review.overall_strategy && (
-              <div className="bg-gradient-to-br from-violet-600 to-indigo-600 rounded-3xl p-8 text-white shadow-xl shadow-indigo-500/20 overflow-hidden relative">
+              <div className="bg-gradient-to-br from-amber-600 to-teal-600 rounded-3xl p-8 text-white shadow-xl shadow-teal-500/20 overflow-hidden relative">
                  <div className="absolute top-0 right-0 p-8 opacity-10">
                     <BrainCircuit className="w-32 h-32 text-white" />
                  </div>
                 <h3 className="text-lg font-bold mb-4 flex items-center gap-2 relative z-10">
-                  <BrainCircuit className="w-5 h-5 text-indigo-100" /> Executive Strategy
+                  <BrainCircuit className="w-5 h-5 text-teal-100" /> Executive Strategy
                 </h3>
-                <p className="text-indigo-50 leading-relaxed font-medium relative z-10 text-base">
+                <p className="text-teal-50 leading-relaxed font-medium relative z-10 text-base">
                   {review.overall_strategy}
                 </p>
               </div>
@@ -195,7 +195,7 @@ export default function ThinkTraceResultDetail() {
             {review.answer_trace && review.answer_trace.length > 0 && (
               <div className="bg-card rounded-3xl p-8 border border-border shadow-lg shadow-black/5">
                 <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-indigo-500" /> Question-by-Question Analysis
+                  <Activity className="w-5 h-5 text-teal-500" /> Question-by-Question Analysis
                 </h3>
                 <div className="space-y-4">
                   {review.answer_trace.map((trace: any, i: number) => {
@@ -242,14 +242,14 @@ export default function ThinkTraceResultDetail() {
             {(!review.answer_trace || review.answer_trace.length === 0) && review.questions && (
               <div className="bg-card rounded-3xl p-8 border border-border shadow-lg shadow-black/5">
                 <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-indigo-500" /> Questions Attempted
+                  <Activity className="w-5 h-5 text-teal-500" /> Questions Attempted
                 </h3>
                 <div className="space-y-4">
                   {review.questions.map((q: any, i: number) => {
                     const userQInfo = review.user_answers && review.user_answers[i];
                     return (
                         <div key={i} className="rounded-2xl border border-border/50 bg-muted/10 p-5">
-                            <p className="font-semibold text-foreground/90 mb-3 text-sm leading-relaxed"><span className="text-indigo-500 mr-2">Q{i+1}.</span>{q.question || q.scenario}</p>
+                            <p className="font-semibold text-foreground/90 mb-3 text-sm leading-relaxed"><span className="text-teal-500 mr-2">Q{i+1}.</span>{q.question || q.scenario}</p>
                             {userQInfo && (
                                 <p className="text-xs bg-muted px-3 py-1.5 rounded border border-border/50 inline-block font-medium text-muted-foreground">Selected: {userQInfo}</p>
                             )}
