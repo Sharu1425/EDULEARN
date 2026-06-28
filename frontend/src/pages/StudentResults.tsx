@@ -326,7 +326,7 @@ const StudentResults: React.FC = () => {
                 <ErrorState title="Failed to Load" message={codingError} onRetry={fetchCodingHistory} retryText="Retry" />
               ) : codingResults.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">💻</div>
+                  <div className="w-20 h-20 bg-info/10 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">💻</div>
                   <h4 className="text-lg font-semibold text-foreground mb-2">No coding challenges yet</h4>
                   <p className="text-muted-foreground mb-6">Solve a coding problem to see your results here.</p>
                   <Link to="/coding">

@@ -91,33 +91,27 @@ const AssessmentManagement: React.FC = () => {
   }
 
   return (
-    <>
-      <div className="px-4 py-6 sm:px-6">
-        <motion.div
-          variants={ANIMATION_VARIANTS.fadeIn}
-          initial="initial"
-          animate="animate"
-          className="max-w-7xl mx-auto"
-        >
-          <Card className="p-8 mb-8">
-            <motion.div variants={ANIMATION_VARIANTS.slideDown} className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-foreground mb-2">Assessment Management</h1>
-              <p className="text-muted-foreground text-lg mb-4">
-                Create, manage, and analyze assessments
-              </p>
-            </motion.div>
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
+      <motion.div variants={ANIMATION_VARIANTS.fadeIn} initial="initial" animate="animate">
+        <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 text-center sm:p-9">
+          <div className="aurora-mesh" />
+          <div className="relative z-10">
+            <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Assessment Management</h1>
+            <p className="mt-2 text-muted-foreground">Create, manage, and analyze assessments</p>
+          </div>
+        </Card>
+      </motion.div>
 
-            {/* Assessment Creation Form */}
-            <AssessmentForm
-              batches={batches}
-              onCreateMCQ={() => navigate("/teacher/create-assessment?type=mcq")}
-              onCreateAICoding={() => navigate("/teacher/create-assessment?type=ai_coding")}
-              onAIGenerate={() => navigate("/teacher/create-assessment?type=ai")}
-            />
-          </Card>
-        </motion.div>
-      </div>
-    </>
+      <Card className="p-6 sm:p-8">
+        {/* Assessment Creation Form */}
+        <AssessmentForm
+          batches={batches}
+          onCreateMCQ={() => navigate("/teacher/create-assessment?type=mcq")}
+          onCreateAICoding={() => navigate("/teacher/create-assessment?type=ai_coding")}
+          onAIGenerate={() => navigate("/teacher/create-assessment?type=ai")}
+        />
+      </Card>
+    </div>
   )
 }
 

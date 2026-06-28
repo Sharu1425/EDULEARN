@@ -153,24 +153,26 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, collapsed = false, onToggl
                         <span className="absolute right-1.5 top-1.5 h-2 w-2 animate-pulse rounded-full border-2 border-background bg-teal-400" />
                     </motion.button>
 
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.85 }}
-                        animate={{ opacity: 1, scale: creditsPulse ? [1, 1.12, 1] : 1 }}
-                        transition={creditsPulse ? { duration: 0.5, ease: [0.16, 1, 0.3, 1] } : undefined}
-                        className="hidden cursor-default select-none items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors sm:flex"
-                        style={{
-                            background: isDark ? "rgba(251,191,36,0.12)" : "rgba(251,191,36,0.15)",
-                            borderColor: isDark ? "rgba(251,191,36,0.3)" : "rgba(217,119,6,0.3)",
-                            color: isDark ? "#fbbf24" : "#b45309",
-                            boxShadow: creditsPulse ? "0 0 18px rgba(251,191,36,0.45)" : "none",
-                        }}
-                        title="Your credits balance"
-                    >
-                        <Coins className="h-3.5 w-3.5" />
-                        <span className={cn("tabular", creditsLoading && "opacity-50")}>
-                            {creditsLoading ? "…" : displayCredits.toLocaleString()}
-                        </span>
-                    </motion.div>
+                    {user?.role === "student" && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.85 }}
+                            animate={{ opacity: 1, scale: creditsPulse ? [1, 1.12, 1] : 1 }}
+                            transition={creditsPulse ? { duration: 0.5, ease: [0.16, 1, 0.3, 1] } : undefined}
+                            className="hidden cursor-default select-none items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors sm:flex"
+                            style={{
+                                background: isDark ? "rgba(251,191,36,0.12)" : "rgba(251,191,36,0.15)",
+                                borderColor: isDark ? "rgba(251,191,36,0.3)" : "rgba(217,119,6,0.3)",
+                                color: isDark ? "#fbbf24" : "#b45309",
+                                boxShadow: creditsPulse ? "0 0 18px rgba(251,191,36,0.45)" : "none",
+                            }}
+                            title="Your credits balance"
+                        >
+                            <Coins className="h-3.5 w-3.5" />
+                            <span className={cn("tabular", creditsLoading && "opacity-50")}>
+                                {creditsLoading ? "…" : displayCredits.toLocaleString()}
+                            </span>
+                        </motion.div>
+                    )}
 
                     {/* Profile */}
                     <div className="relative">

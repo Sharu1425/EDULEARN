@@ -592,7 +592,7 @@ const CreateAssessment: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6"
         >
           <Button
             variant="ghost"
@@ -602,9 +602,14 @@ const CreateAssessment: React.FC = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Assessment Management
           </Button>
-          
-          <h1 className="text-4xl font-bold text-foreground mb-2">Create Assessment</h1>
-          <p className="text-muted-foreground">Choose a type and create your assessment</p>
+
+          <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 sm:p-8">
+            <div className="aurora-mesh" />
+            <div className="relative z-10">
+              <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Create Assessment</h1>
+              <p className="mt-2 text-muted-foreground">Choose a type and create your assessment</p>
+            </div>
+          </Card>
         </motion.div>
 
         {renderTypeSelector()}
@@ -752,9 +757,9 @@ const CreateAssessment: React.FC = () => {
                         ))}
                       </div>
                       {q.explanation && (
-                        <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-md">
-                          <p className="text-sm text-blue-300">
-                            <span className="font-semibold">Explanation:</span> {q.explanation}
+                        <div className="mt-3 p-3 bg-info/10 border border-info/30 rounded-md">
+                          <p className="text-sm text-foreground">
+                            <span className="font-semibold text-info">Explanation:</span> {q.explanation}
                           </p>
                         </div>
                       )}

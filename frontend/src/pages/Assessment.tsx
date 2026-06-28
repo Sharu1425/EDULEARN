@@ -438,64 +438,53 @@ const Assessment: React.FC = () => {
 
   if (!testStarted) {
     return (
-      <div className="px-4 py-6 sm:px-6">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-8"
-          >
-            <h1 className="text-4xl font-bold text-white mb-4">{assessment.title}</h1>
-            <p className="text-gray-300 text-lg">{assessment.description}</p>
-            {assessmentType === 'teacher' && (
-              <p className="text-blue-300 text-sm mt-2">Created by Teacher</p>
-            )}
-            {assessmentType === 'student' && (
-              <p className="text-blue-300 text-sm mt-2">AI-Generated Assessment</p>
-            )}
-          </motion.div>
-
-          <Card className="p-8 mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-400 mb-2">{assessment.question_count}</div>
-                <div className="text-gray-300">Questions</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-400 mb-2">{assessment.time_limit}</div>
-                <div className="text-gray-300">Minutes</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-400 mb-2">{assessment.difficulty}</div>
-                <div className="text-gray-300">Difficulty</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-yellow-400 mb-2">{assessment.subject}</div>
-                <div className="text-gray-300">Subject</div>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <Button
-                onClick={startTest}
-                className="px-8 py-3 text-lg"
-                variant="primary"
-              >
-                Start Test
-              </Button>
+      <div className="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 text-center sm:p-9">
+            <div className="aurora-mesh" />
+            <div className="relative z-10">
+              <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{assessment.title}</h1>
+              <p className="mt-2 text-muted-foreground">{assessment.description}</p>
+              {assessmentType === 'teacher' && (
+                <p className="mt-2 text-sm font-medium text-primary">Created by Teacher</p>
+              )}
+              {assessmentType === 'student' && (
+                <p className="mt-2 text-sm font-medium text-primary">AI-Generated Assessment</p>
+              )}
             </div>
           </Card>
-        </div>
+        </motion.div>
+
+        <Card className="p-6 sm:p-8">
+          <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div className="text-center">
+              <div className="mb-1 font-heading text-3xl font-bold text-primary">{assessment.question_count}</div>
+              <div className="text-sm text-muted-foreground">Questions</div>
+            </div>
+            <div className="text-center">
+              <div className="mb-1 font-heading text-3xl font-bold text-success">{assessment.time_limit}</div>
+              <div className="text-sm text-muted-foreground">Minutes</div>
+            </div>
+            <div className="text-center">
+              <div className="mb-1 font-heading text-3xl font-bold capitalize text-secondary">{assessment.difficulty}</div>
+              <div className="text-sm text-muted-foreground">Difficulty</div>
+            </div>
+            <div className="text-center">
+              <div className="mb-1 font-heading text-3xl font-bold text-accent">{assessment.subject}</div>
+              <div className="text-sm text-muted-foreground">Subject</div>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <Button onClick={startTest} size="lg" variant="primary">Start Test</Button>
+          </div>
+        </Card>
       </div>
     )
   }
 
   const currentQuestion = assessment.questions[currentQuestionIndex]
   const progress = ((currentQuestionIndex + 1) / assessment.question_count) * 100
-
-  console.log(`🔍 [ASSESSMENT] Current question index: ${currentQuestionIndex}`)
-  console.log(`🔍 [ASSESSMENT] Current answer: ${answers[currentQuestionIndex]}`)
-  console.log(`🔍 [ASSESSMENT] All answers:`, answers)
 
   return (
     <div className="px-4 py-6 sm:px-6">
@@ -507,21 +496,21 @@ const Assessment: React.FC = () => {
           className="mb-6"
         >
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-white">{assessment.title}</h1>
+            <h1 className="font-heading text-2xl font-bold text-foreground">{assessment.title}</h1>
             <div className="text-right">
-              <div className="text-2xl font-bold text-red-400">{formatTime(timeLeft)}</div>
-              <div className="text-sm text-gray-400">Time Remaining</div>
+              <div className="tabular text-2xl font-bold text-destructive">{formatTime(timeLeft)}</div>
+              <div className="text-sm text-muted-foreground">Time Remaining</div>
             </div>
           </div>
 
-          <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
+          <div className="w-full bg-muted rounded-full h-2 mb-4">
             <div
-              className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+              className="bg-primary h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
 
-          <div className="flex justify-between text-sm text-gray-400">
+          <div className="flex justify-between text-sm text-muted-foreground">
             <span>Question {currentQuestionIndex + 1} of {assessment.question_count}</span>
             <span>{Math.round(progress)}% Complete</span>
           </div>
@@ -535,8 +524,8 @@ const Assessment: React.FC = () => {
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
         >
-          <Card className="p-8 mb-6">
-            <h2 className="text-xl font-semibold text-white mb-6">
+          <Card className="p-6 sm:p-8 mb-6">
+            <h2 className="font-heading text-xl font-semibold text-foreground mb-6">
               {currentQuestion.question}
             </h2>
 
@@ -545,15 +534,15 @@ const Assessment: React.FC = () => {
                 <button
                   key={index}
                   onClick={() => handleAnswerSelect(currentQuestionIndex, index)}
-                  className={`w-full p-4 text-left rounded-lg border transition-all duration-200 ${answers[currentQuestionIndex] === index
-                      ? 'bg-blue-600 border-blue-400 text-white'
-                      : 'bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500'
+                  className={`w-full p-4 text-left rounded-lg border transition-colors duration-200 ${answers[currentQuestionIndex] === index
+                      ? 'bg-primary/10 border-primary text-foreground'
+                      : 'bg-muted/40 border-border text-foreground hover:bg-muted/60'
                     }`}
                 >
                   <div className="flex items-center">
                     <div className={`w-6 h-6 rounded-full border-2 mr-3 flex items-center justify-center ${answers[currentQuestionIndex] === index
-                        ? 'border-white bg-white text-blue-600'
-                        : 'border-gray-400'
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-border'
                       }`}>
                       {answers[currentQuestionIndex] === index && '✓'}
                     </div>
@@ -575,16 +564,16 @@ const Assessment: React.FC = () => {
             Previous
           </Button>
 
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap justify-center gap-2">
             {assessment.questions.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentQuestionIndex(index)}
                 className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${index === currentQuestionIndex
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary text-white'
                     : answers[index] !== -1
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      ? 'bg-success text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/70'
                   }`}
               >
                 {index + 1}

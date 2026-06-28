@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { useToast } from "../contexts/ToastContext"
 import { useAuth } from "../hooks/useAuth"
@@ -19,6 +19,35 @@ import { Sparkles, Users, BookOpen, Video, BarChart3, ChevronRight, ArrowRight, 
 
 interface Student { id: string; name: string; email: string; progress: number; lastActive: string; batch?: string; batchId?: string }
 interface Batch { id: string; name: string; studentCount: number; createdAt?: string }
+
+const TypedText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
+  const reduce = useReducedMotion()
+  const [shown, setShown] = useState("")
+  useEffect(() => {
+    if (reduce) { setShown(text); return }
+    setShown("")
+    let i = 0
+    const id = window.setInterval(() => {
+      i += 1
+      setShown(text.slice(0, i))
+      if (i >= text.length) window.clearInterval(id)
+    }, 65)
+    return () => window.clearInterval(id)
+  }, [text, reduce])
+
+  return (
+    <span className={className}>
+      {shown}
+      {!reduce && shown.length < text.length && (
+        <motion.span
+          animate={{ opacity: [1, 0] }}
+          transition={{ repeat: Number.POSITIVE_INFINITY, duration: 0.8 }}
+          className="inline-block w-1.5 h-[0.8em] bg-current ml-1 align-middle"
+        />
+      )}
+    </span>
+  )
+}
 
 const TeacherDashboard: React.FC = () => {
   const { user } = useAuth()
@@ -118,7 +147,7 @@ const TeacherDashboard: React.FC = () => {
               <div className="relative z-10 flex h-full flex-col">
                 <Badge variant="ai" className="mb-4 w-fit"><Sparkles className="h-3 w-3" /> Teacher console</Badge>
                 <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                  Welcome back, <span className="text-gradient-primary">{name}</span>
+                  Welcome back, <TypedText text={name} className="text-gradient-primary" />
                 </h1>
                 <p className="mt-2 max-w-md text-muted-foreground">
                   Manage batches, assessments, and live sessions. Press{" "}

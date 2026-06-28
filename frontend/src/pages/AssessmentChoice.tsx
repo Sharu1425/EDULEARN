@@ -4,274 +4,143 @@ import type React from "react"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import type { User } from "../types"
-import { useTheme } from "../contexts/ThemeContext"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
 import { ANIMATION_VARIANTS } from "../utils/constants"
+import { CheckCircle2, BrainCircuit, Code2, ArrowLeft, Sparkles } from "lucide-react"
 
 interface AssessmentChoiceProps {
   user: User
 }
 
-const AssessmentChoice: React.FC<AssessmentChoiceProps> = ({ }) => {
-  const { } = useTheme()
+interface ChoiceOption {
+  Icon: typeof BrainCircuit
+  accent: string
+  title: string
+  description: string
+  features: string[]
+  stats: { value: string; label: string }[]
+  to: string
+  cta: string
+  variant: "slideLeft" | "slideRight"
+}
 
+const OPTIONS: ChoiceOption[] = [
+  {
+    Icon: BrainCircuit,
+    accent: "primary",
+    title: "MCQ Assessment",
+    description:
+      "Test your theoretical knowledge with AI-powered adaptive multiple-choice questions that adjust to your skill level across topics.",
+    features: [
+      "AI-powered adaptive questions",
+      "Multiple topics & difficulty levels",
+      "Instant results & explanations",
+    ],
+    stats: [
+      { value: "15-30", label: "Minutes" },
+      { value: "5-25", label: "Questions" },
+    ],
+    to: "/assessconfig",
+    cta: "Start MCQ Assessment",
+    variant: "slideLeft",
+  },
+  {
+    Icon: Code2,
+    accent: "secondary",
+    title: "Coding Challenge",
+    description:
+      "Practice your programming skills with AI-generated problems. Write code, test solutions, and get detailed AI feedback on your implementation.",
+    features: [
+      "AI-generated original problems",
+      "Multi-language support",
+      "Real-time code execution",
+      "Detailed AI code review",
+    ],
+    stats: [
+      { value: "30-90", label: "Minutes" },
+      { value: "1-3", label: "Problems" },
+    ],
+    to: "/coding",
+    cta: "Start Coding Challenge",
+    variant: "slideRight",
+  },
+]
+
+const AssessmentChoice: React.FC<AssessmentChoiceProps> = () => {
   return (
-    <>
-      <div className="px-4 py-6 sm:px-6">
-        <motion.div
-          variants={ANIMATION_VARIANTS.fadeIn}
-          initial="initial"
-          animate="animate"
-          className="max-w-4xl mx-auto"
-        >
-          {/* Header */}
-          <motion.div variants={ANIMATION_VARIANTS.slideDown} className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-foreground mb-4">Choose Your Assessment Type</h1>
-            <p className="text-muted-foreground text-lg">
-              Select the type of assessment you'd like to take today
-            </p>
+    <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6">
+      {/* Hero */}
+      <motion.div variants={ANIMATION_VARIANTS.slideUp} initial="initial" animate="animate">
+        <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 text-center sm:p-9">
+          <div className="aurora-mesh" />
+          <div className="relative z-10">
+            <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <Sparkles className="h-3.5 w-3.5" /> Practice
+            </span>
+            <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Choose Your Assessment Type
+            </h1>
+            <p className="mt-2 text-muted-foreground">Select the type of assessment you'd like to take today</p>
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* Options */}
+      <motion.div
+        variants={ANIMATION_VARIANTS.stagger}
+        initial="initial"
+        animate="animate"
+        className="grid grid-cols-1 gap-6 md:grid-cols-2"
+      >
+        {OPTIONS.map((opt) => (
+          <motion.div key={opt.title} variants={ANIMATION_VARIANTS[opt.variant]}>
+            <Card className="group flex h-full flex-col p-7 text-center">
+              <span
+                className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110"
+                style={{ background: `hsl(var(--${opt.accent}) / 0.12)`, color: `hsl(var(--${opt.accent}))` }}
+              >
+                <opt.Icon className="h-8 w-8" />
+              </span>
+
+              <h3 className="mb-3 font-heading text-2xl font-bold text-foreground">{opt.title}</h3>
+              <p className="mb-6 leading-relaxed text-muted-foreground">{opt.description}</p>
+
+              <div className="mb-8 space-y-3 text-left">
+                {opt.features.map((f) => (
+                  <div key={f} className="flex items-center gap-3 text-sm text-foreground/80">
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-success" />
+                    <span>{f}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mb-6 mt-auto grid grid-cols-2 gap-4 rounded-xl border border-border bg-muted/30 p-4">
+                {opt.stats.map((s) => (
+                  <div key={s.label}>
+                    <div className="font-heading text-lg font-bold text-foreground">{s.value}</div>
+                    <div className="text-xs text-muted-foreground">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              <Link to={opt.to}>
+                <Button variant="primary" className="w-full">{opt.cta}</Button>
+              </Link>
+            </Card>
           </motion.div>
+        ))}
+      </motion.div>
 
-          {/* Assessment Options */}
-          <motion.div variants={ANIMATION_VARIANTS.stagger} className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            {/* MCQ Assessment */}
-            <motion.div variants={ANIMATION_VARIANTS.slideLeft}>
-              <Card className="p-8 h-full hover:border-teal-400/50 transition-all duration-300 group">
-                <div className="text-center">
-                  {/* Icon */}
-                  <div className="w-20 h-20 rounded-full bg-teal-600 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <svg
-                      className="w-10 h-10 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <span className="sr-only">MCQ Assessment</span>
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">MCQ Assessment</h3>
-
-                  {/* Description */}
-                  <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-                    Test your theoretical knowledge with our AI-powered adaptive multiple-choice questions. Get
-                    personalized questions that adapt to your skill level across various topics.
-                  </p>
-
-                  {/* Features */}
-                  <div className="space-y-3 mb-8 text-left">
-                    <div className="flex items-center text-gray-800 dark:text-gray-200">
-                      <svg
-                        className="w-5 h-5 text-teal-500 mr-3"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        aria-hidden="true"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span className="text-sm">AI-powered adaptive questions</span>
-                    </div>
-                    <div className="flex items-center text-gray-800 dark:text-gray-200">
-                      <svg
-                        className="w-5 h-5 text-teal-500 mr-3"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        aria-hidden="true"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span className="text-sm">Multiple topics & difficulty levels</span>
-                    </div>
-                    <div className="flex items-center text-gray-800 dark:text-gray-200">
-                      <svg
-                        className="w-5 h-5 text-teal-500 mr-3"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        aria-hidden="true"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span className="text-sm">Instant results & explanations</span>
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="bg-gray-100 dark:bg-gray-800/50 rounded-lg p-4 mb-6">
-                    <div className="grid grid-cols-2 gap-4 text-center">
-                      <div>
-                        <div className="text-lg font-bold text-gray-900 dark:text-gray-100">15-30</div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">Minutes</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-gray-900 dark:text-gray-100">5-25</div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">Questions</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Button */}
-                  <Link to="/assessconfig">
-                    <Button variant="primary" className="w-full">
-                      Start MCQ Assessment
-                    </Button>
-                  </Link>
-                </div>
-              </Card>
-            </motion.div>
-
-            {/* Coding Assessment */}
-            <motion.div variants={ANIMATION_VARIANTS.slideRight}>
-              <Card className="p-8 h-full hover:border-teal-400/50 transition-all duration-300 group">
-                <div className="text-center">
-                  {/* Icon */}
-                  <div className="w-20 h-20 rounded-full bg-teal-600 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <svg
-                      className="w-10 h-10 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
-                      />
-                    </svg>
-                    <span className="sr-only">Coding Challenge</span>
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Coding Challenge</h3>
-
-                  {/* Description */}
-                  <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-                    Practice your programming skills with AI-generated coding problems. Write code, test solutions, and
-                    get detailed AI feedback on your implementation.
-                  </p>
-
-                  {/* Features */}
-                  <div className="space-y-3 mb-8 text-left">
-                    <div className="flex items-center text-gray-800 dark:text-gray-200">
-                      <svg
-                        className="w-5 h-5 text-teal-500 mr-3"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        aria-hidden="true"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span className="text-sm">AI-generated original problems</span>
-                    </div>
-                    <div className="flex items-center text-gray-800 dark:text-gray-200">
-                      <svg
-                        className="w-5 h-5 text-teal-500 mr-3"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        aria-hidden="true"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span className="text-sm">Multi-language support</span>
-                    </div>
-                    <div className="flex items-center text-gray-800 dark:text-gray-200">
-                      <svg
-                        className="w-5 h-5 text-teal-500 mr-3"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        aria-hidden="true"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span className="text-sm">Real-time code execution</span>
-                    </div>
-                    <div className="flex items-center text-gray-800 dark:text-gray-200">
-                      <svg
-                        className="w-5 h-5 text-teal-500 mr-3"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        aria-hidden="true"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span className="text-sm">Detailed AI code review</span>
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="bg-gray-100 dark:bg-gray-800/50 rounded-lg p-4 mb-6">
-                    <div className="grid grid-cols-2 gap-4 text-center">
-                      <div>
-                        <div className="text-lg font-bold text-gray-900 dark:text-gray-100">30-90</div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">Minutes</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-gray-900 dark:text-gray-100">1-3</div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">Problems</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Button */}
-                  <Link to="/coding">
-                    <Button variant="primary" className="w-full">
-                      Start Coding Challenge
-                    </Button>
-                  </Link>
-                </div>
-              </Card>
-            </motion.div>
-          </motion.div>
-
-          {/* Back Button */}
-          <motion.div variants={ANIMATION_VARIANTS.slideUp} className="text-center">
-            <Link to="/dashboard">
-              <Button variant="outline" size="sm">
-                ← Back to Dashboard
-              </Button>
-            </Link>
-          </motion.div>
-        </motion.div>
-      </div>
-    </>
+      {/* Back */}
+      <motion.div variants={ANIMATION_VARIANTS.slideUp} initial="initial" animate="animate" className="text-center">
+        <Link to="/dashboard">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+          </Button>
+        </Link>
+      </motion.div>
+    </div>
   )
 }
 

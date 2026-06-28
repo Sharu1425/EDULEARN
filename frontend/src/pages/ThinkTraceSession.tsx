@@ -109,23 +109,23 @@ export default function ThinkTraceSession() {
   // RENDER: CONFIGURATION
   // ═══════════════════════════════════════════════════════════════════════════
   const renderConfig = () => (
-    <div className="min-h-screen bg-zinc-50 dark:bg-[#09090b] flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-3xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-8 md:p-12">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl bg-card rounded-3xl shadow-xl border border-border p-8 md:p-12">
         <div className="text-center mb-10">
           <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <BrainCircuit className="w-8 h-8" />
           </div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">ThinkTrace Interview</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-3 text-lg">Test your cognitive process through adaptive AI scenarios.</p>
+          <h1 className="text-3xl font-bold text-foreground">ThinkTrace Interview</h1>
+          <p className="text-muted-foreground mt-3 text-lg">Test your cognitive process through adaptive AI scenarios.</p>
         </div>
 
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Interview Topic</label>
+            <label className="block text-sm font-medium text-foreground/80 mb-2">Interview Topic</label>
             <select 
               value={topic} 
               onChange={(e) => setTopic(e.target.value)}
-              className="w-full border-zinc-300 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-[#09090b] text-zinc-900 dark:text-white px-4 py-3"
+              className="w-full border-border rounded-xl bg-background text-foreground px-4 py-3"
             >
               <option value="Programming Fundamentals">Programming Fundamentals</option>
               <option value="Data Structures & Algorithms">Data Structures & Algorithms</option>
@@ -140,18 +140,18 @@ export default function ThinkTraceSession() {
                 placeholder="e.g. Memory Management in C++"
                 value={customTopic}
                 onChange={(e) => setCustomTopic(e.target.value)}
-                className="w-full mt-3 border-zinc-300 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-[#09090b] text-zinc-900 dark:text-white px-4 py-3"
+                className="w-full mt-3 border-border rounded-xl bg-background text-foreground px-4 py-3"
               />
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Difficulty</label>
+              <label className="block text-sm font-medium text-foreground/80 mb-2">Difficulty</label>
               <select 
                 value={difficulty} 
                 onChange={(e) => setDifficulty(e.target.value)}
-                className="w-full border-zinc-300 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-[#09090b] text-zinc-900 dark:text-white px-4 py-3"
+                className="w-full border-border rounded-xl bg-background text-foreground px-4 py-3"
               >
                 <option value="easy">Foundational (Easy)</option>
                 <option value="medium">Nuanced (Medium)</option>
@@ -159,11 +159,11 @@ export default function ThinkTraceSession() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Number of Questions</label>
+              <label className="block text-sm font-medium text-foreground/80 mb-2">Number of Questions</label>
               <select 
                 value={questionCount} 
                 onChange={(e) => setQuestionCount(Number(e.target.value))}
-                className="w-full border-zinc-300 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-[#09090b] text-zinc-900 dark:text-white px-4 py-3"
+                className="w-full border-border rounded-xl bg-background text-foreground px-4 py-3"
               >
                 <option value={5}>5 Questions (Quick Check)</option>
                 <option value={10}>10 Questions (Standard)</option>
@@ -193,20 +193,20 @@ export default function ThinkTraceSession() {
     const progress = currentQuestion ? (currentQuestion.q_number / questionCount) * 100 : 0;
 
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-[#09090b] flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col">
         {/* Header */}
-        <div className="shrink-0 h-16 border-b border-zinc-200 dark:border-zinc-800 flex items-center px-4 md:px-8 justify-between bg-white dark:bg-[#09090b] sticky top-0 z-10">
+        <div className="shrink-0 h-16 border-b border-border flex items-center px-4 md:px-8 justify-between bg-card sticky top-0 z-10">
           <div className="flex items-center gap-4">
-            <button onClick={() => { setPhase('config'); setSessionId(null); setCurrentQuestion(null); }} className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-2 rounded-xl transition">
-              <ArrowLeft className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+            <button onClick={() => { setPhase('config'); setSessionId(null); setCurrentQuestion(null); }} className="hover:bg-muted p-2 rounded-xl transition">
+              <ArrowLeft className="w-5 h-5 text-muted-foreground" />
             </button>
             <div className="hidden sm:flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
                 <BrainCircuit className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div className="flex flex-col">
-                <h2 className="text-sm font-semibold text-zinc-900 dark:text-white leading-tight">ThinkTrace Engine</h2>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">{finalTopic} &bull; {difficulty}</p>
+                <h2 className="text-sm font-semibold text-foreground leading-tight">ThinkTrace Engine</h2>
+                <p className="text-xs text-muted-foreground">{finalTopic} &bull; {difficulty}</p>
               </div>
             </div>
           </div>
@@ -214,7 +214,7 @@ export default function ThinkTraceSession() {
           {currentQuestion && (
             <div className="flex items-center gap-4">
               <div className="hidden md:flex items-center gap-2">
-                <div className="w-32 h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
                   <motion.div 
                     initial={{ width: 0 }} 
                     animate={{ width: `${progress}%` }} 
@@ -239,34 +239,34 @@ export default function ThinkTraceSession() {
                   <BrainCircuit className="w-8 h-8 animate-pulse" />
                 </div>
               </div>
-              <p className="text-zinc-600 dark:text-zinc-400 font-medium animate-pulse">Initializing dynamic assessment...</p>
+              <p className="text-muted-foreground font-medium animate-pulse">Initializing dynamic assessment...</p>
             </div>
           ) : currentQuestion ? (
             <div className="w-full max-w-4xl max-h-[85vh] flex flex-col">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl shadow-zinc-200/50 dark:shadow-none overflow-hidden flex flex-col"
+                className="bg-card border border-border rounded-2xl shadow-xl shadow-e2 dark:shadow-none overflow-hidden flex flex-col"
               >
                 {/* Question Text */}
-                <div className="p-6 md:p-10 border-b border-zinc-100 dark:border-zinc-800/50">
+                <div className="p-6 md:p-10 border-b border-border">
                   {currentQuestion.transition && (
                     <div className="mb-6 inline-block">
                       <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
                         {currentQuestion.transition.includes('glitch') ? 'System Event' : 'Insight'}
                       </span>
-                      <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400 italic">
+                      <p className="mt-3 text-sm text-muted-foreground italic">
                         {currentQuestion.transition}
                       </p>
                     </div>
                   )}
-                  <h3 className="text-xl md:text-2xl font-semibold text-zinc-900 dark:text-white leading-relaxed">
+                  <h3 className="text-xl md:text-2xl font-semibold text-foreground leading-relaxed">
                     {currentQuestion.question_text}
                   </h3>
                 </div>
 
                 {/* Options Layout */}
-                <div className="p-6 md:p-10 bg-zinc-50/50 dark:bg-zinc-900/50 flex-1">
+                <div className="p-6 md:p-10 bg-muted/30 flex-1">
                   <div className="grid gap-4 md:grid-cols-2">
                     {/* Option A */}
                     <button
@@ -275,17 +275,17 @@ export default function ThinkTraceSession() {
                       className={cn(
                         "group relative flex flex-col items-start p-6 rounded-xl border-2 transition-all duration-300 text-left h-full",
                         isAnswering 
-                          ? "opacity-50 cursor-not-allowed border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50" 
-                          : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:shadow-md hover:bg-emerald-50/30 dark:hover:bg-emerald-900/10"
+                          ? "opacity-50 cursor-not-allowed border-border bg-muted/40" 
+                          : "border-border bg-card hover:border-emerald-500 dark:hover:border-emerald-500 hover:shadow-md hover:bg-emerald-50/30 dark:hover:bg-emerald-900/10"
                       )}
                     >
                       <div className="flex items-center gap-3 w-full mb-4">
-                        <span className="flex items-center justify-center w-8 h-8 rounded bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        <span className="flex items-center justify-center w-8 h-8 rounded bg-muted text-foreground/80 font-bold group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                           A
                         </span>
-                        <div className="h-px flex-1 bg-zinc-100 dark:bg-zinc-700 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-colors"></div>
+                        <div className="h-px flex-1 bg-muted group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-colors"></div>
                       </div>
-                      <p className="text-base text-zinc-700 dark:text-zinc-200 font-medium flex-1">
+                      <p className="text-base text-foreground/80 font-medium flex-1">
                         {currentQuestion.option_a}
                       </p>
                     </button>
@@ -297,17 +297,17 @@ export default function ThinkTraceSession() {
                       className={cn(
                         "group relative flex flex-col items-start p-6 rounded-xl border-2 transition-all duration-300 text-left h-full",
                         isAnswering 
-                          ? "opacity-50 cursor-not-allowed border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50" 
-                          : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:shadow-md hover:bg-emerald-50/30 dark:hover:bg-emerald-900/10"
+                          ? "opacity-50 cursor-not-allowed border-border bg-muted/40" 
+                          : "border-border bg-card hover:border-emerald-500 dark:hover:border-emerald-500 hover:shadow-md hover:bg-emerald-50/30 dark:hover:bg-emerald-900/10"
                       )}
                     >
                       <div className="flex items-center gap-3 w-full mb-4">
-                        <span className="flex items-center justify-center w-8 h-8 rounded bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        <span className="flex items-center justify-center w-8 h-8 rounded bg-muted text-foreground/80 font-bold group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                           B
                         </span>
-                        <div className="h-px flex-1 bg-zinc-100 dark:bg-zinc-700 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-colors"></div>
+                        <div className="h-px flex-1 bg-muted group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-colors"></div>
                       </div>
-                      <p className="text-base text-zinc-700 dark:text-zinc-200 font-medium flex-1">
+                      <p className="text-base text-foreground/80 font-medium flex-1">
                         {currentQuestion.option_b}
                       </p>
                     </button>
@@ -316,14 +316,14 @@ export default function ThinkTraceSession() {
               </motion.div>
               
               {isAnswering && (
-                <div className="mt-8 text-center text-sm font-medium text-zinc-500 dark:text-zinc-400 flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 rounded-full border-2 border-zinc-300 border-t-emerald-500 animate-spin"></div>
+                <div className="mt-8 text-center text-sm font-medium text-muted-foreground flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 rounded-full border-2 border-border border-t-emerald-500 animate-spin"></div>
                   Analyzing response & adapting...
                 </div>
               )}
             </div>
           ) : (
-            <div className="text-zinc-500 dark:text-zinc-400">Loading current cognitive step...</div>
+            <div className="text-muted-foreground">Loading current cognitive step...</div>
           )}
         </div>
       </div>
@@ -343,9 +343,9 @@ export default function ThinkTraceSession() {
     };
 
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-[#09090b] p-4 md:p-8">
+      <div className="min-h-screen bg-background p-4 md:p-8">
         <div className="max-w-5xl mx-auto space-y-8">
-          <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition">
+          <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition">
             <ArrowLeft className="w-4 h-4" /> Back to Dashboard
           </button>
 
@@ -355,14 +355,14 @@ export default function ThinkTraceSession() {
             <div className="lg:col-span-1 space-y-6">
               
               {/* Score Card */}
-              <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 border border-zinc-200 dark:border-zinc-800 text-center relative overflow-hidden">
+              <div className="bg-card rounded-3xl p-8 border border-border text-center relative overflow-hidden">
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl"></div>
                 
-                <h2 className="text-xl font-bold text-zinc-800 dark:text-zinc-100 mb-6 relative z-10">Cognitive Skill Score</h2>
+                <h2 className="text-xl font-bold text-foreground mb-6 relative z-10">Cognitive Skill Score</h2>
                 
                 <div className="relative inline-flex items-center justify-center w-48 h-48 mb-6">
                   <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                    <circle className="text-zinc-100 dark:text-zinc-800 stroke-current" strokeWidth="8" cx="50" cy="50" r="40" fill="transparent" />
+                    <circle className="text-muted stroke-current" strokeWidth="8" cx="50" cy="50" r="40" fill="transparent" />
                     <circle 
                       className={`${textColor(review.skill_score)} stroke-current drop-shadow-lg`} 
                       strokeWidth="8" 
@@ -374,18 +374,18 @@ export default function ThinkTraceSession() {
                   </svg>
                   <div className="absolute flex flex-col items-center justify-center">
                     <span className={`text-5xl font-black ${textColor(review.skill_score)}`}>{review.skill_score}</span>
-                    <span className="text-sm font-semibold text-zinc-400 mt-1 uppercase tracking-widest">Out of 10</span>
+                    <span className="text-sm font-semibold text-muted-foreground mt-1 uppercase tracking-widest">Out of 10</span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mt-4 relative z-10">
-                  <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                  <div className="bg-muted/40 p-4 rounded-2xl border border-border">
                     <div className="text-2xl font-bold text-emerald-500">{review.strong_answers}</div>
-                    <div className="text-xs font-semibold text-zinc-500 uppercase mt-1">Strong</div>
+                    <div className="text-xs font-semibold text-muted-foreground uppercase mt-1">Strong</div>
                   </div>
-                  <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                  <div className="bg-muted/40 p-4 rounded-2xl border border-border">
                     <div className="text-2xl font-bold text-red-500">{review.weak_answers}</div>
-                    <div className="text-xs font-semibold text-zinc-500 uppercase mt-1">Weak</div>
+                    <div className="text-xs font-semibold text-muted-foreground uppercase mt-1">Weak</div>
                   </div>
                 </div>
               </div>
@@ -403,11 +403,11 @@ export default function ThinkTraceSession() {
               )}
 
               {/* Decision Pattern */}
-              <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 border border-zinc-200 dark:border-zinc-800">
-                <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="bg-card rounded-3xl p-8 border border-border">
+                <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                   <Activity className="w-5 h-5 text-emerald-500" /> Decision Pattern
                 </h3>
-                <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-sm">
+                <p className="text-muted-foreground leading-relaxed text-sm">
                   {review.decision_pattern}
                 </p>
               </div>
@@ -419,13 +419,13 @@ export default function ThinkTraceSession() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Strengths */}
-                <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 border border-zinc-200 dark:border-zinc-800">
-                  <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-6 flex items-center gap-2">
+                <div className="bg-card rounded-3xl p-8 border border-border">
+                  <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Key Strengths
                   </h3>
                   <div className="space-y-3">
                     {review.strengths?.map((s: string, i: number) => (
-                      <div key={i} className="flex gap-3 text-sm text-zinc-700 dark:text-zinc-300">
+                      <div key={i} className="flex gap-3 text-sm text-foreground/80">
                         <div className="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                         <span className="leading-relaxed">{s}</span>
                       </div>
@@ -434,13 +434,13 @@ export default function ThinkTraceSession() {
                 </div>
 
                 {/* Weaknesses */}
-                <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 border border-zinc-200 dark:border-zinc-800">
-                  <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-6 flex items-center gap-2">
+                <div className="bg-card rounded-3xl p-8 border border-border">
+                  <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                     <AlertCircle className="w-5 h-5 text-red-500" /> Conceptual Gaps
                   </h3>
                   <div className="space-y-3">
                     {review.conceptual_gaps?.map((gap: string, i: number) => (
-                      <div key={i} className="flex gap-3 text-sm text-zinc-700 dark:text-zinc-300">
+                      <div key={i} className="flex gap-3 text-sm text-foreground/80">
                         <div className="mt-1 w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                         <span className="leading-relaxed">{gap}</span>
                       </div>
@@ -450,17 +450,17 @@ export default function ThinkTraceSession() {
               </div>
 
               {/* Actionable Improvements */}
-              <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 border border-zinc-200 dark:border-zinc-800">
-                <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-6 flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-blue-500" /> Actionable Improvements
+              <div className="bg-card rounded-3xl p-8 border border-border">
+                <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-info" /> Actionable Improvements
                 </h3>
                 <div className="grid gap-4">
                   {review.improvement_suggestions?.map((sug: string, i: number) => (
-                    <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/30 border border-zinc-100 dark:border-zinc-800">
-                      <div className="shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">
+                    <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-muted/40 border border-border">
+                      <div className="shrink-0 w-8 h-8 rounded-full bg-info/15 text-info flex items-center justify-center font-bold text-sm">
                         {i + 1}
                       </div>
-                      <div className="text-zinc-700 dark:text-zinc-300 font-medium leading-relaxed pt-1 text-sm">
+                      <div className="text-foreground/80 font-medium leading-relaxed pt-1 text-sm">
                         {sug}
                       </div>
                     </div>
@@ -470,15 +470,15 @@ export default function ThinkTraceSession() {
 
               {/* Deep Answer Trace: Question by Question */}
               {review.answer_trace && review.answer_trace.length > 0 && (
-                <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 border border-zinc-200 dark:border-zinc-800">
-                  <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-6 flex items-center gap-2">
+                <div className="bg-card rounded-3xl p-8 border border-border">
+                  <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                     <Activity className="w-5 h-5 text-emerald-500" /> Question-by-Question Analysis
                   </h3>
                   <div className="space-y-4">
                     {review.answer_trace.map((trace: any, i: number) => {
                       const isStrong = trace.strength.toLowerCase().includes('strong');
                       return (
-                        <div key={i} className="group overflow-hidden rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 transition-all hover:bg-white dark:hover:bg-zinc-800 hover:shadow-md">
+                        <div key={i} className="group overflow-hidden rounded-2xl border border-border bg-muted/40 transition-all hover:bg-muted/60 hover:shadow-md">
                           <div className="p-5 flex flex-col md:flex-row md:items-center gap-4">
                             <div className={`shrink-0 flex flex-col items-center justify-center w-12 h-12 rounded-xl border ${isStrong ? 'bg-emerald-50 border-emerald-200 text-emerald-600 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400' : 'bg-red-50 border-red-200 text-red-600 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400'}`}>
                               <span className="text-xs font-bold uppercase tracking-widest opacity-70 mb-0.5">Q{trace.q_number}</span>
@@ -486,7 +486,7 @@ export default function ThinkTraceSession() {
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-1">
-                                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-muted text-foreground/80 uppercase tracking-widest">
                                   {trace.dimension}
                                 </span>
                                 <span className={`text-xs font-bold uppercase tracking-widest ${isStrong ? 'text-emerald-500' : 'text-red-500'}`}>
@@ -494,11 +494,11 @@ export default function ThinkTraceSession() {
                                 </span>
                               </div>
                               {trace.explanation ? (
-                                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mt-2">
+                                <p className="text-sm text-muted-foreground leading-relaxed mt-2">
                                   {trace.explanation}
                                 </p>
                               ) : (
-                                <p className="text-sm text-zinc-400 dark:text-zinc-600 italic mt-2">
+                                <p className="text-sm text-muted-foreground italic mt-2">
                                   No AI explanation provided.
                                 </p>
                               )}

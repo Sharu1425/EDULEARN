@@ -9,6 +9,7 @@ import Button from "../components/ui/Button"
 import Input from "../components/ui/Input"
 import LoadingSpinner from "../components/ui/LoadingSpinner"
 import api from "../utils/api"
+import { ANIMATION_VARIANTS } from "../utils/constants"
 import {
   User,
   Users,
@@ -196,69 +197,70 @@ const TeacherProfile: React.FC = () => {
 
   return (
     <div className="px-4 py-6 sm:px-6">
-      <div className="max-w-7xl mx-auto">
+      <motion.div 
+        className="max-w-7xl mx-auto"
+        variants={ANIMATION_VARIANTS.stagger}
+        initial="initial"
+        animate="animate"
+      >
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+          variants={ANIMATION_VARIANTS.slideUp}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold text-foreground mb-2">Teacher Profile</h1>
-          <p className="text-muted-foreground">Manage your profile and view your teaching statistics</p>
+          <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 sm:p-8">
+            <div className="aurora-mesh" />
+            <div className="relative z-10">
+              <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Teacher Profile</h1>
+              <p className="mt-2 text-muted-foreground">Manage your profile and view your teaching statistics</p>
+            </div>
+          </Card>
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total Students</p>
-                  <h3 className="text-3xl font-bold text-foreground">{stats.totalStudents}</h3>
-                </div>
-                <Users className="h-12 w-12 text-blue-500 opacity-20" />
+        <motion.div variants={ANIMATION_VARIANTS.slideUp} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Total Students</p>
+                <h3 className="text-3xl font-bold text-foreground">{stats.totalStudents}</h3>
               </div>
-            </Card>
-          </motion.div>
+              <Users className="h-12 w-12 text-primary opacity-30" />
+            </div>
+          </Card>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <Card className="p-6">
+          <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Total Batches</p>
                   <h3 className="text-3xl font-bold text-foreground">{stats.totalBatches}</h3>
                 </div>
-                <BookOpen className="h-12 w-12 text-green-500 opacity-20" />
+                <BookOpen className="h-12 w-12 text-success opacity-30" />
               </div>
             </Card>
-          </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Assessments Created</p>
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Assessments Created</p>
                   <h3 className="text-3xl font-bold text-foreground">{stats.totalAssessments}</h3>
-                </div>
-                <Award className="h-12 w-12 text-emerald-500 opacity-20" />
               </div>
-            </Card>
-          </motion.div>
+              <Award className="h-12 w-12 text-emerald-500 opacity-20" />
+            </div>
+          </Card>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Card className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Avg. Student Score</p>
-                  <h3 className="text-3xl font-bold text-foreground">{stats.averageStudentPerformance}%</h3>
-                </div>
-                <TrendingUp className="h-12 w-12 text-orange-500 opacity-20" />
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Avg. Student Score</p>
+                <h3 className="text-3xl font-bold text-foreground">{stats.averageStudentPerformance}%</h3>
               </div>
-            </Card>
-          </motion.div>
-        </div>
+              <TrendingUp className="h-12 w-12 text-accent opacity-30" />
+            </div>
+          </Card>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <motion.div variants={ANIMATION_VARIANTS.slideUp} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Information */}
           <div className="lg:col-span-2">
             <Card className="p-6">
@@ -412,8 +414,8 @@ const TeacherProfile: React.FC = () => {
               )}
             </Card>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   )
 }

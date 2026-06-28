@@ -3,14 +3,13 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import {
-  Sparkles, ClipboardList, Code2, Map as MapIcon, CalendarDays, Flame, Coins,
+  Sparkles, ClipboardList, Code2, Map as MapIcon, CalendarDays,
   ArrowRight, Radio, Trophy, ChevronRight, GraduationCap,
 } from "lucide-react"
 import type { TestResult } from "../types"
 import { useAuth } from "../hooks/useAuth"
-import { useCredits } from "../hooks/useCredits"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
 import Badge from "../components/ui/Badge"
@@ -29,9 +28,36 @@ const QUICK_ACTIONS = [
   { label: "Topic Mastery", desc: "Your learning paths", to: "/mastery", Icon: MapIcon, accent: "accent" },
 ]
 
+/** Types a string out character-by-character with a blinking caret (respects reduced-motion). */
+const TypedText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
+  const reduce = useReducedMotion()
+  const [shown, setShown] = useState("")
+  useEffect(() => {
+    if (reduce) { setShown(text); return }
+    setShown("")
+    let i = 0
+    const id = window.setInterval(() => {
+      i += 1
+      setShown(text.slice(0, i))
+      if (i >= text.length) window.clearInterval(id)
+    }, 65)
+    return () => window.clearInterval(id)
+  }, [text, reduce])
+  const done = shown.length >= text.length
+  return (
+    <span className={className}>
+      {shown}
+      <span
+        className={`ml-0.5 inline-block w-[2px] -translate-y-0.5 align-middle ${done ? "opacity-0" : "animate-pulse"}`}
+        style={{ height: "0.85em", background: "currentColor" }}
+        aria-hidden
+      />
+    </span>
+  )
+}
+
 const Dashboard: React.FC = () => {
   const { user } = useAuth()
-  const { balance: credits } = useCredits()
 
   const [recentTests, setRecentTests] = useState<TestResult[]>([])
   const [upcomingTests, setUpcomingTests] = useState<any[]>([])
@@ -88,7 +114,6 @@ const Dashboard: React.FC = () => {
   const name = user?.username || user?.name || (user?.email ? user.email.split("@")[0] : "Learner")
   const scores = [...recentTests].reverse().map(pctOf)
   const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0
-  const best = scores.length ? Math.max(...scores) : 0
 
   return (
     <motion.div
@@ -131,7 +156,7 @@ const Dashboard: React.FC = () => {
               <Badge variant="ai" className="mb-4 w-fit"><Sparkles className="h-3 w-3" /> AI-powered learning</Badge>
               <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                 Welcome back,{" "}
-                <span className="text-gradient-primary">{name}</span>
+                <TypedText text={name} className="text-gradient-primary" />
               </h1>
               <p className="mt-2 max-w-md text-muted-foreground">
                 Pick up where you left off, or start something new. Press{" "}
@@ -145,27 +170,11 @@ const Dashboard: React.FC = () => {
           </Card>
         </motion.div>
 
-        <motion.div variants={staggerItem}>
-          <Card className="flex h-full flex-col justify-between p-6">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Credits</span>
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/15 text-amber-500"><Coins className="h-5 w-5" /></span>
-            </div>
-            <div className="my-3 tabular text-4xl font-bold text-foreground">{(credits ?? 0).toLocaleString()}</div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Flame className="h-4 w-4 text-amber-500" /> Keep your streak — earn 10 per topic mastered.
-            </div>
-          </Card>
+        <motion.div variants={staggerItem} className="grid grid-rows-2 gap-4">
+          <StatTile className="h-full" label="Upcoming" value={upcomingTests.length} icon={<ClipboardList className="h-4 w-4" />} accent="info" />
+          <StatTile className="h-full" label="Avg Score" value={avg} suffix="%" icon={<Trophy className="h-4 w-4" />} accent="success" spark={scores} />
         </motion.div>
       </div>
-
-      {/* Stat tiles */}
-      <motion.div variants={staggerItem} className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile label="Recent Tests" value={recentTests.length} icon={<CalendarDays className="h-4 w-4" />} accent="primary" />
-        <StatTile label="Avg Score" value={avg} suffix="%" icon={<Trophy className="h-4 w-4" />} accent="success" spark={scores} />
-        <StatTile label="Best Score" value={best} suffix="%" icon={<Sparkles className="h-4 w-4" />} accent="accent" />
-        <StatTile label="Upcoming" value={upcomingTests.length} icon={<ClipboardList className="h-4 w-4" />} accent="info" />
-      </motion.div>
 
       {/* Quick actions */}
       <motion.div variants={staggerItem} className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -192,12 +201,17 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Upcoming */}
         <motion.div variants={staggerItem} className="lg:col-span-2">
-          <Card className="h-full p-6">
+          <Card className="flex h-full min-h-[460px] flex-col p-6">
             <h3 className="mb-4 flex items-center gap-2 font-heading text-lg font-semibold text-foreground">
               <CalendarDays className="h-5 w-5 text-primary" /> Upcoming Tests
+              {upcomingTests.length > 0 && (
+                <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary/15 px-1.5 text-xs font-bold tabular text-primary">
+                  {upcomingTests.length}
+                </span>
+              )}
             </h3>
             {upcomingTests.length > 0 ? (
-              <div className="space-y-2.5">
+              <div className="-mr-2 flex-1 space-y-2.5 overflow-y-auto pr-2">
                 {upcomingTests.map((test) => (
                   <div key={test.id} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/30 p-4 transition-colors hover:border-primary/30 hover:bg-muted/50">
                     <div className="min-w-0">
@@ -209,7 +223,7 @@ const Dashboard: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-center">
+              <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
                 <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary animate-float"><GraduationCap className="h-7 w-7" /></div>
                 <p className="font-semibold text-foreground">No upcoming tests</p>
                 <p className="mb-4 text-sm text-muted-foreground">Practice on your own while you wait.</p>
@@ -221,7 +235,7 @@ const Dashboard: React.FC = () => {
 
         {/* Recent activity feed */}
         <motion.div variants={staggerItem}>
-          <Card className="h-full p-6">
+          <Card className="flex h-full min-h-[460px] flex-col p-6">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="flex items-center gap-2 font-heading text-lg font-semibold text-foreground">
                 <Trophy className="h-5 w-5 text-accent" /> Recent
@@ -229,31 +243,33 @@ const Dashboard: React.FC = () => {
               {recentTests.length > 0 && <Link to="/my-results" className="text-xs font-semibold text-primary hover:underline">View all</Link>}
             </div>
             {recentTests.length > 0 ? (
-              <div className="space-y-2">
-                {recentTests.map((test) => {
-                  const p = pctOf(test)
-                  return (
-                    <Link key={test.id} to={`/test-result/${test.id}`} className="flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-muted/50">
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold tabular"
-                        style={{ background: `hsl(var(--${scoreToken(p)}) / 0.15)`, color: `hsl(var(--${scoreToken(p)}))` }}>
-                        {p}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-foreground">{test.topic}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(test.date).toLocaleDateString()} · {test.difficulty}</p>
-                      </div>
-                    </Link>
-                  )
-                })}
+              <div className="flex flex-1 flex-col">
+                <div className="-mr-2 flex-1 space-y-2 overflow-y-auto pr-2">
+                  {recentTests.map((test) => {
+                    const p = pctOf(test)
+                    return (
+                      <Link key={test.id} to={`/test-result/${test.id}`} className="flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-muted/50">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold tabular"
+                          style={{ background: `hsl(var(--${scoreToken(p)}) / 0.15)`, color: `hsl(var(--${scoreToken(p)}))` }}>
+                          {p}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-foreground">{test.topic}</p>
+                          <p className="text-xs text-muted-foreground">{new Date(test.date).toLocaleDateString()} · {test.difficulty}</p>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
                 {scores.length > 1 && (
-                  <div className="pt-2">
+                  <div className="pt-3">
                     <Sparkline data={scores} className="h-10 w-full" />
                     <p className="mt-1 text-center text-[11px] text-muted-foreground">Score trend</p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-center">
+              <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
                 <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground"><Trophy className="h-7 w-7" /></div>
                 <p className="text-sm text-muted-foreground">Your completed tests will appear here.</p>
               </div>

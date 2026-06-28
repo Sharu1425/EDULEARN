@@ -5,7 +5,7 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { useTheme } from "../contexts/ThemeContext"
 import type { User } from "../types"
-import PageShell from "../components/ui/PageShell"
+import { Settings as SettingsIcon } from "lucide-react"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
 import { useToast } from "../contexts/ToastContext"
@@ -67,7 +67,7 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setColorScheme("light")}
-                className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2 ${colorScheme === "light" ? "bg-blue-500 text-white" : colorScheme === "dark" ? "bg-gray-700 text-gray-300 hover:bg-gray-600" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2 ${colorScheme === "light" ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -80,7 +80,7 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
               </button>
               <button
                 onClick={() => setColorScheme("dark")}
-                className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2 ${colorScheme === "dark" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2 ${colorScheme === "dark" ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
@@ -107,7 +107,7 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
                 onChange={(e) => setNotifications((prev) => ({ ...prev, email: e.target.checked }))}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
             </label>
           ),
         },
@@ -122,7 +122,7 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
                 onChange={(e) => setNotifications((prev) => ({ ...prev, assessment: e.target.checked }))}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
             </label>
           ),
         },
@@ -143,7 +143,7 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
                 onChange={(e) => setPrivacy((prev) => ({ ...prev, profileVisible: e.target.checked }))}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
             </label>
           ),
         },
@@ -158,7 +158,7 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
                 onChange={(e) => setPrivacy((prev) => ({ ...prev, analytics: e.target.checked }))}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
             </label>
           ),
         },
@@ -167,12 +167,26 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
   ]
 
   return (
-    <PageShell title="Settings" subtitle="Customize your EduLearn experience">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
+      <motion.div variants={ANIMATION_VARIANTS.fadeIn} initial="initial" animate="animate">
+        <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 sm:p-8">
+          <div className="aurora-mesh" />
+          <div className="relative z-10 flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/12 text-primary">
+              <SettingsIcon className="h-6 w-6" />
+            </span>
+            <div>
+              <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Settings</h1>
+              <p className="mt-1 text-muted-foreground">Customize your EduLearn experience</p>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
+
       <motion.div
         variants={ANIMATION_VARIANTS.fadeIn}
         initial="initial"
         animate="animate"
-        className="max-w-4xl mx-auto"
       >
         {/* Settings Sections */}
         <motion.div variants={ANIMATION_VARIANTS.stagger} initial="initial" animate="animate" className="space-y-6">
@@ -185,7 +199,7 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
               <Card className="p-6">
                 <div className="flex items-center space-x-3 mb-6">
                   <span className="text-2xl">{section.icon}</span>
-                  <h2 className={`text-xl font-semibold font-sans ${colorScheme === "dark" ? "text-blue-200" : "text-blue-800"}`}>
+                  <h2 className="text-xl font-semibold font-heading text-foreground">
                     {section.title}
                   </h2>
                 </div>
@@ -197,13 +211,13 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: sectionIndex * 0.1 + settingIndex * 0.05 }}
-                      className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 ${colorScheme === "dark" ? "bg-blue-900/20 border border-blue-500/30 hover:bg-blue-900/30" : "bg-blue-50/50 border border-blue-200/50 hover:bg-blue-50/80"}`}
+                      className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/30 transition-colors duration-300 hover:bg-muted/50"
                     >
                       <div className="flex-1">
-                        <h3 className={`font-medium mb-1 ${colorScheme === "dark" ? "text-blue-200" : "text-blue-800"}`}>
+                        <h3 className="font-medium mb-1 text-foreground">
                           {setting.label}
                         </h3>
-                        <p className={`text-sm ${colorScheme === "dark" ? "text-blue-300" : "text-blue-600"}`}>
+                        <p className="text-sm text-muted-foreground">
                           {setting.description}
                         </p>
                       </div>
@@ -233,7 +247,7 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
           </Button>
         </motion.div>
       </motion.div>
-    </PageShell>
+    </div>
   )
 }
 

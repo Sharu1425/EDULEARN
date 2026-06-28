@@ -8,8 +8,9 @@ import { useAuth } from "../hooks/useAuth"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
 import api from "../utils/api"
+import { ANIMATION_VARIANTS } from "../utils/constants"
 import {
-  Settings,
+  Settings as SettingsIcon,
   Bell,
   Lock,
   BookOpen,
@@ -69,239 +70,242 @@ const TeacherSettings: React.FC = () => {
     }
   }
 
+  // Common toggle component for checkboxes
+  const ToggleSwitch = ({ checked, onChange }: { checked: boolean, onChange: (e: any) => void }) => (
+    <label className="relative inline-flex items-center cursor-pointer">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+        className="sr-only peer"
+      />
+      <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+    </label>
+  );
+
+  const settingSections = [
+    {
+      title: "Appearance",
+      icon: <span className="text-2xl">🎨</span>,
+      settings: [
+        {
+          label: "Color Scheme",
+          description: "Switch between light and dark themes",
+          component: (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setColorScheme("light")}
+                className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2 ${colorScheme === "light" ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>Light</span>
+              </button>
+              <button
+                onClick={() => setColorScheme("dark")}
+                className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2 ${colorScheme === "dark" ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+                <span>Dark</span>
+              </button>
+            </div>
+          ),
+        },
+      ],
+    },
+    {
+      title: "Notification Preferences",
+      icon: <Bell className="h-6 w-6 text-foreground" />,
+      settings: [
+        {
+          label: "Student Submissions",
+          description: "Get notified when students submit assessments",
+          component: <ToggleSwitch checked={notifications.studentSubmissions} onChange={(e) => setNotifications({ ...notifications, studentSubmissions: e.target.checked })} />
+        },
+        {
+          label: "Batch Activity",
+          description: "Stay updated on batch-related activities",
+          component: <ToggleSwitch checked={notifications.batchActivity} onChange={(e) => setNotifications({ ...notifications, batchActivity: e.target.checked })} />
+        },
+        {
+          label: "Low-Performing Student Alerts",
+          description: "Receive alerts for students who need help",
+          component: <ToggleSwitch checked={notifications.lowPerformingAlerts} onChange={(e) => setNotifications({ ...notifications, lowPerformingAlerts: e.target.checked })} />
+        },
+        {
+          label: "Assessment Deadlines",
+          description: "Reminders for upcoming assessment deadlines",
+          component: <ToggleSwitch checked={notifications.assessmentDeadlines} onChange={(e) => setNotifications({ ...notifications, assessmentDeadlines: e.target.checked })} />
+        },
+        {
+          label: "Email Digest Frequency",
+          description: "How often you want to receive summary emails",
+          component: (
+            <select
+              value={notifications.emailDigest}
+              onChange={(e) => setNotifications({ ...notifications, emailDigest: e.target.value })}
+              className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground text-sm"
+            >
+              <option value="realtime">Real-time</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="never">Never</option>
+            </select>
+          )
+        }
+      ]
+    },
+    {
+      title: "Privacy Settings",
+      icon: <Lock className="h-6 w-6 text-foreground" />,
+      settings: [
+        {
+          label: "Profile Visible to Students",
+          description: "Allow students to view your profile information",
+          component: <ToggleSwitch checked={privacy.profileVisibleToStudents} onChange={(e) => setPrivacy({ ...privacy, profileVisibleToStudents: e.target.checked })} />
+        },
+        {
+          label: "Share Assessment Templates",
+          description: "Allow other teachers to use your assessment templates",
+          component: <ToggleSwitch checked={privacy.shareAssessmentTemplates} onChange={(e) => setPrivacy({ ...privacy, shareAssessmentTemplates: e.target.checked })} />
+        },
+        {
+          label: "Analytics Data Sharing",
+          description: "Share anonymized data to improve the platform",
+          component: <ToggleSwitch checked={privacy.analyticsDataSharing} onChange={(e) => setPrivacy({ ...privacy, analyticsDataSharing: e.target.checked })} />
+        }
+      ]
+    },
+    {
+      title: "Teaching Preferences",
+      icon: <BookOpen className="h-6 w-6 text-foreground" />,
+      settings: [
+        {
+          label: "Default Difficulty Level",
+          description: "Standard difficulty for new AI-generated assessments",
+          component: (
+            <select
+              value={teachingPrefs.defaultDifficulty}
+              onChange={(e) => setTeachingPrefs({ ...teachingPrefs, defaultDifficulty: e.target.value })}
+              className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground text-sm"
+            >
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          )
+        },
+        {
+          label: "Default Question Count",
+          description: "Number of questions to generate by default",
+          component: (
+            <input
+              type="number"
+              value={teachingPrefs.defaultQuestionCount}
+              onChange={(e) => setTeachingPrefs({ ...teachingPrefs, defaultQuestionCount: Number(e.target.value) })}
+              min={1}
+              max={100}
+              className="w-24 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground text-sm text-center"
+            />
+          )
+        },
+        {
+          label: "Auto-Grading Enabled",
+          description: "Automatically grade MCQ assessments upon submission",
+          component: <ToggleSwitch checked={teachingPrefs.autoGrading} onChange={(e) => setTeachingPrefs({ ...teachingPrefs, autoGrading: e.target.checked })} />
+        }
+      ]
+    }
+  ]
+
   return (
-    <div className="px-4 py-6 sm:px-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-4xl font-bold text-foreground mb-2 flex items-center gap-3">
-            <Settings className="h-10 w-10" />
-            Teacher Settings
-          </h1>
-          <p className="text-muted-foreground">Customize your teaching experience and preferences</p>
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
+      <motion.div variants={ANIMATION_VARIANTS.fadeIn} initial="initial" animate="animate">
+        <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 sm:p-8">
+          <div className="aurora-mesh" />
+          <div className="relative z-10 flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/12 text-primary">
+              <SettingsIcon className="h-6 w-6" />
+            </span>
+            <div>
+              <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Teacher Settings</h1>
+              <p className="mt-1 text-muted-foreground">Customize your teaching experience and preferences</p>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
+
+      <motion.div
+        variants={ANIMATION_VARIANTS.fadeIn}
+        initial="initial"
+        animate="animate"
+      >
+        <motion.div variants={ANIMATION_VARIANTS.stagger} initial="initial" animate="animate" className="space-y-6">
+          {settingSections.map((section, sectionIndex) => (
+            <motion.div
+              key={section.title}
+              variants={ANIMATION_VARIANTS.slideUp}
+              transition={{ delay: sectionIndex * 0.1 }}
+            >
+              <Card className="p-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  {section.icon}
+                  <h2 className="text-xl font-semibold font-heading text-foreground">
+                    {section.title}
+                  </h2>
+                </div>
+
+                <div className="space-y-4">
+                  {section.settings.map((setting, settingIndex) => (
+                    <motion.div
+                      key={setting.label}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: sectionIndex * 0.1 + settingIndex * 0.05 }}
+                      className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/30 transition-colors duration-300 hover:bg-muted/50"
+                    >
+                      <div className="flex-1">
+                        <h3 className="font-medium mb-1 text-foreground">
+                          {setting.label}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {setting.description}
+                        </p>
+                      </div>
+                      <div className="ml-4">{setting.component}</div>
+                    </motion.div>
+                  ))}
+                </div>
+              </Card>
+            </motion.div>
+          ))}
         </motion.div>
 
-        {/* Appearance Settings */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-2xl font-bold text-foreground mb-4">Appearance</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Color Scheme</label>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setColorScheme("light")}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
-                    colorScheme === "light"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                >
-                  Light
-                </button>
-                <button
-                  onClick={() => setColorScheme("dark")}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
-                    colorScheme === "dark"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                >
-                  Dark
-                </button>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Notification Preferences */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <Bell className="h-6 w-6" />
-            Notification Preferences
-          </h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-foreground">Student Submissions</label>
-                <p className="text-sm text-muted-foreground">Get notified when students submit assessments</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={notifications.studentSubmissions}
-                onChange={(e) => setNotifications({ ...notifications, studentSubmissions: e.target.checked })}
-                className="w-5 h-5"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-foreground">Batch Activity</label>
-                <p className="text-sm text-muted-foreground">Stay updated on batch-related activities</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={notifications.batchActivity}
-                onChange={(e) => setNotifications({ ...notifications, batchActivity: e.target.checked })}
-                className="w-5 h-5"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-foreground">Low-Performing Student Alerts</label>
-                <p className="text-sm text-muted-foreground">Receive alerts for students who need help</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={notifications.lowPerformingAlerts}
-                onChange={(e) => setNotifications({ ...notifications, lowPerformingAlerts: e.target.checked })}
-                className="w-5 h-5"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-foreground">Assessment Deadlines</label>
-                <p className="text-sm text-muted-foreground">Reminders for upcoming assessment deadlines</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={notifications.assessmentDeadlines}
-                onChange={(e) => setNotifications({ ...notifications, assessmentDeadlines: e.target.checked })}
-                className="w-5 h-5"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Email Digest Frequency</label>
-              <select
-                value={notifications.emailDigest}
-                onChange={(e) => setNotifications({ ...notifications, emailDigest: e.target.value })}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
-              >
-                <option value="realtime">Real-time</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="never">Never</option>
-              </select>
-            </div>
-          </div>
-        </Card>
-
-        {/* Privacy Settings */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <Lock className="h-6 w-6" />
-            Privacy Settings
-          </h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-foreground">Profile Visible to Students</label>
-                <p className="text-sm text-muted-foreground">Allow students to view your profile information</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={privacy.profileVisibleToStudents}
-                onChange={(e) => setPrivacy({ ...privacy, profileVisibleToStudents: e.target.checked })}
-                className="w-5 h-5"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-foreground">Share Assessment Templates</label>
-                <p className="text-sm text-muted-foreground">Allow other teachers to use your assessment templates</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={privacy.shareAssessmentTemplates}
-                onChange={(e) => setPrivacy({ ...privacy, shareAssessmentTemplates: e.target.checked })}
-                className="w-5 h-5"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-foreground">Analytics Data Sharing</label>
-                <p className="text-sm text-muted-foreground">Share anonymized data to improve the platform</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={privacy.analyticsDataSharing}
-                onChange={(e) => setPrivacy({ ...privacy, analyticsDataSharing: e.target.checked })}
-                className="w-5 h-5"
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Teaching Preferences */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <BookOpen className="h-6 w-6" />
-            Teaching Preferences
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Default Difficulty Level</label>
-              <select
-                value={teachingPrefs.defaultDifficulty}
-                onChange={(e) => setTeachingPrefs({ ...teachingPrefs, defaultDifficulty: e.target.value })}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
-              >
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Default Question Count</label>
-              <input
-                type="number"
-                value={teachingPrefs.defaultQuestionCount}
-                onChange={(e) => setTeachingPrefs({ ...teachingPrefs, defaultQuestionCount: Number(e.target.value) })}
-                min={1}
-                max={100}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-foreground">Auto-Grading Enabled</label>
-                <p className="text-sm text-muted-foreground">Automatically grade MCQ assessments upon submission</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={teachingPrefs.autoGrading}
-                onChange={(e) => setTeachingPrefs({ ...teachingPrefs, autoGrading: e.target.checked })}
-                className="w-5 h-5"
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Save Button */}
-        <div className="flex justify-end">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="text-center mt-8"
+        >
           <Button
+            variant="primary"
+            className="px-8 py-3 text-lg font-semibold"
             onClick={handleSaveSettings}
-            disabled={saving}
-            className="min-w-[200px]"
+            isLoading={saving}
           >
-            <Save className="h-4 w-4 mr-2" />
             {saving ? "Saving..." : "Save Settings"}
           </Button>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   )
 }
 
 export default TeacherSettings
-

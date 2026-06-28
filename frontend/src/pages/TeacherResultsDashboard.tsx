@@ -159,7 +159,7 @@ const TeacherResultsDashboard: React.FC = () => {
 
   const getPerformanceColor = (score: number) => {
     if (score >= 90) return "text-green-400"
-    if (score >= 80) return "text-blue-400"
+    if (score >= 80) return "text-primary"
     if (score >= 60) return "text-yellow-400"
     return "text-red-400"
   }
@@ -219,14 +219,15 @@ const TeacherResultsDashboard: React.FC = () => {
           />
 
           {/* Header */}
-          <Card className="p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
+          <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 sm:p-8 mb-6">
+            <div className="aurora-mesh" />
+            <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-blue-200 mb-2">Assessment Results Dashboard</h1>
-                <p className="text-blue-300">Comprehensive view of student performance across all assessments</p>
+                <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Assessment Results Dashboard</h1>
+                <p className="mt-2 text-muted-foreground">Comprehensive view of student performance across all assessments</p>
               </div>
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 onClick={() => navigate("/teacher-dashboard")}
                 className="flex items-center gap-2"
               >
@@ -236,15 +237,17 @@ const TeacherResultsDashboard: React.FC = () => {
                 Back to Dashboard
               </Button>
             </div>
+          </Card>
 
+          <Card className="p-3 mb-6">
             {/* Tab Navigation */}
-            <div className="flex space-x-1 bg-blue-900/20 rounded-lg p-1">
+            <div className="flex space-x-1 bg-muted/30 rounded-lg p-1">
               <button
                 onClick={() => setActiveTab("overview")}
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                   activeTab === "overview"
-                    ? "bg-blue-500 text-white"
-                    : "text-blue-300 hover:text-blue-200 hover:bg-blue-800/30"
+                    ? "bg-primary text-white"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 }`}
               >
                 Class Overview
@@ -254,8 +257,8 @@ const TeacherResultsDashboard: React.FC = () => {
                   onClick={() => setActiveTab("student-details")}
                   className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                     activeTab === "student-details"
-                      ? "bg-blue-500 text-white"
-                      : "text-blue-300 hover:text-blue-200 hover:bg-blue-800/30"
+                      ? "bg-primary text-white"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   }`}
                 >
                   {selectedStudent.name} - Detailed Results
@@ -276,11 +279,11 @@ const TeacherResultsDashboard: React.FC = () => {
                 <Card className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-blue-300 text-sm font-medium">Total Students</p>
-                      <p className="text-2xl font-bold text-blue-200">{classStatistics.total_students}</p>
+                      <p className="text-muted-foreground text-sm font-medium">Total Students</p>
+                      <p className="text-2xl font-bold text-foreground">{classStatistics.total_students}</p>
                     </div>
-                    <div className="w-10 h-10 bg-blue-500/30 rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-10 h-10 bg-primary/15 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                       </svg>
                     </div>
@@ -290,8 +293,8 @@ const TeacherResultsDashboard: React.FC = () => {
                 <Card className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-blue-300 text-sm font-medium">Class Average</p>
-                      <p className="text-2xl font-bold text-blue-200">{classStatistics.class_average.toFixed(1)}%</p>
+                      <p className="text-muted-foreground text-sm font-medium">Class Average</p>
+                      <p className="text-2xl font-bold text-foreground">{classStatistics.class_average.toFixed(1)}%</p>
                     </div>
                     <div className="w-10 h-10 bg-green-500/30 rounded-full flex items-center justify-center">
                       <svg className="w-5 h-5 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -304,8 +307,8 @@ const TeacherResultsDashboard: React.FC = () => {
                 <Card className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-blue-300 text-sm font-medium">Top Performers</p>
-                      <p className="text-2xl font-bold text-blue-200">{classStatistics.top_performers.length}</p>
+                      <p className="text-muted-foreground text-sm font-medium">Top Performers</p>
+                      <p className="text-2xl font-bold text-foreground">{classStatistics.top_performers.length}</p>
                     </div>
                     <div className="w-10 h-10 bg-yellow-500/30 rounded-full flex items-center justify-center">
                       <svg className="w-5 h-5 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -318,8 +321,8 @@ const TeacherResultsDashboard: React.FC = () => {
                 <Card className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-blue-300 text-sm font-medium">Need Support</p>
-                      <p className="text-2xl font-bold text-blue-200">{classStatistics.struggling_students.length}</p>
+                      <p className="text-muted-foreground text-sm font-medium">Need Support</p>
+                      <p className="text-2xl font-bold text-foreground">{classStatistics.struggling_students.length}</p>
                     </div>
                     <div className="w-10 h-10 bg-red-500/30 rounded-full flex items-center justify-center">
                       <svg className="w-5 h-5 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -333,7 +336,7 @@ const TeacherResultsDashboard: React.FC = () => {
               {/* Top Performers */}
               {classStatistics.top_performers.length > 0 && (
                 <Card className="p-6 mb-6">
-                  <h3 className="text-xl font-semibold text-blue-200 mb-4 flex items-center gap-2">
+                  <h3 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
                     <span className="text-yellow-400">🏆</span>
                     Top Performers
                   </h3>
@@ -354,9 +357,9 @@ const TeacherResultsDashboard: React.FC = () => {
                           </span>
                           <span className="text-yellow-400 font-bold">{student.average_score.toFixed(1)}%</span>
                         </div>
-                        <h4 className="font-semibold text-blue-200">{student.name}</h4>
-                        <p className="text-blue-300 text-sm">{student.batch}</p>
-                        <p className="text-blue-400 text-xs mt-1">
+                        <h4 className="font-semibold text-foreground">{student.name}</h4>
+                        <p className="text-muted-foreground text-sm">{student.batch}</p>
+                        <p className="text-primary text-xs mt-1">
                           {student.total_assessments} assessments • {getTrendIcon(student.performance_trend)}
                         </p>
                       </motion.div>
@@ -368,13 +371,13 @@ const TeacherResultsDashboard: React.FC = () => {
               {/* Student Performance Table */}
               <Card className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-blue-200">Student Performance</h3>
+                  <h3 className="text-xl font-semibold text-foreground">Student Performance</h3>
                   <div className="flex items-center gap-2">
-                    <label className="text-blue-300 text-sm">Filter by batch:</label>
+                    <label className="text-muted-foreground text-sm">Filter by batch:</label>
                     <select
                       value={selectedBatch}
                       onChange={(e) => setSelectedBatch(e.target.value)}
-                      className="bg-blue-900/30 border border-blue-500/30 rounded-md px-3 py-1 text-blue-200 text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400"
+                      className="bg-muted/40 border border-primary/15 rounded-md px-3 py-1 text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary"
                     >
                       <option value="all">All Batches</option>
                       {Array.from(new Set(studentPerformance.map(s => s.batch_id))).map(batchId => {
@@ -392,15 +395,15 @@ const TeacherResultsDashboard: React.FC = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-blue-500/30">
-                        <th className="text-left py-3 px-4 text-blue-300 font-medium">Student</th>
-                        <th className="text-left py-3 px-4 text-blue-300 font-medium">Batch</th>
-                        <th className="text-left py-3 px-4 text-blue-300 font-medium">Avg Score</th>
-                        <th className="text-left py-3 px-4 text-blue-300 font-medium">Recent Avg</th>
-                        <th className="text-left py-3 px-4 text-blue-300 font-medium">Assessments</th>
-                        <th className="text-left py-3 px-4 text-blue-300 font-medium">Trend</th>
-                        <th className="text-left py-3 px-4 text-blue-300 font-medium">Last Activity</th>
-                        <th className="text-left py-3 px-4 text-blue-300 font-medium">Actions</th>
+                      <tr className="border-b border-primary/15">
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium">Student</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium">Batch</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium">Avg Score</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium">Recent Avg</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium">Assessments</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium">Trend</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium">Last Activity</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -411,15 +414,15 @@ const TeacherResultsDashboard: React.FC = () => {
                           initial="initial"
                           animate="animate"
                           transition={{ delay: index * 0.05 }}
-                          className="border-b border-blue-500/20 hover:bg-blue-900/10 transition-colors"
+                          className="border-b border-primary/15 hover:bg-muted/20 transition-colors"
                         >
                           <td className="py-3 px-4">
                             <div>
-                              <p className="text-blue-200 font-medium">{student.name}</p>
-                              <p className="text-blue-400 text-sm">{student.email}</p>
+                              <p className="text-foreground font-medium">{student.name}</p>
+                              <p className="text-primary text-sm">{student.email}</p>
                             </div>
                           </td>
-                          <td className="py-3 px-4 text-blue-300">{student.batch}</td>
+                          <td className="py-3 px-4 text-muted-foreground">{student.batch}</td>
                           <td className="py-3 px-4">
                             <span className={`font-semibold ${getPerformanceColor(student.average_score)}`}>
                               {student.average_score.toFixed(1)}%
@@ -430,14 +433,14 @@ const TeacherResultsDashboard: React.FC = () => {
                               {student.recent_average.toFixed(1)}%
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-blue-300">{student.total_assessments}</td>
+                          <td className="py-3 px-4 text-muted-foreground">{student.total_assessments}</td>
                           <td className="py-3 px-4">
                             <span className="flex items-center gap-1">
                               {getTrendIcon(student.performance_trend)}
-                              <span className="text-blue-300 text-sm capitalize">{student.performance_trend}</span>
+                              <span className="text-muted-foreground text-sm capitalize">{student.performance_trend}</span>
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-blue-300 text-sm">
+                          <td className="py-3 px-4 text-muted-foreground text-sm">
                             {student.last_activity 
                               ? new Date(student.last_activity).toLocaleDateString()
                               : "No activity"
@@ -473,10 +476,10 @@ const TeacherResultsDashboard: React.FC = () => {
               <Card className="p-6 mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-blue-200 mb-2">
+                    <h2 className="text-2xl font-bold text-foreground mb-2">
                       {studentDetailedResults.student.name}
                     </h2>
-                    <p className="text-blue-300">
+                    <p className="text-muted-foreground">
                       {studentDetailedResults.student.email} • {studentDetailedResults.student.batch}
                     </p>
                   </div>
@@ -487,9 +490,9 @@ const TeacherResultsDashboard: React.FC = () => {
 
                 {/* Performance Insights */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-gradient-to-r from-emerald-500/20 to-teal-600/20 border border-blue-500/30 rounded-lg p-4">
-                    <p className="text-blue-300 text-sm font-medium">Total Assessments</p>
-                    <p className="text-2xl font-bold text-blue-200">
+                  <div className="bg-gradient-to-r from-emerald-500/20 to-teal-600/20 border border-primary/15 rounded-lg p-4">
+                    <p className="text-muted-foreground text-sm font-medium">Total Assessments</p>
+                    <p className="text-2xl font-bold text-foreground">
                       {studentDetailedResults.performance_insights.total_assessments}
                     </p>
                   </div>
@@ -519,7 +522,7 @@ const TeacherResultsDashboard: React.FC = () => {
 
               {/* Assessment Results */}
               <Card className="p-6">
-                <h3 className="text-xl font-semibold text-blue-200 mb-4">Assessment History</h3>
+                <h3 className="text-xl font-semibold text-foreground mb-4">Assessment History</h3>
                 <div className="space-y-4">
                   {studentDetailedResults.results.map((result, index) => (
                     <motion.div
@@ -534,8 +537,8 @@ const TeacherResultsDashboard: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">{getAssessmentTypeIcon(result.assessment_type)}</span>
                           <div>
-                            <h4 className="font-semibold text-blue-200">{result.assessment_title}</h4>
-                            <p className="text-blue-300 text-sm">
+                            <h4 className="font-semibold text-foreground">{result.assessment_title}</h4>
+                            <p className="text-muted-foreground text-sm">
                               {result.subject} • {result.difficulty} • {result.assessment_type.replace('_', ' ')}
                             </p>
                           </div>
@@ -544,13 +547,13 @@ const TeacherResultsDashboard: React.FC = () => {
                           <p className={`text-2xl font-bold ${getPerformanceColor(result.percentage)}`}>
                             {result.percentage.toFixed(1)}%
                           </p>
-                          <p className="text-blue-300 text-sm">
+                          <p className="text-muted-foreground text-sm">
                             {result.score}/{result.total_questions} questions
                           </p>
                         </div>
                       </div>
                       
-                      <div className="flex items-center justify-between text-sm text-blue-400">
+                      <div className="flex items-center justify-between text-sm text-primary">
                         <span>Time taken: {Math.floor(result.time_taken / 60)}m {result.time_taken % 60}s</span>
                         <span>Submitted: {new Date(result.submitted_at).toLocaleDateString()}</span>
                       </div>

@@ -35,7 +35,7 @@ const features = [
     title: "Smart Analytics",
     description: "Deep insights into your performance trajectory. AI detects patterns humans can't see and suggests micro-improvements.",
     gradient: "from-teal-500 to-emerald-600",
-    glow: "rgba(139,92,246,0.3)",
+    glow: "rgba(20,184,166,0.3)",
     badge: "AI Insights",
   },
   {
@@ -164,15 +164,15 @@ const HeroCard: React.FC = () => {
         style={{
           background: "rgba(10,18,40,0.7)",
           backdropFilter: "blur(20px)",
-          borderColor: "rgba(56,189,248,0.2)",
-          boxShadow: "0 25px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(56,189,248,0.1)",
+          borderColor: "rgba(16,185,129,0.2)",
+          boxShadow: "0 25px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(16,185,129,0.1)",
         }}
       >
         {/* Shimmer overlay */}
         <motion.div
           className="absolute inset-0 pointer-events-none rounded-3xl opacity-30"
           style={{
-            background: `radial-gradient(circle at ${glowX} ${glowY}, rgba(56,189,248,0.2), transparent 60%)`,
+            background: `radial-gradient(circle at ${glowX} ${glowY}, rgba(16,185,129,0.2), transparent 60%)`,
           }}
         />
 
@@ -221,7 +221,7 @@ const HeroCard: React.FC = () => {
 
         {/* AI Insight */}
         <div className="rounded-xl p-3 flex items-center gap-3"
-          style={{ background: "rgba(56,189,248,0.08)", border: "1px solid rgba(56,189,248,0.15)" }}>
+          style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.15)" }}>
           <Sparkles className="h-4 w-4 shrink-0" style={{ color: "#10b981" }} />
           <p className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>
             AI detected you struggle with <strong style={{ color: "#10b981" }}>Graph traversal</strong>. 
@@ -233,7 +233,7 @@ const HeroCard: React.FC = () => {
         <div className="absolute -top-3 -right-3 w-14 h-14 rounded-full flex flex-col items-center justify-center text-center"
           style={{
             background: "linear-gradient(135deg,#10b981,#14b8a6)",
-            boxShadow: "0 0 30px rgba(56,189,248,0.5)",
+            boxShadow: "0 0 30px rgba(16,185,129,0.5)",
           }}>
           <span className="text-white font-black text-lg leading-none">92</span>
           <span className="text-white/70 text-[9px] font-semibold">SCORE</span>
@@ -704,8 +704,8 @@ const LandingPage: React.FC = () => {
             style={{
               background: "rgba(10,14,30,0.7)",
               backdropFilter: "blur(20px)",
-              borderColor: "rgba(56,189,248,0.15)",
-              boxShadow: "0 0 80px rgba(56,189,248,0.08), 0 40px 80px rgba(0,0,0,0.4)",
+              borderColor: "rgba(16,185,129,0.15)",
+              boxShadow: "0 0 80px rgba(16,185,129,0.08), 0 40px 80px rgba(0,0,0,0.4)",
             }}
           >
             {/* Background shimmer */}

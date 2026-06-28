@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { CheckCircle2, Sparkles, BookOpen, AlertCircle } from "lucide-react"
 import type { AssessmentConfig } from "../types"
 import { useToast } from "../contexts/ToastContext"
@@ -85,29 +85,79 @@ const UnifiedAssessment: React.FC = () => {
     { id: "thinktrace", label: "ThinkTrace Interview", icon: <Sparkles className="h-4 w-4" /> },
   ]
 
+  const TAB_HERO: Record<TabType, { badge: string; title: string; subtitle: string }> = {
+    mcq: {
+      badge: "Practice",
+      title: "MCQ Assessment",
+      subtitle: "AI-adaptive multiple-choice questions tailored to your level. Pick a topic, set the depth, and dive in.",
+    },
+    thinktrace: {
+      badge: "AI Interview",
+      title: "ThinkTrace Interview",
+      subtitle: "An adaptive AI interview that reveals how you think — branching questions, cognitive profiling, and a full report.",
+    },
+  }
+
   return (
-    <div className="mx-auto w-full max-w-3xl p-4 sm:p-6">
-      {/* Tab switcher */}
+    <div className="mx-auto w-full max-w-7xl p-4 sm:p-6">
+      {/* Hero */}
+      <Card appearance="glass" hover={false} className="relative mb-4 overflow-hidden p-7 sm:p-8">
+        <div className="aurora-mesh" />
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22 }}
+            className="relative z-10"
+          >
+            <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              {activeTab === "mcq" ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5" />}
+              {TAB_HERO[activeTab].badge}
+            </span>
+            <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{TAB_HERO[activeTab].title}</h1>
+            <p className="mt-2 max-w-xl text-muted-foreground">{TAB_HERO[activeTab].subtitle}</p>
+          </motion.div>
+        </AnimatePresence>
+      </Card>
+
+      {/* Tab switcher with sliding indicator */}
       <Card size="sm" hover={false} className="mb-4 !p-1.5">
         <div className="flex gap-1.5">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
-                activeTab === t.id
-                  ? "bg-primary text-primary-foreground shadow-e2"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-              }`}
-            >
-              {t.icon}
-              {t.label}
-            </button>
-          ))}
+          {tabs.map((t) => {
+            const active = activeTab === t.id
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                className="relative flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors"
+              >
+                {active && (
+                  <motion.span
+                    layoutId="assessTabIndicator"
+                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                    className="absolute inset-0 rounded-lg bg-primary shadow-e2"
+                  />
+                )}
+                <span className={`relative z-10 flex items-center gap-2 ${active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                  {t.icon}
+                  {t.label}
+                </span>
+              </button>
+            )
+          })}
         </div>
       </Card>
 
-      <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+        >
         {activeTab === "mcq" ? (
           <Card size="lg" hover={false}>
             <form onSubmit={handleMcqSubmit} className="space-y-5">
@@ -229,6 +279,7 @@ const UnifiedAssessment: React.FC = () => {
           </Card>
         )}
       </motion.div>
+      </AnimatePresence>
     </div>
   )
 }

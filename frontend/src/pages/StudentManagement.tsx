@@ -317,20 +317,23 @@ const StudentManagement: React.FC = () => {
           className="max-w-7xl mx-auto"
         >
           {/* Header */}
-          <motion.div variants={ANIMATION_VARIANTS.slideUp} className="mb-8">
-            <h1 className="text-4xl font-bold text-foreground mb-2">
-              Student Management
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Manage students, batches, and track performance
-            </p>
+          <motion.div variants={ANIMATION_VARIANTS.slideUp} className="mb-6">
+            <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 sm:p-8">
+              <div className="aurora-mesh" />
+              <div className="relative z-10">
+                <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Student Management</h1>
+                <p className="mt-2 text-muted-foreground">Manage students, batches, and track performance</p>
+              </div>
+            </Card>
           </motion.div>
 
           {/* Statistics */}
-          <StudentStats
-            students={students}
-            batches={batches}
-          />
+          <div className="mb-8">
+            <StudentStats
+              students={students}
+              batches={batches}
+            />
+          </div>
 
           {/* Batches */}
           <div className="mb-8">

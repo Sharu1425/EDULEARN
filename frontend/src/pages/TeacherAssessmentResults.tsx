@@ -226,13 +226,14 @@ const TeacherAssessmentResults: React.FC = () => {
         variants={ANIMATION_VARIANTS.fadeIn}
         initial="initial"
         animate="animate"
-        className="max-w-7xl mx-auto"
+        className="max-w-7xl mx-auto space-y-6"
       >
-        <Card className="p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
+        <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 sm:p-8">
+          <div className="aurora-mesh" />
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Assessment Results</h1>
-              <p className="text-muted-foreground">
+              <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Assessment Results</h1>
+              <p className="mt-2 text-muted-foreground">
                 {assessment ? (
                   <>
                     {assessment.title} • {assessment.subject} • {assessment.difficulty}
@@ -244,7 +245,9 @@ const TeacherAssessmentResults: React.FC = () => {
             </div>
             <Button variant="primary" onClick={() => navigate("/teacher/assessment-management")}>Back</Button>
           </div>
+        </Card>
 
+        <Card className="p-6">
           <div className="flex items-center gap-2">
             <input
               type="text"

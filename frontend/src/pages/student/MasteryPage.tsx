@@ -122,16 +122,30 @@ const MasteryPage: React.FC = () => {
     }
 
     return (
-        <div className="mx-auto w-full max-w-7xl p-6 md:p-8">
-            <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                <div>
-                    <h1 className="text-3xl font-heading font-bold text-gradient-primary">Your Mastery Paths</h1>
-                    <p className="mt-1 text-muted-foreground">Continue your learning journeys or start a new one.</p>
-                </div>
-                <Button variant="primary" onClick={() => setShowNew(true)}>
-                    <Plus className="h-5 w-5" /> New Subject
-                </Button>
-            </div>
+        <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="mx-auto w-full max-w-7xl space-y-6 p-6 md:p-8">
+            <motion.div variants={staggerItem}>
+                <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 sm:p-9">
+                    <div className="aurora-mesh" />
+                    <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+                        <div>
+                            <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                                <Map className="h-3.5 w-3.5" /> Topic Mastery
+                            </span>
+                            <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                                Your Mastery Paths
+                            </h1>
+                            <p className="mt-2 max-w-xl text-muted-foreground">
+                                Continue your learning journeys or start a new one. Enter any subject and our AI will generate a personalized pathway to mastery.
+                            </p>
+                        </div>
+                        <div className="shrink-0">
+                            <Button variant="primary" onClick={() => setShowNew(true)}>
+                                <Plus className="h-4 w-4 mr-1" /> New Subject
+                            </Button>
+                        </div>
+                    </div>
+                </Card>
+            </motion.div>
 
             <motion.div
                 variants={staggerContainer}
@@ -163,7 +177,7 @@ const MasteryPage: React.FC = () => {
                     )
                 })}
             </motion.div>
-        </div>
+        </motion.div>
     )
 }
 

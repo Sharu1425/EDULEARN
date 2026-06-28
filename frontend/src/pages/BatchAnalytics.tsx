@@ -171,20 +171,23 @@ const BatchAnalytics: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">Batch Analytics</h1>
-              <p className="text-muted-foreground">Track performance and progress across your batches</p>
+          <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 sm:p-8">
+            <div className="aurora-mesh" />
+            <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Batch Analytics</h1>
+                <p className="mt-2 text-muted-foreground">Track performance and progress across your batches</p>
+              </div>
+              {analytics && (
+                <Button onClick={handleExportCSV} variant="secondary">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
+              )}
             </div>
-            {analytics && (
-              <Button onClick={handleExportCSV} variant="secondary">
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
-              </Button>
-            )}
-          </div>
+          </Card>
         </motion.div>
 
         {/* Batch Selector */}
@@ -218,7 +221,7 @@ const BatchAnalytics: React.FC = () => {
                       <p className="text-sm text-muted-foreground mb-1">Total Students</p>
                       <h3 className="text-3xl font-bold text-foreground">{analytics.totalStudents}</h3>
                     </div>
-                    <Users className="h-12 w-12 text-blue-500 opacity-20" />
+                    <Users className="h-12 w-12 text-primary opacity-30" />
                   </div>
                 </Card>
               </motion.div>
@@ -372,8 +375,8 @@ const BatchAnalytics: React.FC = () => {
                 )}
 
                 {analytics.totalSubmissions === 0 && (
-                  <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                    <p className="text-blue-400 font-medium">
+                  <div className="p-4 bg-info/10 border border-info/30 rounded-lg">
+                    <p className="text-info font-medium">
                       💡 No submissions yet. Assign assessments to this batch to start tracking performance.
                     </p>
                   </div>

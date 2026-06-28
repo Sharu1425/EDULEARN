@@ -873,9 +873,9 @@ int main() {
                           key={index}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-500/30 rounded-lg p-3"
+                          className="bg-info/10 border border-info/30 rounded-lg p-3"
                         >
-                          <div className="text-sm text-blue-900 dark:text-blue-200">
+                          <div className="text-sm text-foreground">
                             <span className="font-semibold">Hint {index + 1}: </span>
                             {hint}
                           </div>
@@ -921,7 +921,7 @@ int main() {
                       <select
                         value={language}
                         onChange={(e) => setLanguage(e.target.value)}
-                        className="px-3 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-foreground text-sm focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
+                        className="px-3 py-1 bg-card border border-border rounded text-foreground text-sm focus:outline-none focus:border-primary"
                       >
                         {languages.map((lang) => (
                           <option key={lang.value} value={lang.value}>
@@ -938,7 +938,7 @@ int main() {
                             name="autocomplete"
                             checked={autocompleteEnabled}
                             onChange={(e) => setAutocompleteEnabled(e.target.checked)}
-                            className="w-4 h-4 text-gray-600 bg-white border-gray-300 rounded focus:ring-gray-400 focus:ring-2"
+                            className="w-4 h-4 text-primary bg-card border-border rounded focus:ring-primary focus:ring-2"
                           />
                           <span>Autocomplete</span>
                         </label>
@@ -1241,7 +1241,7 @@ int main() {
                                     <div className="flex items-center space-x-2 mb-2">
                                       <span className="text-sm font-medium text-foreground">Input:</span>
                                     </div>
-                                    <div className="p-3 bg-gray-100 dark:bg-black/30 rounded-lg border border-gray-300 dark:border-emerald-500/20 font-mono text-sm text-foreground">
+                                    <div className="p-3 bg-muted/50 rounded-lg border border-border font-mono text-sm text-foreground">
                                       {result.input ? (
                                         typeof result.input === "string" ? (
                                           result.input
@@ -1305,7 +1305,7 @@ int main() {
                                 
                                 {/* Debug Information */}
                                 {result.debug_info && (
-                                  <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-900/30 rounded-lg border border-gray-300 dark:border-gray-500/30">
+                                  <div className="mt-4 p-4 bg-muted/40 rounded-lg border border-border">
                                     <div className="flex items-center space-x-2 mb-3">
                                       <span className="text-sm font-medium text-yellow-700 dark:text-yellow-300">Debug Analysis:</span>
                                     </div>
@@ -1330,7 +1330,7 @@ int main() {
                                         <span className="text-yellow-800 dark:text-yellow-200">{result.debug_info.comparison?.message}</span>
                                       </div>
                                       {result.debug_info.comparison?.type === "different" && result.debug_info.comparison?.line_analysis?.first_difference && (
-                                        <div className="mt-3 p-3 bg-gray-200 dark:bg-gray-800/50 rounded border border-gray-400 dark:border-gray-600/30">
+                                        <div className="mt-3 p-3 bg-muted/60 rounded border border-border">
                                           <div className="text-yellow-700 dark:text-yellow-300 mb-2">First Difference at Line {result.debug_info.comparison.line_analysis.first_difference.line_number}:</div>
                                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             <div>
@@ -1349,24 +1349,24 @@ int main() {
                                         </div>
                                       )}
                                       {result.debug_info.execution_details && (
-                                        <div className="mt-3 p-3 bg-gray-200 dark:bg-gray-800/50 rounded border border-gray-400 dark:border-gray-600/30">
+                                        <div className="mt-3 p-3 bg-muted/60 rounded border border-border">
                                           <div className="text-yellow-700 dark:text-yellow-300 mb-2">Execution Details:</div>
                                           <div className="grid grid-cols-2 gap-4 text-xs">
                                             <div>
-                                              <span className="text-gray-600 dark:text-gray-400">Time: </span>
-                                              <span className="text-gray-900 dark:text-white">{result.debug_info.execution_details.time}s</span>
+                                              <span className="text-muted-foreground">Time: </span>
+                                              <span className="text-foreground">{result.debug_info.execution_details.time}s</span>
                                             </div>
                                             <div>
-                                              <span className="text-gray-600 dark:text-gray-400">Memory: </span>
-                                              <span className="text-gray-900 dark:text-white">{result.debug_info.execution_details.memory}KB</span>
+                                              <span className="text-muted-foreground">Memory: </span>
+                                              <span className="text-foreground">{result.debug_info.execution_details.memory}KB</span>
                                             </div>
                                             <div>
-                                              <span className="text-gray-600 dark:text-gray-400">Exit Code: </span>
-                                              <span className="text-gray-900 dark:text-white">{result.debug_info.execution_details.exit_code}</span>
+                                              <span className="text-muted-foreground">Exit Code: </span>
+                                              <span className="text-foreground">{result.debug_info.execution_details.exit_code}</span>
                                             </div>
                                             <div>
-                                              <span className="text-gray-600 dark:text-gray-400">Wall Time: </span>
-                                              <span className="text-gray-900 dark:text-white">{result.debug_info.execution_details.wall_time}s</span>
+                                              <span className="text-muted-foreground">Wall Time: </span>
+                                              <span className="text-foreground">{result.debug_info.execution_details.wall_time}s</span>
                                             </div>
                                           </div>
                                         </div>

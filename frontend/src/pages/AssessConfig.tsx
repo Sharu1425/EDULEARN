@@ -13,6 +13,7 @@ import Button from "../components/ui/Button"
 import Input from "../components/ui/Input"
 import api from "../utils/api"
 import { ANIMATION_VARIANTS, TRANSITION_DEFAULTS } from "../utils/constants"
+import { SlidersHorizontal, AlertCircle } from "lucide-react"
 
 type AssessConfigProps = {}
 
@@ -107,38 +108,36 @@ const AssessConfig: React.FC<AssessConfigProps> = () => {
   ]
 
   return (
-    <>
-      <div className="px-4 py-6 sm:px-6">
-        <motion.div
-          variants={ANIMATION_VARIANTS.scaleIn}
-          initial="initial"
-          animate="animate"
-          transition={TRANSITION_DEFAULTS}
-          className="max-w-2xl mx-auto"
-        >
-          <Card className="p-8">
-            <motion.div variants={ANIMATION_VARIANTS.slideDown} className="text-center mb-8">
-              <h2 className="text-4xl font-bold text-foreground mb-2">Assessment Configuration</h2>
-              <p className="text-muted-foreground text-base">Customize your learning experience</p>
-            </motion.div>
+    <div className="mx-auto max-w-2xl space-y-6 px-4 py-6 sm:px-6">
+      <motion.div variants={ANIMATION_VARIANTS.slideUp} initial="initial" animate="animate">
+        <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 text-center sm:p-9">
+          <div className="aurora-mesh" />
+          <div className="relative z-10">
+            <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <SlidersHorizontal className="h-3.5 w-3.5" /> Practice
+            </span>
+            <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Assessment Configuration</h1>
+            <p className="mt-2 text-muted-foreground">Customize your learning experience</p>
+          </div>
+        </Card>
+      </motion.div>
+
+      <motion.div
+        variants={ANIMATION_VARIANTS.scaleIn}
+        initial="initial"
+        animate="animate"
+        transition={TRANSITION_DEFAULTS}
+      >
+          <Card className="p-6 sm:p-8">
 
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg text-red-200"
+                className="mb-6 flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-destructive"
               >
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  {error}
-                </div>
+                <AlertCircle className="h-5 w-5 shrink-0" />
+                {error}
               </motion.div>
             )}
 
@@ -266,8 +265,7 @@ const AssessConfig: React.FC<AssessConfigProps> = () => {
             </motion.div>
           </Card>
         </motion.div>
-      </div>
-    </>
+    </div>
   )
 }
 

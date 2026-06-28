@@ -58,6 +58,7 @@ import TeacherProfile from "./pages/TeacherProfile"
 import TeacherSettings from "./pages/TeacherSettings"
 import CodingPlatform from "./pages/CodingPlatform"
 import CodingProblemPage from "./pages/CodingProblem"
+import CodingComingSoon from "./pages/CodingComingSoon"
 import UnifiedAssessment from "./pages/UnifiedAssessment"
 import TeacherDashboard from "./pages/TeacherDashboard"
 import TeacherResultsDashboard from "./pages/TeacherResultsDashboard"
@@ -212,6 +213,9 @@ const AppLayout: React.FC<{
                     <Route path="/coding-results" element={<ProtectedRoute allowedRoles={["student"]}><CodingResults /></ProtectedRoute>} />
                     <Route path="/test-result/:resultId" element={<ProtectedRoute allowedRoles={["student"]}><TestResultDetail /></ProtectedRoute>} />
                     <Route path="/coding" element={<ProtectedRoute allowedRoles={["student"]}><CodingPlatform /></ProtectedRoute>} />
+                    <Route path="/coding/problems" element={<ProtectedRoute allowedRoles={["student"]}><CodingComingSoon title="All Problems" subtitle="Browse every coding problem you've generated." /></ProtectedRoute>} />
+                    <Route path="/coding/analytics" element={<ProtectedRoute allowedRoles={["student"]}><CodingComingSoon title="Coding Analytics" subtitle="Track your progress, statistics, and AI insights." /></ProtectedRoute>} />
+                    <Route path="/coding/learning-path" element={<ProtectedRoute allowedRoles={["student"]}><CodingComingSoon title="Learning Path" subtitle="Personalized AI-generated learning recommendations." /></ProtectedRoute>} />
                     <Route path="/coding/problem/:problemId" element={<ProtectedRoute allowedRoles={["student"]}>{user && <CodingProblemPage user={user} />}</ProtectedRoute>} />
                     <Route path="/assessconfig" element={<ProtectedRoute allowedRoles={["student"]}><UnifiedAssessment /></ProtectedRoute>} />
                     <Route path="/assessment-choice" element={<ProtectedRoute allowedRoles={["student"]}><UnifiedAssessment /></ProtectedRoute>} />

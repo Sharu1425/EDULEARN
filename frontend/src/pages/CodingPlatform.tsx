@@ -9,7 +9,6 @@ import { useToast } from "../contexts/ToastContext"
 import { useAuth } from "../hooks/useAuth"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
-import StatTile from "../components/ui/StatTile"
 import LoadingSpinner from "../components/ui/LoadingSpinner"
 import api from "../utils/api"
 import { ANIMATION_VARIANTS } from "../utils/constants"
@@ -218,15 +217,6 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
           </div>
         </Card>
       </motion.div>
-
-      {/* Analytics */}
-      {analytics && (
-        <motion.div variants={ANIMATION_VARIANTS.slideUp} className="grid grid-cols-3 gap-4">
-          <StatTile label="Solved" value={analytics.total_problems_solved} icon={<FileCode className="h-4 w-4" />} accent="primary" />
-          <StatTile label="Success Rate" value={Math.round(analytics.success_rate)} suffix="%" icon={<BarChart3 className="h-4 w-4" />} accent="info" />
-          <StatTile label="Attempted" value={analytics.total_problems_attempted || 0} icon={<Code2 className="h-4 w-4" />} accent="secondary" />
-        </motion.div>
-      )}
 
       {/* Problem Generation */}
       <motion.div variants={ANIMATION_VARIANTS.slideUp}>

@@ -6,7 +6,7 @@
  */
 import type React from "react"
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { useToast } from "../../contexts/ToastContext"
 import { useAuth } from "../../hooks/useAuth"
 import UserManagement from "./UserManagement"
@@ -39,6 +39,35 @@ const TABS = [
   { id: "content", label: "Content", Icon: LayoutGrid },
   { id: "settings", label: "Settings", Icon: Settings },
 ] as const
+
+const TypedText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
+  const reduce = useReducedMotion()
+  const [shown, setShown] = useState("")
+  useEffect(() => {
+    if (reduce) { setShown(text); return }
+    setShown("")
+    let i = 0
+    const id = window.setInterval(() => {
+      i += 1
+      setShown(text.slice(0, i))
+      if (i >= text.length) window.clearInterval(id)
+    }, 65)
+    return () => window.clearInterval(id)
+  }, [text, reduce])
+
+  return (
+    <span className={className}>
+      {shown}
+      {!reduce && shown.length < text.length && (
+        <motion.span
+          animate={{ opacity: [1, 0] }}
+          transition={{ repeat: Number.POSITIVE_INFINITY, duration: 0.8 }}
+          className="inline-block w-1.5 h-[0.8em] bg-current ml-1 align-middle"
+        />
+      )}
+    </span>
+  )
+}
 
 const EnhancedAdminDashboard: React.FC = () => {
   const { user } = useAuth()
@@ -77,7 +106,9 @@ const EnhancedAdminDashboard: React.FC = () => {
             <div className="aurora-mesh" />
             <div className="relative z-10 flex h-full flex-col">
               <Badge variant="ai" className="mb-4 w-fit"><ShieldCheck className="h-3 w-3" /> Control center</Badge>
-              <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Platform overview</h1>
+              <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                Welcome back, <TypedText text="Administrator" className="text-gradient-primary" />
+              </h1>
               <p className="mt-2 max-w-md text-muted-foreground">
                 Monitor health, manage users, and configure the system. Press{" "}
                 <kbd className="rounded border border-border bg-muted/60 px-1.5 text-xs font-medium">⌘K</kbd> to navigate.

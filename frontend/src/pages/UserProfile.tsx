@@ -7,10 +7,12 @@ import { Link } from "react-router-dom"
 import type { User, TestResult } from "../types"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
+import StatTile from "../components/ui/StatTile"
 import LoadingSpinner from "../components/ui/LoadingSpinner"
 
 import api from "../utils/api"
 import { ANIMATION_VARIANTS } from "../utils/constants"
+import { BookOpen, Target, Award, Hash } from "lucide-react"
 
 interface UserProfileProps {
   user: User
@@ -83,33 +85,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     }
   }
 
-  const statCards = [
-    {
-      title: "Total Attempts",
-      value: stats.totalAttempts,
-      icon: "📊",
-      color: "from-emerald-500 to-teal-500",
-    },
-    {
-      title: "Average Score",
-      value: `${stats.averageScore}%`,
-      icon: "📈",
-      color: "from-emerald-500 to-teal-500",
-    },
-    {
-      title: "Best Score",
-      value: `${stats.bestScore}%`,
-      icon: "🏆",
-      color: "from-yellow-500 to-orange-500",
-    },
-    {
-      title: "Topics Studied",
-      value: stats.topicsStudied,
-      icon: "📚",
-      color: "from-green-500 to-teal-500",
-    },
-  ]
-
   return (
     <div className="px-4 py-6 sm:px-6">
       <motion.div
@@ -119,17 +94,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
         className="max-w-6xl mx-auto"
       >
         {/* Profile Header */}
-        <Card className="p-8 mb-8">
-          <motion.div variants={ANIMATION_VARIANTS.slideDown} className="flex items-center space-x-6 mb-8">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-primary/30 flex items-center justify-center">
+        <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 sm:p-8 mb-8">
+          <div className="aurora-mesh" />
+          <motion.div variants={ANIMATION_VARIANTS.slideDown} className="relative z-10 flex items-center gap-6">
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border-2 border-primary/30 bg-gradient-to-br from-primary/20 to-accent/20">
               {user?.profile_picture ? (
                 <img
                   src={user.profile_picture || "/placeholder.svg"}
                   alt="Profile"
-                  className="w-full h-full rounded-full object-cover"
+                  className="h-full w-full rounded-full object-cover"
                 />
               ) : (
-                <svg className="w-12 h-12 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-12 w-12 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -139,37 +115,25 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                 </svg>
               )}
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">{user?.name || user?.username || "User"}</h1>
-              <p className="text-muted-foreground text-lg">{user?.email}</p>
-              <div className="flex items-center mt-2 space-x-4"></div>
+            <div className="min-w-0">
+              <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">{user?.name || user?.username || "User"}</h1>
+              <p className="truncate text-muted-foreground">{user?.email}</p>
             </div>
           </motion.div>
-
-          {/* Stats Grid */}
-          <motion.div
-            variants={ANIMATION_VARIANTS.stagger}
-            initial="initial"
-            animate="animate"
-            className="grid grid-cols-2 md:grid-cols-4 gap-4"
-          >
-            {statCards.map((stat, index) => (
-              <motion.div key={stat.title} variants={ANIMATION_VARIANTS.slideUp} transition={{ delay: index * 0.1 }}>
-                <Card className="p-4 text-center" hover={true}>
-                  <div
-                    className={`w-10 h-10 rounded-full bg-gradient-to-r ${stat.color} flex items-center justify-center mx-auto mb-3 text-white text-lg`}
-                  >
-                    {stat.icon}
-                  </div>
-                  <h3 className="text-xl font-bold text-foreground mb-1">
-                    {loading ? <LoadingSpinner size="sm" /> : stat.value}
-                  </h3>
-                  <p className="text-muted-foreground text-sm">{stat.title}</p>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
         </Card>
+
+        {/* Stats */}
+        <motion.div
+          variants={ANIMATION_VARIANTS.stagger}
+          initial="initial"
+          animate="animate"
+          className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4"
+        >
+          <StatTile label="Total Attempts" value={stats.totalAttempts} icon={<BookOpen className="h-4 w-4" />} accent="primary" />
+          <StatTile label="Average Score" value={stats.averageScore} suffix="%" icon={<Target className="h-4 w-4" />} accent="info" />
+          <StatTile label="Best Score" value={stats.bestScore} suffix="%" icon={<Award className="h-4 w-4" />} accent="accent" />
+          <StatTile label="Topics Studied" value={stats.topicsStudied} icon={<Hash className="h-4 w-4" />} accent="secondary" />
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Account Security Card */}
