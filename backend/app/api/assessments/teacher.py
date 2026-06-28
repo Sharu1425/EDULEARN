@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Teacher-Specific Assessment Operations
 Handles teacher analytics, question management, and assessment administration
@@ -143,7 +144,7 @@ async def publish_teacher_assessment(
 
         await db.teacher_assessments.update_one(
             {"_id": ObjectId(assessment_id)},
-            {"$set": {"status": "active", "is_active": True, "published_at": datetime.utcnow()}}
+            {"$set": {"status": "active", "is_active": True, "published_at": datetime.now(timezone.utc)}}
         )
         print(f"✅ [PUBLISH] Updated assessment status to active and published")
 
@@ -178,7 +179,7 @@ async def publish_teacher_assessment(
                     "title": f"New Assessment: {assessment.get('title', 'Untitled')}",
                     "message": f"A new {assessment.get('difficulty', 'medium')} assessment on {assessment.get('topic', 'General')} has been assigned to you.",
                     "assessment_id": assessment_id,
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(timezone.utc),
                     "is_read": False
                 }
                 notifications.append(notification)
@@ -347,7 +348,7 @@ async def get_class_performance_overview(user: UserModel = Depends(require_teach
             if s.get("last_activity"):
                 try:
                     last_dt = parse_date(s.get("last_activity"))
-                    if last_dt != datetime.min and (datetime.utcnow() - last_dt.replace(tzinfo=None)).days <= 7:
+                    if last_dt != datetime.min and (datetime.now(timezone.utc) - last_dt.replace(tzinfo=None)).days <= 7:
                         active_students_count += 1
                 except Exception:
                     pass
@@ -960,7 +961,7 @@ async def get_teacher_assessment_info(
             "time_limit": assessment.get("time_limit", 30),
             "question_count": assessment.get("question_count", len(assessment.get("questions", []))),
             "questions": assessment.get("questions", []),
-            "created_at": assessment.get("created_at", datetime.utcnow()).isoformat(),
+            "created_at": assessment.get("created_at", datetime.now(timezone.utc)).isoformat(),
             "status": assessment.get("status", "draft"),
             "is_active": assessment.get("is_active", False)
         }
@@ -1051,7 +1052,7 @@ async def get_assessment_results_list(
                     else:
                         submitted_at_str = str(submitted_at)
                 else:
-                    submitted_at_str = datetime.utcnow().isoformat()
+                    submitted_at_str = datetime.now(timezone.utc).isoformat()
                 
                 results.append({
                     "student_id": student_id_str,

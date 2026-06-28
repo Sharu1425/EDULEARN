@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Admin User Management
 Handles user CRUD operations, bulk operations, and user administration
@@ -200,7 +201,7 @@ async def create_user(
             "role": user_data["role"],
             "password_hash": user_data.get("password_hash", "temp_password"),
             "is_active": user_data.get("is_active", True),
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "level": 1,
             "xp": 0,
             "badges": [],
@@ -253,7 +254,7 @@ async def update_user(
         
         # Prepare update data
         update_data = {
-            "updated_at": datetime.utcnow()
+            "updated_at": datetime.now(timezone.utc)
         }
         
         # Update allowed fields
@@ -381,7 +382,7 @@ async def bulk_import_users(
                     "role": user_data.get("role", "student"),
                     "password_hash": "temp_password",
                     "is_active": user_data.get("is_active", True),
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(timezone.utc),
                     "level": 1,
                     "xp": 0,
                     "badges": [],
@@ -500,7 +501,7 @@ async def reset_user_password(
         # Update password
         await db.users.update_one(
             {"_id": ObjectId(user_id)},
-            {"$set": {"password_hash": new_password_hash, "updated_at": datetime.utcnow()}}
+            {"$set": {"password_hash": new_password_hash, "updated_at": datetime.now(timezone.utc)}}
         )
         
         return {
@@ -521,7 +522,7 @@ async def get_user_activity(
         db = await get_db()
         
         from datetime import timedelta
-        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
         
         # Get users with recent activity
         users = await db.users.find({

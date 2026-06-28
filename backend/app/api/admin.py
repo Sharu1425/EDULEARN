@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Admin endpoints
 Handles admin-specific functionality, user management, and platform administration
@@ -60,7 +61,7 @@ async def get_platform_stats(current_user: UserModel = Depends(require_admin)):
         total_students = await db.users.count_documents({"role": "student"})
         
         # Get active users (today and this week)
-        today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         week_ago = today - timedelta(days=7)
         
         active_users_today = await db.users.count_documents({
@@ -231,7 +232,7 @@ async def bulk_import_users(
                     "email": row['email'],
                     "role": row['role'],
                     "password": "default_password",  # Should be hashed
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(timezone.utc),
                     "is_active": True
                 }
                 
@@ -281,14 +282,14 @@ async def export_users(
             
             return {
                 "content": csv_content,
-                "filename": f"users_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv",
+                "filename": f"users_export_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv",
                 "content_type": "text/csv"
             }
         
         elif format == "json":
             return {
                 "content": users,
-                "filename": f"users_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json",
+                "filename": f"users_export_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json",
                 "content_type": "application/json"
             }
         
@@ -321,7 +322,7 @@ async def reset_user_password(
         # Update password (should be hashed)
         await db.users.update_one(
             {"_id": user_id},
-            {"$set": {"password": temp_password, "updated_at": datetime.utcnow()}}
+            {"$set": {"password": temp_password, "updated_at": datetime.now(timezone.utc)}}
         )
         
         return {
@@ -396,7 +397,7 @@ async def get_analytics_overview(current_user: UserModel = Depends(require_admin
         db = await get_db()
         
         # Get user growth data (last 30 days)
-        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
         user_growth = await db.users.count_documents({
             "created_at": {"$gte": thirty_days_ago}
         })
@@ -416,7 +417,7 @@ async def get_analytics_overview(current_user: UserModel = Depends(require_admin
             "user_growth_30_days": user_growth,
             "total_assessment_completions": total_completions,
             "system_metrics": system_metrics,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
     except Exception as e:
@@ -624,7 +625,7 @@ async def create_user(
             "name": user_data.get("name", user_data.get("username", "")),
             "role": user_data.get("role", "student"),
             "password": "default_password",  # Should be hashed
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "is_active": True
         }
         
@@ -669,7 +670,7 @@ async def update_user(
             "email": user_data.get("email", user_doc.get("email")),
             "name": user_data.get("name", user_doc.get("name")),
             "role": user_data.get("role", user_doc.get("role")),
-            "updated_at": datetime.utcnow()
+            "updated_at": datetime.now(timezone.utc)
         }
         
         await db.users.update_one(
@@ -785,7 +786,7 @@ async def get_content_analytics(current_user: UserModel = Depends(require_admin)
         return {
             "total_content": total_assessments + total_coding_problems,
             "content_analytics": content_analytics,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
     except Exception as e:
@@ -843,7 +844,7 @@ async def get_teacher_performance(current_user: UserModel = Depends(require_admi
         return {
             "total_teachers": len(teachers),
             "teacher_performance": teacher_performance,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
     except Exception as e:
@@ -859,9 +860,9 @@ async def get_system_performance(current_user: UserModel = Depends(require_admin
         db = await get_db()
         
         # Test database performance
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         await db.command("ping")
-        db_response_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+        db_response_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
         
         # Get system metrics
         system_metrics = {
@@ -876,7 +877,7 @@ async def get_system_performance(current_user: UserModel = Depends(require_admin
         }
         
         # Get user activity metrics
-        today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         week_ago = today - timedelta(days=7)
         
         active_today = await db.users.count_documents({
@@ -898,7 +899,7 @@ async def get_system_performance(current_user: UserModel = Depends(require_admin
                 "total_assessments": total_assessments,
                 "total_completions": total_results
             },
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
     except Exception as e:
@@ -970,7 +971,7 @@ async def get_content_library(
         return {
             "content_items": content_items,
             "total_items": len(content_items),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
     except Exception as e:
@@ -1038,7 +1039,7 @@ async def get_content_curation(
         return {
             "curation_items": curation_items,
             "total_items": len(curation_items),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
     except Exception as e:
@@ -1062,7 +1063,7 @@ async def approve_content(
         update_data = {
             "status": "approved",
             "reviewed_by": current_user.id,
-            "reviewed_at": datetime.utcnow(),
+            "reviewed_at": datetime.now(timezone.utc),
             "review_notes": review_data.get("review_notes", "")
         }
         
@@ -1113,7 +1114,7 @@ async def reject_content(
         update_data = {
             "status": "rejected",
             "reviewed_by": current_user.id,
-            "reviewed_at": datetime.utcnow(),
+            "reviewed_at": datetime.now(timezone.utc),
             "review_notes": review_data.get("review_notes", "")
         }
         
@@ -1195,7 +1196,7 @@ async def get_teacher_effectiveness(current_user: UserModel = Depends(require_ad
             
         return {
             "teacher_effectiveness": teacher_effectiveness,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     except Exception as e:
         raise HTTPException(
@@ -1278,7 +1279,7 @@ async def get_collusion_analysis(
                 "Cluster 1 (A, B, C) shows 85%+ similarity in wrong answers.",
                 "Cluster 3 (F, G) shows identical code submission patterns."
             ],
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
     except Exception as e:
@@ -1306,7 +1307,7 @@ async def get_ai_audit_metrics(current_user: UserModel = Depends(require_admin))
                     "model": "gemini-3.1-flash",
                     "context": "Question 4, Python Assessment",
                     "severity": "high",
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
                 {
                     "id": "flg_2",
@@ -1314,7 +1315,7 @@ async def get_ai_audit_metrics(current_user: UserModel = Depends(require_admin))
                     "model": "gemini-3.1-flash",
                     "context": "React Context Quiz",
                     "severity": "medium",
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 }
             ],
             "trends": [
@@ -1389,7 +1390,7 @@ async def get_infrastructure_metrics(current_user: UserModel = Depends(require_a
     try:
         import random
         # Generate 365 days of mock activity data
-        start_date = datetime.utcnow() - timedelta(days=365)
+        start_date = datetime.now(timezone.utc) - timedelta(days=365)
         heatmap = []
         for i in range(365):
             date = start_date + timedelta(days=i)
@@ -1441,9 +1442,9 @@ async def get_audit_logs(current_user: UserModel = Depends(require_admin)):
     try:
         return {
             "logs": [
-                {"id": "log_1", "action": "DATA_EXPORT", "actor": "admin@edulearn.com", "target": "Student Roster", "timestamp": datetime.utcnow().isoformat()},
-                {"id": "log_2", "action": "CONSENT_WITHDRAWN", "actor": "student_412@edulearn.com", "target": "Data Processing", "timestamp": (datetime.utcnow() - timedelta(hours=2)).isoformat()},
-                {"id": "log_3", "action": "ERASURE_REQUEST", "actor": "student_88@edulearn.com", "target": "Account Deletion", "timestamp": (datetime.utcnow() - timedelta(days=1)).isoformat()},
+                {"id": "log_1", "action": "DATA_EXPORT", "actor": "admin@edulearn.com", "target": "Student Roster", "timestamp": datetime.now(timezone.utc).isoformat()},
+                {"id": "log_2", "action": "CONSENT_WITHDRAWN", "actor": "student_412@edulearn.com", "target": "Data Processing", "timestamp": (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()},
+                {"id": "log_3", "action": "ERASURE_REQUEST", "actor": "student_88@edulearn.com", "target": "Account Deletion", "timestamp": (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()},
             ],
             "active_consents": 1250,
             "erasure_requests_pending": 1
@@ -1507,7 +1508,7 @@ async def create_institution(
         return {
             "status": "success",
             "message": f"Institution {name} registered successfully.",
-            "institution_id": f"inst_{datetime.utcnow().timestamp()}"
+            "institution_id": f"inst_{datetime.now(timezone.utc).timestamp()}"
         }
     except Exception as e:
         raise HTTPException(

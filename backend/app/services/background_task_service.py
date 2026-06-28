@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Background Tasks Service
 Handles asynchronous AI question generation and other background operations
@@ -40,7 +41,7 @@ class BackgroundTaskService:
             self.task_status[task_id] = {
                 "status": "processing",
                 "progress": 0,
-                "started_at": datetime.utcnow(),
+                "started_at": datetime.now(timezone.utc),
                 "assessment_id": assessment_id,
                 "teacher_id": teacher_id
             }
@@ -72,7 +73,7 @@ class BackgroundTaskService:
             self.task_status[task_id].update({
                 "status": "completed",
                 "progress": 100,
-                "completed_at": datetime.utcnow(),
+                "completed_at": datetime.now(timezone.utc),
                 "questions_generated": len(questions)
             })
             
@@ -88,7 +89,7 @@ class BackgroundTaskService:
             self.task_status[task_id].update({
                 "status": "failed",
                 "error": str(e),
-                "failed_at": datetime.utcnow()
+                "failed_at": datetime.now(timezone.utc)
             })
             
             # Update assessment status to failed
@@ -163,7 +164,7 @@ class BackgroundTaskService:
                 {
                     "$set": {
                         "status": status,
-                        "updated_at": datetime.utcnow()
+                        "updated_at": datetime.now(timezone.utc)
                     }
                 }
             )
@@ -181,7 +182,7 @@ class BackgroundTaskService:
                         "questions": questions,
                         "total_questions": len(questions),
                         "total_points": sum(q.get("points", 1) for q in questions),
-                        "updated_at": datetime.utcnow()
+                        "updated_at": datetime.now(timezone.utc)
                     }
                 }
             )
@@ -270,7 +271,7 @@ class BackgroundTaskService:
     async def cleanup_completed_tasks(self, max_age_hours: int = 24):
         """Clean up completed tasks older than specified hours"""
         try:
-            cutoff_time = datetime.utcnow() - timedelta(hours=max_age_hours)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=max_age_hours)
             
             tasks_to_remove = []
             for task_id, task_info in self.task_status.items():
@@ -296,13 +297,13 @@ class BackgroundTaskService:
         assessment_id: Optional[str] = None
     ):
         """Send bulk notifications to students in the background"""
-        task_id = f"bulk_notify_{datetime.utcnow().timestamp()}"
+        task_id = f"bulk_notify_{datetime.now(timezone.utc).timestamp()}"
         
         try:
             self.task_status[task_id] = {
                 "status": "processing",
                 "progress": 0,
-                "started_at": datetime.utcnow(),
+                "started_at": datetime.now(timezone.utc),
                 "total_students": len(student_ids)
             }
             
@@ -336,7 +337,7 @@ class BackgroundTaskService:
             self.task_status[task_id].update({
                 "status": "completed",
                 "progress": 100,
-                "completed_at": datetime.utcnow()
+                "completed_at": datetime.now(timezone.utc)
             })
             
             logger.info(f"✅ Bulk notification completed for {len(student_ids)} students")
@@ -347,7 +348,7 @@ class BackgroundTaskService:
             self.task_status[task_id].update({
                 "status": "failed",
                 "error": str(e),
-                "failed_at": datetime.utcnow()
+                "failed_at": datetime.now(timezone.utc)
             })
 
 # Background task functions for FastAPI

@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Student Edit Endpoints for Teachers
 """
@@ -92,8 +93,8 @@ async def get_student_details(
             "badges": student.get("badges", []),
             "completed_assessments": student.get("completed_assessments", 0),
             "average_score": student.get("average_score", 0.0),
-            "last_activity": student.get("last_activity", datetime.utcnow()).isoformat() if hasattr(student.get("last_activity", datetime.utcnow()), 'isoformat') else str(student.get("last_activity", "")),
-            "created_at": student.get("created_at", datetime.utcnow()).isoformat() if hasattr(student.get("created_at", datetime.utcnow()), 'isoformat') else str(student.get("created_at", ""))
+            "last_activity": student.get("last_activity", datetime.now(timezone.utc)).isoformat() if hasattr(student.get("last_activity", datetime.now(timezone.utc)), 'isoformat') else str(student.get("last_activity", "")),
+            "created_at": student.get("created_at", datetime.now(timezone.utc)).isoformat() if hasattr(student.get("created_at", datetime.now(timezone.utc)), 'isoformat') else str(student.get("created_at", ""))
         }
         
     except HTTPException:
@@ -204,7 +205,7 @@ async def update_student(
                 detail="No fields to update"
             )
         
-        update_doc["updated_at"] = datetime.utcnow()
+        update_doc["updated_at"] = datetime.now(timezone.utc)
         
         # Update student
         await db.users.update_one(

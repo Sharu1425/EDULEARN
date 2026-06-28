@@ -1,3 +1,4 @@
+from datetime import timezone
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from typing import List, Optional
 from pydantic import BaseModel
@@ -55,7 +56,7 @@ async def start_session(
     new_session = LiveSession(
         batch_id=request.batch_id,
         timeslot_id=request.timeslot_id or "ADHOC",
-        started_at=datetime.utcnow(),
+        started_at=datetime.now(timezone.utc),
         session_code=session_code,
         current_state=SessionState.WAITING,
         active_students=[],
@@ -93,7 +94,7 @@ async def start_session(
                     "title": f"🔴 Live Now: {topic_name}",
                     "message": f"{current_user.username or 'Teacher'} has started the live session for {batch_name}. Join now!",
                     "link": f"/student/live/{request.batch_id}",
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(timezone.utc),
                     "is_read": False,
                     "priority": "high"
                 })
@@ -179,7 +180,7 @@ async def publish_session(
                     "title": f"🔴 Live Now: {topic_name}",
                     "message": f"{current_user.username or 'Teacher'} has published the live session for {batch_name}. Join now!",
                     "link": f"/student/live/{batch_id}",
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(timezone.utc),
                     "is_read": False,
                     "priority": "high"
                 })
@@ -226,7 +227,7 @@ async def end_session(
         {"_id": session["_id"]},
         {"$set": {
             "current_state": SessionState.ENDED,
-            "end_time": datetime.utcnow()
+            "end_time": datetime.now(timezone.utc)
         }}
     )
     
@@ -238,7 +239,7 @@ async def end_session(
         attendance_record = Attendance(
             session_id=str(session["_id"]),
             batch_id=request.batch_id,
-            date=datetime.utcnow(),
+            date=datetime.now(timezone.utc),
             present_students=active_students
         )
         await db.attendance.insert_one(attendance_record.model_dump(by_alias=True, exclude={"id"}))
@@ -253,7 +254,7 @@ async def end_session(
     
     return {
         "message": "Session ended successfully", 
-        "duration_minutes": (datetime.utcnow() - session["started_at"]).total_seconds() / 60,
+        "duration_minutes": (datetime.now(timezone.utc) - session["started_at"]).total_seconds() / 60,
         "attendance_count": len(active_students)
     }
 
@@ -492,7 +493,7 @@ async def generate_session_content(
                 "quizzes": generated_content.get("quizzes", []),
                 "polls": generated_content.get("polls", []),
                 "flashcards": generated_content.get("flashcards", []),
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             }},
             upsert=True
         )
@@ -519,7 +520,7 @@ async def upload_session_material(
         os.makedirs(upload_dir, exist_ok=True)
         
         # Save file
-        file_path = f"{upload_dir}/{datetime.utcnow().timestamp()}_{file.filename}"
+        file_path = f"{upload_dir}/{datetime.now(timezone.utc).timestamp()}_{file.filename}"
         with open(file_path, "wb") as buffer:
             import shutil
             shutil.copyfileobj(file.file, buffer)

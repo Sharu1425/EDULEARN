@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Core Assessment CRUD Operations
 Handles basic assessment creation, retrieval, and management
@@ -59,7 +60,7 @@ async def create_assessment(assessment_data: AssessmentCreate, user: UserModel =
             "max_attempts": assessment_data.max_attempts,
             "type": assessment_data.type,
             "created_by": str(user.id),
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "status": "draft",
             "question_count": len(assessment_data.questions),
             "questions": assessment_data.questions,
@@ -151,7 +152,7 @@ async def get_teacher_assessments(user: UserModel = Depends(require_teacher)): #
         # Process manual assessments
         for assessment in manual_list:
             # --- FIX: Safely handle created_at ---
-            created_at_dt = assessment.get("created_at", datetime.utcnow()) # Default to now if missing
+            created_at_dt = assessment.get("created_at", datetime.now(timezone.utc)) # Default to now if missing
             created_at_iso = created_at_dt.isoformat() if isinstance(created_at_dt, datetime) else str(created_at_dt)
             
             all_assessments.append(AssessmentResponse(
@@ -175,7 +176,7 @@ async def get_teacher_assessments(user: UserModel = Depends(require_teacher)): #
         # Process teacher-created assessments
         for assessment in teacher_list:
             # --- FIX: Safely handle created_at ---
-            created_at_dt = assessment.get("created_at", datetime.utcnow()) # Default to now if missing
+            created_at_dt = assessment.get("created_at", datetime.now(timezone.utc)) # Default to now if missing
             created_at_iso = created_at_dt.isoformat() if isinstance(created_at_dt, datetime) else str(created_at_dt)
 
             all_assessments.append(AssessmentResponse(
@@ -273,8 +274,8 @@ async def get_assessment_details(assessment_id: str, user: UserModel = Depends(g
                 {"student_id": str(user.id), "assessment_id": assessment_id},
                 {"$set": {
                     "session_token": session_token,
-                    "started_at": datetime.utcnow(),
-                    "last_heartbeat": datetime.utcnow(),
+                    "started_at": datetime.now(timezone.utc),
+                    "last_heartbeat": datetime.now(timezone.utc),
                     "is_active": True
                 }},
                 upsert=True
@@ -296,7 +297,7 @@ async def get_assessment_details(assessment_id: str, user: UserModel = Depends(g
                 "type": assessment["type"],
                 "status": assessment["status"],
                 "is_active": assessment["is_active"],
-                "created_at": assessment.get("created_at", datetime.utcnow()).isoformat(),
+                "created_at": assessment.get("created_at", datetime.now(timezone.utc)).isoformat(),
                 "created_by": str(assessment.get("teacher_id", assessment.get("created_by", "unknown")))
             }
         else:
@@ -313,7 +314,7 @@ async def get_assessment_details(assessment_id: str, user: UserModel = Depends(g
                 "questions": questions_list,
                 "assigned_batches": assessment.get("assigned_batches", []),
                 "created_by": assessment["created_by"],
-                "created_at": assessment.get("created_at", datetime.utcnow()).isoformat(),
+                "created_at": assessment.get("created_at", datetime.now(timezone.utc)).isoformat(),
                 "status": assessment["status"],
                 "type": assessment["type"],
                 "is_active": assessment["is_active"],
@@ -401,7 +402,7 @@ async def update_heartbeat(payload: HeartbeatRequest, user: UserModel = Depends(
         db = await get_db()
         result = await db.active_sessions.update_one(
             {"student_id": payload.student_id, "assessment_id": payload.session_id, "is_active": True},
-            {"$set": {"last_heartbeat": datetime.utcnow()}}
+            {"$set": {"last_heartbeat": datetime.now(timezone.utc)}}
         )
         if result.matched_count == 0:
             return {"status": "error", "message": "No active session found"}
@@ -453,7 +454,7 @@ async def publish_assessment(assessment_id: str, user: UserModel = Depends(get_c
                         "title": f"New Assessment: {assessment.get('title', 'Untitled')}",
                         "message": f"A new {assessment.get('difficulty', 'medium')} assessment on {subject_or_topic} has been assigned to you.",
                         "assessment_id": assessment_id,
-                        "created_at": datetime.utcnow(),
+                        "created_at": datetime.now(timezone.utc),
                         "is_read": False
                     }
                     notifications.append(notification)
@@ -529,7 +530,7 @@ async def assign_assessment_to_batches(
                             "assessment_id": ObjectId(assessment_id),
                             "batch_id": ObjectId(batch_id),
                             "teacher_id": ObjectId(user.id),
-                            "created_at": datetime.utcnow(),
+                            "created_at": datetime.now(timezone.utc),
                             "is_read": False,
                             "priority": "high"
                         }
@@ -540,7 +541,7 @@ async def assign_assessment_to_batches(
             {"_id": ObjectId(assessment_id)},
             {"$set": {
                 "assigned_batches": valid_batch_ids,
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             }}
         )
         

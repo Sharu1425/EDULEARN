@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Credits Service — Ledger-based virtual currency system.
 
@@ -52,7 +53,7 @@ async def add_credits(user_id: str, amount: int, reason: str) -> dict:
         "amount": amount,
         "reason": reason,
         "balance_after": new_balance,
-        "created_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),
     }
     tx_result = await db.transactions.insert_one(tx)
     print(f"[CREDITS] +{amount} for user {user_id} ({reason}) -> balance: {new_balance}")
@@ -105,7 +106,7 @@ async def deduct_credits(user_id: str, amount: int, reason: str) -> dict:
         "amount": amount,
         "reason": reason,
         "balance_after": new_balance,
-        "created_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),
     }
     tx_result = await db.transactions.insert_one(tx)
     print(f"[CREDITS] -{amount} for user {user_id} ({reason}) -> balance: {new_balance}")

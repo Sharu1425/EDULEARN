@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Admin Content Oversight
 Handles content management, moderation, and oversight operations
@@ -86,18 +87,19 @@ async def get_content_overview(current_user: UserModel = Depends(require_admin))
             "flagged_content": 0
         }
         
-        # Count assessments by quality (simplified logic)
-        assessments = await db.assessments.find({}).to_list(length=None)
-        for assessment in assessments:
-            if assessment.get("question_count", 0) >= 5 and assessment.get("status") == "published":
-                quality_metrics["high_quality_assessments"] += 1
-            elif assessment.get("status") == "draft":
-                quality_metrics["needs_review"] += 1
+        # Use native count_documents instead of loading collections into memory
+        quality_metrics["high_quality_assessments"] += await db.assessments.count_documents({
+            "question_count": {"$gte": 5},
+            "status": "published"
+        })
+        quality_metrics["needs_review"] += await db.assessments.count_documents({
+            "status": "draft"
+        })
         
-        teacher_assessments = await db.teacher_assessments.find({}).to_list(length=None)
-        for assessment in teacher_assessments:
-            if assessment.get("question_count", 0) >= 5 and assessment.get("is_active", False):
-                quality_metrics["high_quality_assessments"] += 1
+        quality_metrics["high_quality_assessments"] += await db.teacher_assessments.count_documents({
+            "question_count": {"$gte": 5},
+            "is_active": True
+        })
         
         return {
             "content_statistics": {
@@ -110,7 +112,7 @@ async def get_content_overview(current_user: UserModel = Depends(require_admin))
             "recent_content": recent_content,
             "recent_batches": recent_batches_list,
             "quality_metrics": quality_metrics,
-            "generated_at": datetime.utcnow().isoformat()
+            "generated_at": datetime.now(timezone.utc).isoformat()
         }
         
     except Exception as e:
@@ -343,7 +345,7 @@ async def moderate_assessment(
         
         # Update assessment based on action
         update_data = {
-            "moderated_at": datetime.utcnow(),
+            "moderated_at": datetime.now(timezone.utc),
             "moderated_by": str(current_user.id),
             "moderation_action": action,
             "moderation_reason": reason
@@ -372,7 +374,7 @@ async def moderate_assessment(
             "title": f"Assessment {action.title()}d",
             "message": f"Your assessment '{assessment['title']}' has been {action}d. Reason: {reason}",
             "assessment_id": assessment_id,
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "is_read": False
         }
         
@@ -435,7 +437,7 @@ async def get_all_questions(
                 "topic": question.get("topic", "General"),
                 "status": question.get("status", "active"),
                 "teacher_name": teacher_name,
-                "generated_at": question.get("generated_at", datetime.utcnow()).isoformat() if hasattr(question.get("generated_at"), 'isoformat') else str(question.get("generated_at", ""))
+                "generated_at": question.get("generated_at", datetime.now(timezone.utc)).isoformat() if hasattr(question.get("generated_at"), 'isoformat') else str(question.get("generated_at", ""))
             })
         
         return {
@@ -474,7 +476,7 @@ async def moderate_question(
         
         # Update question
         update_data = {
-            "moderated_at": datetime.utcnow(),
+            "moderated_at": datetime.now(timezone.utc),
             "moderated_by": str(current_user.id),
             "moderation_action": action,
             "moderation_reason": reason
@@ -582,7 +584,7 @@ async def update_assessment(
                 update_data[field] = assessment_data[field]
         
         if update_data:
-            update_data["updated_at"] = datetime.utcnow()
+            update_data["updated_at"] = datetime.now(timezone.utc)
             
             await db[collection_name].update_one(
                 {"_id": ObjectId(assessment_id)},
@@ -712,7 +714,7 @@ async def update_question(
                 update_data[field] = question_data[field]
         
         if update_data:
-            update_data["updated_at"] = datetime.utcnow()
+            update_data["updated_at"] = datetime.now(timezone.utc)
             
             await db.ai_questions.update_one(
                 {"_id": ObjectId(question_id)},
@@ -807,7 +809,7 @@ async def get_all_results(
                         assessment_title = "Unknown"
                 
                 # Handle submitted_at
-                submitted_at = sub.get("submitted_at", datetime.utcnow())
+                submitted_at = sub.get("submitted_at", datetime.now(timezone.utc))
                 if hasattr(submitted_at, 'isoformat'):
                     submitted_at_str = submitted_at.isoformat()
                 else:
@@ -857,7 +859,7 @@ async def get_all_results(
                         assessment_title = "Unknown"
                 
                 # Handle submitted_at
-                submitted_at = sub.get("submitted_at", datetime.utcnow())
+                submitted_at = sub.get("submitted_at", datetime.now(timezone.utc))
                 if hasattr(submitted_at, 'isoformat'):
                     submitted_at_str = submitted_at.isoformat()
                 else:
@@ -943,7 +945,7 @@ async def get_result_details(
             "percentage": result.get("percentage", 0),
             "time_taken": result.get("time_taken", 0),
             "answers": result.get("answers", []),
-            "submitted_at": result.get("submitted_at", datetime.utcnow()).isoformat(),
+            "submitted_at": result.get("submitted_at", datetime.now(timezone.utc)).isoformat(),
             "questions": assessment.get("questions", []) if assessment else []
         }
         

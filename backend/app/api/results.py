@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Results endpoints
 Handles test results and user performance data
@@ -79,13 +80,13 @@ async def get_user_results(
                 score=score,
                 total_questions=total_questions,
                 correct_answers=result.get("correct_answers", 0),
-                completed_at=result.get("submitted_at", datetime.utcnow()),
+                completed_at=result.get("submitted_at", datetime.now(timezone.utc)),
                 duration=result.get("time_spent", 0),
                 topic=result.get("topic", ""),
                 difficulty=result.get("difficulty", "medium"),
                 percentage=percentage,
                 time_taken=result.get("time_spent", 0),
-                date=result.get("submitted_at", datetime.utcnow())
+                date=result.get("submitted_at", datetime.now(timezone.utc))
             ))
         
         # Get from db.assessment_results collection (legacy)
@@ -103,13 +104,13 @@ async def get_user_results(
                 score=score,
                 total_questions=total_questions,
                 correct_answers=result.get("score", 0),  # For assessment results, score is the correct count
-                completed_at=result.get("submitted_at", datetime.utcnow()),
+                completed_at=result.get("submitted_at", datetime.now(timezone.utc)),
                 duration=result.get("time_taken", 0),
                 topic=result.get("subject", ""),
                 difficulty=result.get("difficulty", "medium"),
                 percentage=percentage,
                 time_taken=result.get("time_taken", 0),
-                date=result.get("submitted_at", datetime.utcnow())
+                date=result.get("submitted_at", datetime.now(timezone.utc))
             ))
         
         # Get from db.assessment_submissions collection (current regular assessments)
@@ -131,13 +132,13 @@ async def get_user_results(
                 score=score,
                 total_questions=total_questions,
                 correct_answers=result.get("score", 0),
-                completed_at=result.get("submitted_at", datetime.utcnow()),
+                completed_at=result.get("submitted_at", datetime.now(timezone.utc)),
                 duration=result.get("time_taken", 0),
                 topic=assessment.get("subject", "") if assessment else "",
                 difficulty=assessment.get("difficulty", "medium") if assessment else "medium",
                 percentage=percentage,
                 time_taken=result.get("time_taken", 0),
-                date=result.get("submitted_at", datetime.utcnow())
+                date=result.get("submitted_at", datetime.now(timezone.utc))
             ))
         
         # Get from db.teacher_assessment_results collection (teacher-assigned assessments)
@@ -175,13 +176,13 @@ async def get_user_results(
                 score=score,
                 total_questions=total_questions,
                 correct_answers=score,
-                completed_at=t_result.get("submitted_at", datetime.utcnow()),
+                completed_at=t_result.get("submitted_at", datetime.now(timezone.utc)),
                 duration=t_result.get("time_taken", 0),
                 topic=topic,
                 difficulty=difficulty,
                 percentage=percentage,
                 time_taken=t_result.get("time_taken", 0),
-                date=t_result.get("submitted_at", datetime.utcnow())
+                date=t_result.get("submitted_at", datetime.now(timezone.utc))
             ))
 
         # Sort all results by completion date (most recent first)
@@ -367,7 +368,7 @@ async def submit_assessment_result(
             "correct_answers": correct_count,
             "total_questions": submission.total_questions,
             "time_spent": time_spent,
-            "submitted_at": datetime.utcnow(),
+            "submitted_at": datetime.now(timezone.utc),
             "questions": submission.questions,
             "user_answers": submission.user_answers,
             "explanations": submission.explanations
@@ -392,7 +393,7 @@ async def submit_assessment_result(
                     "message": f"You've been rewarded {credit_reward} credits for scoring {score:.1f}% on your {submission.topic} practice assessment.",
                     "type": "credit",
                     "read": False,
-                    "created_at": datetime.utcnow()
+                    "created_at": datetime.now(timezone.utc)
                 }
                 await db.notifications.insert_one(notification)
             except Exception as credit_err:
@@ -504,7 +505,7 @@ async def get_detailed_result(
         
         score = result.get("score", 0)
         correct_answers = result.get("correct_answers", score)  # for teacher results, score equals correct count
-        submitted_at = result.get("submitted_at", datetime.utcnow())
+        submitted_at = result.get("submitted_at", datetime.now(timezone.utc))
         if hasattr(submitted_at, "isoformat"):
             submitted_iso = submitted_at.isoformat()
         else:
@@ -671,7 +672,7 @@ async def results_health_check():
     return {
         "status": "healthy",
         "message": "Results router is working",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 @router.post("/test")
@@ -680,5 +681,5 @@ async def test_results_endpoint():
     return {
         "status": "success",
         "message": "Results endpoint is accessible",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }

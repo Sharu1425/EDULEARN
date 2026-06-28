@@ -2,8 +2,9 @@
 Application configuration settings
 """
 import os
-from typing import List
+from typing import List, Any
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import model_validator
 
 
 class Settings(BaseSettings):
@@ -22,17 +23,23 @@ class Settings(BaseSettings):
     mongo_uri: str = "mongodb://127.0.0.1:27017/edulearn"
     db_name: str = "edulearn"
 
-    # Security — loaded from .env: SECRET_KEY, SESSION_SECRET
-    secret_key: str = "change-me-not-set-in-env"
-    session_secret: str = "change-me-not-set-in-env"
+    # Security — loaded from .env: SECRET_KEY
+    secret_key: str = ""
     
-    # Validation logic to ensure we have a secret key
+    @model_validator(mode='after')
+    def validate_secrets(self) -> 'Settings':
+        if not self.debug and not self.secret_key:
+            raise ValueError("SECRET_KEY environment variable is required in production (DEBUG=False).")
+        return self
+    
     @property
     def effective_secret_key(self) -> str:
-        """Return SECRET_KEY if set, otherwise fallback to SESSION_SECRET"""
-        if self.secret_key and self.secret_key != "change-me-not-set-in-env":
+        """Return SECRET_KEY if set, otherwise fallback to a dev key (only allowed if debug=True)"""
+        if self.secret_key:
             return self.secret_key
-        return self.session_secret
+        if self.debug:
+            return "dev-only-unsafe-secret-key"
+        raise ValueError("SECRET_KEY is missing")
 
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30

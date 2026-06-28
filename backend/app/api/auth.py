@@ -174,12 +174,12 @@ async def login_user(user_data: UserLogin):
         user = await db.users.find_one({"email": user_data.email})
         if not user:
             print(f"[ERROR] [LOGIN] Failed login attempt for email: {user_data.email}")
-            raise HTTPException(status_code=401, detail="No account found with this email. Please check your email or create an account.")
+            raise HTTPException(status_code=401, detail="Invalid email or password")
         
         # Verify password
         if not UserModel.verify_password(user_data.password, user["password_hash"]):
             print(f"[ERROR] [LOGIN] Invalid password for user: {user_data.email}")
-            raise HTTPException(status_code=401, detail="Incorrect password. Please try again.")
+            raise HTTPException(status_code=401, detail="Invalid email or password")
         
         # Create access token with role information
         access_token = create_access_token(

@@ -1,3 +1,4 @@
+from datetime import timezone
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -26,7 +27,7 @@ async def track_event(event: EventCreate, current_user: UserModel = Depends(get_
             "event_type": event.event_type,
             "feature_id": event.feature_id,
             "metadata": event.metadata or {},
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.now(timezone.utc)
         }
         
         await db.events.insert_one(event_doc)
@@ -74,7 +75,7 @@ async def get_adoption_funnel(current_user: UserModel = Depends(require_admin)):
             
         return {
             "funnel_data": funnel_data,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     except Exception as e:
         raise HTTPException(

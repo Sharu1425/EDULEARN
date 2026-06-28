@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Coding Problem Management
 Handles coding problem creation, retrieval, and management
@@ -84,7 +85,7 @@ async def generate_problem(
             "time_limit": generated_problem.get("time_limit", 1000),
             "memory_limit": generated_problem.get("memory_limit", 256),
             "created_by": str(current_user.id),
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "is_active": True,
             "type": problem_type,
             "ai_generated": True
@@ -294,7 +295,7 @@ async def create_problem(
             "time_limit": problem_data.time_limit,
             "memory_limit": problem_data.memory_limit,
             "created_by": str(current_user.id),
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "is_active": True,
             "ai_generated": False
         }
@@ -335,7 +336,7 @@ async def update_problem(
         
         # Update problem
         update_data = {
-            "updated_at": datetime.utcnow()
+            "updated_at": datetime.now(timezone.utc)
         }
         
         # Update allowed fields
@@ -385,7 +386,7 @@ async def delete_problem(
         # Soft delete by setting is_active to False
         await db.coding_problems.update_one(
             {"_id": ObjectId(problem_id)},
-            {"$set": {"is_active": False, "deleted_at": datetime.utcnow()}}
+            {"$set": {"is_active": False, "deleted_at": datetime.now(timezone.utc)}}
         )
         
         return {

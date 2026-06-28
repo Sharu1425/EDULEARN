@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Query Optimization Service
 Handles database query optimization, batching, and pagination
@@ -301,14 +302,14 @@ class QueryOptimizationService:
             # Check cache first
             if cache_key in self.query_cache:
                 cached_data, timestamp = self.query_cache[cache_key]
-                if datetime.utcnow() - timestamp < timedelta(seconds=ttl_seconds):
+                if datetime.now(timezone.utc) - timestamp < timedelta(seconds=ttl_seconds):
                     return cached_data
             
             # Execute query
             result = await query_func()
             
             # Cache result
-            self.query_cache[cache_key] = (result, datetime.utcnow())
+            self.query_cache[cache_key] = (result, datetime.now(timezone.utc))
             
             # Clean up old cache entries
             await self._cleanup_cache()
@@ -322,7 +323,7 @@ class QueryOptimizationService:
     async def _cleanup_cache(self):
         """Clean up old cache entries"""
         try:
-            current_time = datetime.utcnow()
+            current_time = datetime.now(timezone.utc)
             cutoff_time = current_time - timedelta(hours=1)
             
             # Remove old cache entries

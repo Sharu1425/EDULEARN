@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Admin Analytics and Statistics
 Handles platform analytics, system health, and performance metrics
@@ -53,7 +54,7 @@ async def get_platform_stats(current_user: UserModel = Depends(require_admin)):
         total_submissions += teacher_submissions
         
         # Get active users today
-        today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         active_users_today = await db.users.count_documents({
             "last_login": {"$gte": today}
         })
@@ -89,7 +90,7 @@ async def get_analytics_overview(current_user: UserModel = Depends(require_admin
         total_teacher_assessments = await db.teacher_assessments.count_documents({})
         
         # Get recent activity (last 7 days)
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
         
         recent_submissions = await db.assessment_submissions.count_documents({
             "submitted_at": {"$gte": seven_days_ago}
@@ -145,8 +146,8 @@ async def get_analytics_overview(current_user: UserModel = Depends(require_admin
         # Get user growth trends (last 30 days)
         user_growth = []
         for day in range(30):
-            day_start = datetime.utcnow() - timedelta(days=day+1)
-            day_end = datetime.utcnow() - timedelta(days=day)
+            day_start = datetime.now(timezone.utc) - timedelta(days=day+1)
+            day_end = datetime.now(timezone.utc) - timedelta(days=day)
             
             new_users = await db.users.count_documents({
                 "created_at": {"$gte": day_start, "$lt": day_end}
@@ -193,7 +194,7 @@ async def get_analytics_overview(current_user: UserModel = Depends(require_admin
             "batch_analytics": batch_analytics,
             "user_growth": user_growth,
             "top_students": top_students_list,
-            "generated_at": datetime.utcnow().isoformat()
+            "generated_at": datetime.now(timezone.utc).isoformat()
         }
         
     except Exception as e:
@@ -213,7 +214,7 @@ async def get_users_analytics(
     try:
         db = await get_db()
         
-        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
         
         # Build query
         query = {}
@@ -261,7 +262,7 @@ async def get_users_analytics(
                 last_login_str = None
             
             # Get created_at
-            created_at = user.get("created_at", datetime.utcnow())
+            created_at = user.get("created_at", datetime.now(timezone.utc))
             if hasattr(created_at, 'isoformat'):
                 created_at_str = created_at.isoformat()
             else:
@@ -353,7 +354,7 @@ async def get_system_health(current_user: UserModel = Depends(require_admin)):
             ai_service_status=ai_service_status,
             storage_status=storage_status,
             overall_health=overall_health,
-            last_updated=datetime.utcnow().isoformat()
+            last_updated=datetime.now(timezone.utc).isoformat()
         )
         
     except Exception as e:
@@ -387,8 +388,8 @@ async def get_analytics_trends(
         
         # Calculate trends for each day
         for i in range(days):
-            day_start = datetime.utcnow() - timedelta(days=i+1)
-            day_end = datetime.utcnow() - timedelta(days=i)
+            day_start = datetime.now(timezone.utc) - timedelta(days=i+1)
+            day_end = datetime.now(timezone.utc) - timedelta(days=i)
             
             # User growth
             new_users = await db.users.count_documents({
@@ -456,7 +457,7 @@ async def get_analytics_trends(
         return {
             "period": period,
             "trends": trends,
-            "generated_at": datetime.utcnow().isoformat()
+            "generated_at": datetime.now(timezone.utc).isoformat()
         }
         
     except Exception as e:

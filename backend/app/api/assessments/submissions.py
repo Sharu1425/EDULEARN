@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Assessment Submission Handling
 Handles student submissions, scoring, and result processing
@@ -116,7 +117,7 @@ async def get_available_assessments(user: UserModel = Depends(get_current_user))
                 score=0,  # Not submitted yet
                 percentage=0.0,
                 time_taken=0,
-                submitted_at=datetime.utcnow().isoformat(),
+                submitted_at=datetime.now(timezone.utc).isoformat(),
                 total_questions=q_count
             ))
 
@@ -279,7 +280,7 @@ async def get_student_upcoming_assessments(user: UserModel = Depends(get_current
 
 
                 # Handle potential missing fields and ensure correct types
-                created_at_dt = assessment.get("created_at", datetime.utcnow())
+                created_at_dt = assessment.get("created_at", datetime.now(timezone.utc))
                 created_at_iso = created_at_dt.isoformat() if isinstance(created_at_dt, datetime) else str(created_at_dt)
 
                 # Safely get question count
@@ -342,7 +343,7 @@ async def get_student_upcoming_assessments_test(user: UserModel = Depends(get_cu
                 question_count=5,
                 type="mcq",
                 is_active=True,
-                created_at=datetime.utcnow().isoformat(),
+                created_at=datetime.now(timezone.utc).isoformat(),
                 teacher_name="Test Teacher"
             )
         ]
@@ -373,7 +374,7 @@ async def get_teacher_upcoming_assessments(user: UserModel = Depends(get_current
         upcoming_assessments = []
         for assessment in assessments:
             # Format created_at safely
-            created_at_dt = assessment.get("created_at", datetime.utcnow())
+            created_at_dt = assessment.get("created_at", datetime.now(timezone.utc))
             created_at_iso = created_at_dt.isoformat() if isinstance(created_at_dt, datetime) else str(created_at_dt)
 
             # Format scheduled_date and due_date safely
@@ -462,7 +463,7 @@ async def submit_assessment(
              "is_active": True
         })
         if session:
-             time_diff = (datetime.utcnow() - session.get("last_heartbeat", datetime.utcnow())).total_seconds()
+             time_diff = (datetime.now(timezone.utc) - session.get("last_heartbeat", datetime.now(timezone.utc))).total_seconds()
              if time_diff > 90:
                  logger.warning(f"Student {user.id} heartbeat missing for {time_diff}s!")
                  # Mark submission as suspicious (add to violations)
@@ -472,7 +473,7 @@ async def submit_assessment(
                      "type": "heartbeat_timeout",
                      "detail": f"No heartbeat for {time_diff}s",
                      "strike_number": 1,
-                     "timestamp": datetime.utcnow().isoformat()
+                     "timestamp": datetime.now(timezone.utc).isoformat()
                  })
              
              # Deactivate session
@@ -556,7 +557,7 @@ async def submit_assessment(
             "score": score,
             "percentage": round(percentage, 2), # Round percentage
             "time_taken": submission_data.time_taken,
-            "submitted_at": datetime.utcnow(),
+            "submitted_at": datetime.now(timezone.utc),
             "total_questions": total_questions,
             "questions": questions,
             "user_answers": user_answers_text, # Text answers
@@ -677,7 +678,7 @@ async def submit_coding_solution(
             "test_results": execution_result.get("test_results", []),
             "score": execution_result.get("score", 0),
             "max_score": question.get("points", 10), # Use points defined in the question
-            "submitted_at": datetime.utcnow()
+            "submitted_at": datetime.now(timezone.utc)
         }
 
         # Save to coding_submissions collection
@@ -793,47 +794,74 @@ async def get_assessment_leaderboard(assessment_id: str, user: UserModel = Depen
 
 
 async def execute_code(code: str, language: str, test_cases: List[Dict]) -> Dict:
-    """Execute code and return results (placeholder implementation)"""
-    # Replace with your actual code execution service logic (e.g., HackerEarth call)
-    logger.warning("Using placeholder execute_code function.")
-    passed_count = 0
-    results = []
-    total_time = 0
-    max_memory = 0
-    status = "accepted"
-
-    for i, case in enumerate(test_cases):
-        # Simulate execution
-        time_ms = 50 + (i * 10)
-        memory_kb = 32 + (i * 5)
-        passed = (i % 2 == 0) # Simulate alternating pass/fail
-        output = case.get("expected_output", "simulated_output") if passed else "wrong_simulated_output"
-        error = None if passed else "AssertionError: Output mismatch"
-
-        results.append({
-            "passed": passed,
-            "input": case.get("input", ""),
-            "expected_output": case.get("expected_output", ""),
-            "actual_output": output,
-            "execution_time": time_ms,
-            "memory_used": memory_kb,
-            "error": error
+    """Execute code and return results using HackerEarth"""
+    try:
+        from app.services.hackerearth_execution_service import get_hackerearth_service
+        execution_service = get_hackerearth_service()
+        
+        # We must format test_cases into {"input": ..., "output": ...} format for HackerEarth
+        formatted_cases = []
+        for case in test_cases:
+            formatted_cases.append({
+                "input": case.get("input", ""),
+                "output": case.get("expected_output", "")
             })
-        if passed:
-            passed_count += 1
-        else:
-            status = "wrong_answer" # Change status if any test fails
-        total_time += time_ms
-        max_memory = max(max_memory, memory_kb)
+            
+        import asyncio
+        results = await execution_service.run_tests(
+            code=code,
+            language=language,
+            test_cases=formatted_cases
+        )
+        
+        passed_count = 0
+        total_time = 0
+        max_memory = 0
+        status = "accepted"
+        final_results = []
+        
+        for i, result in enumerate(results):
+            passed = result.get("passed", False)
+            if passed:
+                passed_count += 1
+            else:
+                status = "wrong_answer"
+                
+            time_ms = result.get("execution_time", 0)
+            memory_kb = result.get("memory", 0)
+            
+            total_time += time_ms
+            max_memory = max(max_memory, memory_kb)
+            
+            final_results.append({
+                "passed": passed,
+                "input": test_cases[i].get("input", ""),
+                "expected_output": test_cases[i].get("expected_output", ""),
+                "actual_output": result.get("output", ""),
+                "execution_time": time_ms,
+                "memory_used": memory_kb,
+                "error": result.get("error", None)
+            })
+            
+        score = int((passed_count / len(test_cases)) * 10) if test_cases else 0
 
-    score = int((passed_count / len(test_cases)) * 10) if test_cases else 0 # Example scoring
-
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Execution failed: {e}")
+        return {
+            "status": "error",
+            "execution_time": 0,
+            "memory_used": 0,
+            "test_results": [],
+            "score": 0
+        }
 
     return {
         "status": status,
         "execution_time": total_time,
         "memory_used": max_memory,
-        "test_results": results,
+        "test_results": final_results,
         "score": score
     }
 

@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, status
 from typing import Optional
 from ..services.socket_manager import socket_manager
@@ -9,8 +10,9 @@ from bson import ObjectId
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+from ..core.config import settings
 
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
+SECRET_KEY = settings.effective_secret_key
 ALGORITHM = "HS256"
 
 async def validate_token_ws(token: str) -> Optional[str]:

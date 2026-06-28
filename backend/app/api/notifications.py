@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Notifications API endpoints
 Handles notification creation, retrieval, and management
@@ -31,7 +32,7 @@ async def create_assessment_completion_notification(
             "message": f"You completed '{assessment_title}' with a score of {score:.1f}%",
             "priority": "normal",
             "is_read": False,
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "read_at": None
         }
         
@@ -46,7 +47,7 @@ async def create_assessment_completion_notification(
                 "message": f"A student completed '{assessment_title}' with a score of {score:.1f}%",
                 "priority": "normal",
                 "is_read": False,
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "read_at": None
             }
             
@@ -158,7 +159,7 @@ async def mark_notification_as_read(
         # Update both 'read' and 'is_read' fields for compatibility
         result = await db.notifications.update_one(
             {"_id": notification_object_id},
-            {"$set": {"read": True, "is_read": True, "read_at": datetime.utcnow()}}
+            {"$set": {"read": True, "is_read": True, "read_at": datetime.now(timezone.utc)}}
         )
 
         if result.modified_count == 1:
@@ -214,7 +215,7 @@ async def mark_all_notifications_as_read(
         # Update all unread notifications
         result = await db.notifications.update_many(
             query,
-            {"$set": {"read": True, "is_read": True, "read_at": datetime.utcnow()}}
+            {"$set": {"read": True, "is_read": True, "read_at": datetime.now(timezone.utc)}}
         )
 
         return {
@@ -332,7 +333,7 @@ async def create_notification(
             "user_id": ObjectId(user_id),
             "message": message,
             "read": False,
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
             "notification_type": notification_type,
             "related_id": ObjectId(related_id) if related_id else None
         }

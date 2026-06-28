@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Unified Assessment Data Models
 Contains comprehensive models for all assessment types and related entities
@@ -158,27 +159,27 @@ class UnifiedAssessmentModel(BaseModel):
         self.questions.append(question)
         self.total_questions = len(self.questions)
         self.total_points = sum(q.points for q in self.questions)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
     
     def remove_question(self, question_id: str):
         """Remove a question from the assessment"""
         self.questions = [q for q in self.questions if q.id != question_id]
         self.total_questions = len(self.questions)
         self.total_points = sum(q.points for q in self.questions)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
     
     def publish(self):
         """Publish the assessment"""
         if self.status == AssessmentStatus.DRAFT:
             self.status = AssessmentStatus.PUBLISHED
-            self.published_at = datetime.utcnow()
-            self.updated_at = datetime.utcnow()
+            self.published_at = datetime.now(timezone.utc)
+            self.updated_at = datetime.now(timezone.utc)
     
     def archive(self):
         """Archive the assessment"""
         self.status = AssessmentStatus.ARCHIVED
         self.is_active = False
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
 # Submission Models
 class SubmissionAnswer(BaseModel):
@@ -229,7 +230,7 @@ class AssessmentSubmission(BaseModel):
     def submit(self):
         """Mark the submission as submitted"""
         self.status = "submitted"
-        self.submitted_at = datetime.utcnow()
+        self.submitted_at = datetime.now(timezone.utc)
         self.calculate_score()
 
 # Batch Models
@@ -270,14 +271,14 @@ class BatchModel(BaseModel):
         if student_id not in self.student_ids:
             self.student_ids.append(student_id)
             self.total_students = len(self.student_ids)
-            self.updated_at = datetime.utcnow()
+            self.updated_at = datetime.now(timezone.utc)
     
     def remove_student(self, student_id: str):
         """Remove a student from the batch"""
         if student_id in self.student_ids:
             self.student_ids.remove(student_id)
             self.total_students = len(self.student_ids)
-            self.updated_at = datetime.utcnow()
+            self.updated_at = datetime.now(timezone.utc)
 
 # Request/Response Models
 class AssessmentCreateRequest(BaseModel):

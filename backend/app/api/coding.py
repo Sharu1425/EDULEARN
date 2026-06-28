@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Coding Platform Router
 Handles all coding-related endpoints with Gemini AI integration
@@ -81,7 +82,7 @@ async def generate_problem(
             "reference_solution": problem_data.get("reference_solution"),
             "code_templates": problem_data.get("code_templates", {}),
             "created_by": "AI",
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "tags": problem_data["tags"],
             "success_rate": 0.0,
             "average_time": None
@@ -538,7 +539,7 @@ async def submit_solution(
             "execution_time": execution_result["execution_time"],
             "memory_used": execution_result["memory_used"],
             "test_results": execution_result["results"],
-            "submitted_at": datetime.utcnow(),
+            "submitted_at": datetime.now(timezone.utc),
             "attempts": previous_attempts + 1
         }
         
@@ -555,7 +556,7 @@ async def submit_solution(
                         "$inc": {"submissions": 1},
                         "$set": {
                             "last_submission_status": status,
-                            "updated_at": datetime.utcnow()
+                            "updated_at": datetime.now(timezone.utc)
                         }
                     }
                 )
@@ -762,7 +763,7 @@ async def start_coding_session(
         session_doc = {
             "user_id": ObjectId(user_id),
             "problem_id": ObjectId(session_data.problem_id),
-            "start_time": datetime.utcnow(),
+            "start_time": datetime.now(timezone.utc),
             "keystrokes": 0,
             "lines_of_code": 0,
             "compilation_attempts": 0,
@@ -876,7 +877,7 @@ async def end_coding_session(
         final_status = end_data.get("final_status", "completed")
         
         # Calculate total time
-        end_time = datetime.utcnow()
+        end_time = datetime.now(timezone.utc)
         total_time = int((end_time - session["start_time"]).total_seconds())
         
         # Build update document
@@ -950,7 +951,7 @@ async def get_coding_analytics(
                 "weak_topics": [],
                 "improvement_areas": [],
                 "learning_path": [],
-                "last_updated": datetime.utcnow(),
+                "last_updated": datetime.now(timezone.utc),
                 "problems_by_difficulty": {"easy": 0, "medium": 0, "hard": 0},
                 "problems_by_topic": {}
             }
@@ -1054,7 +1055,7 @@ async def generate_learning_path(
                 "$set": {
                     "learning_path": learning_path.get("recommended_topics", []),
                     "improvement_areas": learning_path.get("improvement_areas", []),
-                    "last_updated": datetime.utcnow()
+                    "last_updated": datetime.now(timezone.utc)
                 }
             },
             upsert=True
@@ -1138,7 +1139,7 @@ async def update_user_analytics_task(user_id: str, problem_id: str, solved: bool
                 "weak_topics": [],
                 "improvement_areas": [],
                 "learning_path": [],
-                "last_updated": datetime.utcnow(),
+                "last_updated": datetime.now(timezone.utc),
                 "problems_by_difficulty": {"easy": 0, "medium": 0, "hard": 0},
                 "problems_by_topic": {}
             }
@@ -1147,7 +1148,7 @@ async def update_user_analytics_task(user_id: str, problem_id: str, solved: bool
             # Update existing analytics using $addToSet for uniqueness
             update_ops = {
                 "$addToSet": {"attempted_problem_ids": ObjectId(problem_id)},
-                "$set": {"last_updated": datetime.utcnow()}
+                "$set": {"last_updated": datetime.now(timezone.utc)}
             }
             
             if solved:

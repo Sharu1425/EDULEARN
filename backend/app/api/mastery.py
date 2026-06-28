@@ -1,3 +1,4 @@
+from datetime import timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List, Dict, Any
 from bson import ObjectId
@@ -190,7 +191,7 @@ async def generate_quiz(
     attempts = progress.get("attempts", 0) if progress else 0
     locked_until = progress.get("locked_until") if progress else None
     
-    if locked_until and locked_until > datetime.utcnow():
+    if locked_until and locked_until > datetime.now(timezone.utc):
         raise HTTPException(status_code=403, detail=f"Topic is locked until {locked_until}")
         
     attempt_num = attempts + 1
@@ -252,7 +253,7 @@ async def update_progress(
                 "status": TopicStatus.completed.value,
                 "quiz_score": body.quiz_score,
                 "attempts": new_attempts,
-                "completed_at": datetime.utcnow(),
+                "completed_at": datetime.now(timezone.utc),
                 "locked_until": None
             }}
         )
@@ -301,7 +302,7 @@ async def update_progress(
     else:
         # User failed the quiz. Apply cooldown lock.
         cooldown_minutes = 10
-        locked_until = datetime.utcnow() + timedelta(minutes=cooldown_minutes)
+        locked_until = datetime.now(timezone.utc) + timedelta(minutes=cooldown_minutes)
         await progress_coll.update_one(
             {"_id": current["_id"]},
             {"$set": {

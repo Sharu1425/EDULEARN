@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Teacher Reports and Analytics
 Handles teacher analytics, reports, and performance insights
@@ -64,7 +65,7 @@ async def get_teacher_dashboard(current_user: UserModel = Depends(require_teache
         total_assessments += teacher_assessments_count
         
         # Get recent activity (last 7 days)
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
         
         # Get recent submissions
         recent_submissions = await db.assessment_submissions.find({
@@ -241,7 +242,7 @@ async def get_analytics_overview(current_user: UserModel = Depends(require_analy
                 "completed_assessments": len(all_student_submissions),
                 "average_score": round(avg_score, 2),
                 "total_questions_answered": total_questions,
-                "last_activity": student.get("last_activity", datetime.utcnow()).isoformat()
+                "last_activity": student.get("last_activity", datetime.now(timezone.utc)).isoformat()
             })
         
         # Assessment performance analytics
@@ -308,8 +309,8 @@ async def get_analytics_overview(current_user: UserModel = Depends(require_analy
         performance_trend = []
         
         for week in range(7):
-            week_start = datetime.utcnow() - timedelta(weeks=week+1)
-            week_end = datetime.utcnow() - timedelta(weeks=week)
+            week_start = datetime.now(timezone.utc) - timedelta(weeks=week+1)
+            week_end = datetime.now(timezone.utc) - timedelta(weeks=week)
             
             week_submissions = await db.assessment_submissions.find({
                 "student_id": {"$in": student_ids},
@@ -390,7 +391,7 @@ async def add_student_feedback(
             "teacher_id": str(current_user.id),
             "feedback": feedback_data.get("feedback", ""),
             "rating": feedback_data.get("rating", 0),
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "type": feedback_data.get("type", "general")
         }
         
@@ -402,7 +403,7 @@ async def add_student_feedback(
             "type": "teacher_feedback",
             "title": "New Feedback from Teacher",
             "message": f"You have received new feedback from {current_user.username or 'your teacher'}",
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "is_read": False
         }
         
@@ -491,7 +492,7 @@ async def generate_ai_reports(teacher_id: str, current_user: UserModel = Depends
         
         return {
             "teacher_id": teacher_id,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "insights": insights,
             "data_summary": {
                 "total_batches": len(batches),

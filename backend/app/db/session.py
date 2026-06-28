@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Database session management
 Handles MongoDB connection, initialization, and session management
@@ -25,8 +26,8 @@ async def init_db():
         # Create client with connection pooling
         client = AsyncIOMotorClient(
             settings.mongo_uri,
-            maxPoolSize=10,
-            minPoolSize=1,
+            maxPoolSize=100,
+            minPoolSize=10,
             maxIdleTimeMS=30000,
             serverSelectionTimeoutMS=5000,
             connectTimeoutMS=10000,
@@ -46,6 +47,10 @@ async def init_db():
         
     except Exception as e:
         print(f"[WARNING] MongoDB connection failed: {str(e)}")
+        if not settings.debug:
+            print(f"[ERROR] Cannot fallback to MockDatabase in production (DEBUG=False). Shutting down.")
+            raise e
+            
         print(f"[FALLBACK] Using mock database for development...")
         # Fall back to mock database
         from .mock_db import MockDatabase
@@ -61,6 +66,14 @@ async def create_indexes():
         await db.users.create_index([("role", 1)])
         await db.users.create_index([("created_at", 1)])
         await db.users.create_index([("batch_ids", 1)])  # Multi-batch support
+        
+        # Results & Mastery indexes
+        if hasattr(db, "results"):
+            await db.results.create_index([("user_id", 1)])
+        if hasattr(db, "thinktrace_sessions"):
+            await db.thinktrace_sessions.create_index([("user_id", 1)])
+        if hasattr(db, "topic_mastery"):
+            await db.topic_mastery.create_index([("user_id", 1)])
         
         # Assessments collection indexes
         await db.assessments.create_index([("created_by", 1)])
@@ -175,6 +188,6 @@ async def delete_user(user_id: str):
     database = await get_db()
     result = await database.users.update_one(
         {"_id": user_id},
-        {"$set": {"is_active": False, "deleted_at": datetime.utcnow()}}
+        {"$set": {"is_active": False, "deleted_at": datetime.now(timezone.utc)}}
     )
     return result.modified_count > 0

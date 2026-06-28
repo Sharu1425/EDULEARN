@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Bulk Teacher Management API
 Allows admins to bulk-create teacher accounts via Excel upload
@@ -128,7 +129,7 @@ async def _create_teachers(db: AsyncIOMotorDatabase, teachers: List[Dict[str, An
                 "teacher_id": t["teacher_id"],
                 "full_name": t["name"],
                 "is_active": True,
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "last_login": None,
                 "profile_completed": False,
                 "created_by": "bulk_upload_admin",
@@ -167,7 +168,7 @@ async def bulk_upload_teachers(
     await db.bulk_teacher_uploads.insert_one(
         {
             "uploaded_by": str(current_user.id),
-            "uploaded_at": datetime.utcnow(),
+            "uploaded_at": datetime.now(timezone.utc),
             "file_name": file.filename,
             "total_rows": len(df),
             "successful_imports": len(created),

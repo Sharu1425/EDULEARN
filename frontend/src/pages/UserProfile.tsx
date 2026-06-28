@@ -88,15 +88,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
   const isAdmin = user?.role === 'admin' || user?.is_admin;
 
   return (
-    <div className="px-4 py-6 sm:px-6">
+    <div className="px-4 py-6 sm:px-6 relative">
       <motion.div
         variants={ANIMATION_VARIANTS.fadeIn}
         initial="initial"
         animate="animate"
-        className="max-w-6xl mx-auto"
+        className="max-w-6xl mx-auto relative"
       >
         {/* Profile Header */}
-        <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 sm:p-8 mb-8">
+        <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 sm:p-8 mb-8 z-10">
           <div className="aurora-mesh" />
           <motion.div variants={ANIMATION_VARIANTS.slideDown} className="relative z-10 flex items-center gap-6">
             <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border-2 border-primary/30 bg-gradient-to-br from-primary/20 to-accent/20">

@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Admin Platform Management
 Handles institution/tenant management and compliance logs
@@ -20,7 +21,7 @@ async def get_institutions(current_user: UserModel = Depends(require_admin)):
         db = await get_db()
         institutions = []
         if hasattr(db, 'institutions'):
-            cursor = db.institutions.find()
+            cursor = db.institutions.find({}, {"name": 1, "active_students": 1, "status": 1, "tier": 1})
             async for inst in cursor:
                 institutions.append({
                     "id": str(inst["_id"]),
@@ -61,7 +62,7 @@ async def create_institution(
             "tier": tier,
             "active_students": 0,
             "status": "active",
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc)
         }
         result = await db.institutions.insert_one(inst_doc)
         
@@ -84,14 +85,14 @@ async def get_audit_logs(current_user: UserModel = Depends(require_admin)):
         logs = []
         
         if hasattr(db, 'audit_logs'):
-            cursor = db.audit_logs.find().sort("timestamp", -1).limit(50)
+            cursor = db.audit_logs.find({}, {"action": 1, "actor": 1, "target": 1, "timestamp": 1}).sort("timestamp", -1).limit(50)
             async for log in cursor:
                 logs.append({
                     "id": str(log["_id"]),
                     "action": log.get("action", "UNKNOWN"),
                     "actor": log.get("actor", "System"),
                     "target": log.get("target", "System"),
-                    "timestamp": log.get("timestamp", datetime.utcnow()).isoformat()
+                    "timestamp": log.get("timestamp", datetime.now(timezone.utc)).isoformat()
                 })
                 
         # Return fallback mock logs if DB is empty
@@ -102,21 +103,21 @@ async def get_audit_logs(current_user: UserModel = Depends(require_admin)):
                     "action": "DATA_EXPORT",
                     "actor": "admin@edulearn.com",
                     "target": "Student Roster",
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
                 {
                     "id": "log_2",
                     "action": "CONSENT_WITHDRAWN",
                     "actor": "student_412@edulearn.com",
                     "target": "Data Processing",
-                    "timestamp": (datetime.utcnow() - timedelta(hours=2)).isoformat()
+                    "timestamp": (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
                 },
                 {
                     "id": "log_3",
                     "action": "ERASURE_REQUEST",
                     "actor": "student_88@edulearn.com",
                     "target": "Account Deletion",
-                    "timestamp": (datetime.utcnow() - timedelta(days=1)).isoformat()
+                    "timestamp": (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
                 }
             ]
             
@@ -162,7 +163,7 @@ async def get_ai_audit_metrics(current_user: UserModel = Depends(require_admin))
                         "model": "gemini-3.1-flash",
                         "context": "Question 4, Python Assessment",
                         "severity": "high",
-                        "timestamp": datetime.utcnow().isoformat()
+                        "timestamp": datetime.now(timezone.utc).isoformat()
                     },
                     {
                         "id": "flg_2",
@@ -170,7 +171,7 @@ async def get_ai_audit_metrics(current_user: UserModel = Depends(require_admin))
                         "model": "gemini-3.1-flash",
                         "context": "React Context Quiz",
                         "severity": "medium",
-                        "timestamp": datetime.utcnow().isoformat()
+                        "timestamp": datetime.now(timezone.utc).isoformat()
                     }
                 ],
                 "trends": [
@@ -247,7 +248,7 @@ async def get_collusion_analysis(
                 "links": links
             },
             "insights": insights,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     except Exception as e:
         raise HTTPException(
@@ -284,7 +285,7 @@ async def get_infrastructure_metrics(current_user: UserModel = Depends(require_a
     """Fetch 52-week activity heatmap data"""
     try:
         import random
-        start_date = datetime.utcnow() - timedelta(days=365)
+        start_date = datetime.now(timezone.utc) - timedelta(days=365)
         heatmap = []
         for i in range(365):
             date = start_date + timedelta(days=i)
@@ -351,7 +352,7 @@ async def get_teacher_effectiveness(current_user: UserModel = Depends(require_ad
             
         return {
             "teacher_effectiveness": teacher_effectiveness,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     except Exception as e:
         raise HTTPException(

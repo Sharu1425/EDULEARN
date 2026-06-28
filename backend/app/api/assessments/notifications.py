@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Assessment Notifications Module
 Handles notification creation, retrieval, and management for assessments
@@ -58,7 +59,7 @@ async def mark_notification_read(notification_id: str, user: UserModel = Depends
                 "_id": ObjectId(notification_id),
                 "student_id": str(user.id)
             },
-            {"$set": {"is_read": True, "read_at": datetime.utcnow()}}
+            {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc)}}
         )
         
         if result.matched_count == 0:
@@ -124,7 +125,7 @@ async def send_assessment_notifications(db, assessment_id: str, batch_ids: List[
                 "title": "New Assessment Available",
                 "message": f"A new assessment '{assessment_title}' has been assigned to you.",
                 "assessment_id": assessment_id,
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "is_read": False
             }
             notifications.append(notification)
@@ -152,7 +153,7 @@ async def create_assessment_completion_notification(
             "type": "assessment_completed",
             "title": "Assessment Completed",
             "message": f"You completed '{assessment_title}' with a score of {score:.1f}%",
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "is_read": False
         }
         
@@ -165,7 +166,7 @@ async def create_assessment_completion_notification(
                 "type": "student_assessment_completed",
                 "title": "Student Assessment Completed",
                 "message": f"A student completed '{assessment_title}' with a score of {score:.1f}%",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "is_read": False
             }
             
@@ -184,7 +185,7 @@ async def send_batch_assignment_notification(db, student_id: str, batch_name: st
             "type": "batch_assignment",
             "title": f"Added to Batch: {batch_name}",
             "message": f"You have been added to batch '{batch_name}' by {teacher_name}. Welcome to the class!",
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "is_read": False
         }
         
@@ -202,7 +203,7 @@ async def send_teacher_assessment_notification(db, student_id: str, assessment_t
             "type": "teacher_assessment_assigned",
             "title": f"New Assessment: {assessment_title}",
             "message": f"A new {difficulty} assessment on {topic} has been assigned to you.",
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "is_read": False
         }
         

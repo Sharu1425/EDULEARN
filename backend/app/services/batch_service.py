@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Batch Service
 Centralized batch management and operations
@@ -33,7 +34,7 @@ class BatchService:
                 "name": batch_data["name"],
                 "description": batch_data.get("description", ""),
                 "teacher_id": teacher_id,
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "status": "active",
                 "student_ids": []
             }
@@ -86,7 +87,7 @@ class BatchService:
                     "batch_name": batch["name"],
                     "password_hash": "temp_password",
                     "is_active": True,
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(timezone.utc),
                     "level": 1,
                     "xp": 0,
                     "badges": [],
@@ -122,7 +123,7 @@ class BatchService:
                         "$set": {
                             "batch_id": ObjectId(batch_id),
                             "batch_name": batch["name"],
-                            "updated_at": datetime.utcnow()
+                            "updated_at": datetime.now(timezone.utc)
                         }
                     }
                 )
@@ -236,7 +237,7 @@ class BatchService:
                     "email": student["email"],
                     "level": student.get("level", 1),
                     "xp": student.get("xp", 0),
-                    "last_activity": student.get("last_activity", datetime.utcnow()).isoformat(),
+                    "last_activity": student.get("last_activity", datetime.now(timezone.utc)).isoformat(),
                     "completed_assessments": student.get("completed_assessments", 0),
                     "average_score": student.get("average_score", 0)
                 })

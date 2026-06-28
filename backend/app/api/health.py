@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Health Check Endpoints
 Comprehensive health monitoring and system status endpoints
@@ -28,7 +29,7 @@ class HealthCheckService:
         try:
             return {
                 "status": "healthy",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "service": "EduLearn API",
                 "version": "1.0.0"
             }
@@ -36,7 +37,7 @@ class HealthCheckService:
             logger.error(f"Basic health check failed: {e}")
             return {
                 "status": "unhealthy",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "error": str(e)
             }
     
@@ -44,21 +45,21 @@ class HealthCheckService:
         """Get database health status"""
         try:
             # Test database connection
-            start_time = datetime.utcnow()
+            start_time = datetime.now(timezone.utc)
             await self.db.command("ping")
-            response_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+            response_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             
             # Get database stats
             db_stats = await self.db.command("dbStats")
             
             # Test basic operations
             test_collection = self.db.health_check
-            await test_collection.insert_one({"test": True, "timestamp": datetime.utcnow()})
+            await test_collection.insert_one({"test": True, "timestamp": datetime.now(timezone.utc)})
             await test_collection.delete_many({"test": True})
             
             return {
                 "status": "healthy",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "database": {
                     "connection": "ok",
                     "response_time_ms": round(response_time, 2),
@@ -73,7 +74,7 @@ class HealthCheckService:
             logger.error(f"Database health check failed: {e}")
             return {
                 "status": "unhealthy",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "database": {
                     "connection": "failed",
                     "error": str(e)
@@ -86,7 +87,7 @@ class HealthCheckService:
             if not hasattr(settings, 'AI_SERVICE_URL') or not settings.AI_SERVICE_URL:
                 return {
                     "status": "not_configured",
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "ai_service": {
                         "url": "not_configured",
                         "status": "disabled"
@@ -94,18 +95,18 @@ class HealthCheckService:
                 }
             
             # Test AI service connection
-            start_time = datetime.utcnow()
+            start_time = datetime.now(timezone.utc)
             
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(f"{settings.AI_SERVICE_URL}/health")
                 
-            response_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+            response_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             
             if response.status_code == 200:
                 ai_data = response.json()
                 return {
                     "status": "healthy",
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "ai_service": {
                         "url": settings.AI_SERVICE_URL,
                         "status": "ok",
@@ -116,7 +117,7 @@ class HealthCheckService:
             else:
                 return {
                     "status": "unhealthy",
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "ai_service": {
                         "url": settings.AI_SERVICE_URL,
                         "status": "error",
@@ -129,7 +130,7 @@ class HealthCheckService:
             logger.error(f"AI service health check failed: {e}")
             return {
                 "status": "unhealthy",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "ai_service": {
                     "url": getattr(settings, 'AI_SERVICE_URL', 'not_configured'),
                     "status": "failed",
@@ -151,7 +152,7 @@ class HealthCheckService:
             
             return {
                 "status": "healthy",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "system": {
                     "cpu_percent": cpu_percent,
                     "memory": {
@@ -178,7 +179,7 @@ class HealthCheckService:
             logger.error(f"System health check failed: {e}")
             return {
                 "status": "unhealthy",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "system": {
                     "error": str(e)
                 }
@@ -207,16 +208,16 @@ class HealthCheckService:
             
             # Check recent activity
             recent_assessments = await self.db.assessments.count_documents({
-                "created_at": {"$gte": datetime.utcnow() - timedelta(hours=24)}
+                "created_at": {"$gte": datetime.now(timezone.utc) - timedelta(hours=24)}
             })
             
             recent_users = await self.db.users.count_documents({
-                "created_at": {"$gte": datetime.utcnow() - timedelta(hours=24)}
+                "created_at": {"$gte": datetime.now(timezone.utc) - timedelta(hours=24)}
             })
             
             return {
                 "status": "healthy",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "application": {
                     "collections": collection_status,
                     "recent_activity": {
@@ -236,7 +237,7 @@ class HealthCheckService:
             logger.error(f"Application health check failed: {e}")
             return {
                 "status": "unhealthy",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "application": {
                     "error": str(e)
                 }
@@ -246,7 +247,7 @@ class HealthCheckService:
         """Get application uptime"""
         try:
             boot_time = psutil.boot_time()
-            uptime_seconds = datetime.utcnow().timestamp() - boot_time
+            uptime_seconds = datetime.now(timezone.utc).timestamp() - boot_time
             
             days = int(uptime_seconds // 86400)
             hours = int((uptime_seconds % 86400) // 3600)
@@ -320,7 +321,7 @@ async def comprehensive_health_check(db: AsyncIOMotorDatabase = Depends(get_db))
     
     comprehensive_data = {
         "status": overall_status,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "checks": {
             "basic": basic_health,
             "database": db_health,
@@ -344,7 +345,7 @@ async def health_metrics(db: AsyncIOMotorDatabase = Depends(get_db)):
         db_health = await service.get_database_health()
         
         metrics = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "metrics": {
                 "cpu_percent": system_health.get("system", {}).get("cpu_percent", 0),
                 "memory_percent": system_health.get("system", {}).get("memory", {}).get("percent", 0),
@@ -359,7 +360,7 @@ async def health_metrics(db: AsyncIOMotorDatabase = Depends(get_db)):
     except Exception as e:
         logger.error(f"Health metrics failed: {e}")
         return JSONResponse(
-            content={"error": str(e), "timestamp": datetime.utcnow().isoformat()},
+            content={"error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()},
             status_code=500
         )
 
@@ -374,19 +375,19 @@ async def readiness_check(db: AsyncIOMotorDatabase = Depends(get_db)):
         
         if db_health["status"] == "healthy":
             return JSONResponse(
-                content={"status": "ready", "timestamp": datetime.utcnow().isoformat()},
+                content={"status": "ready", "timestamp": datetime.now(timezone.utc).isoformat()},
                 status_code=200
             )
         else:
             return JSONResponse(
-                content={"status": "not_ready", "timestamp": datetime.utcnow().isoformat()},
+                content={"status": "not_ready", "timestamp": datetime.now(timezone.utc).isoformat()},
                 status_code=503
             )
             
     except Exception as e:
         logger.error(f"Readiness check failed: {e}")
         return JSONResponse(
-            content={"status": "not_ready", "error": str(e), "timestamp": datetime.utcnow().isoformat()},
+            content={"status": "not_ready", "error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()},
             status_code=503
         )
 
@@ -394,6 +395,6 @@ async def readiness_check(db: AsyncIOMotorDatabase = Depends(get_db)):
 async def liveness_check():
     """Kubernetes liveness probe endpoint"""
     return JSONResponse(
-        content={"status": "alive", "timestamp": datetime.utcnow().isoformat()},
+        content={"status": "alive", "timestamp": datetime.now(timezone.utc).isoformat()},
         status_code=200
     )

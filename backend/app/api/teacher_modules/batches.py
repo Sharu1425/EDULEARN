@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Teacher Batch Management
 Handles batch creation, deletion, and management operations
@@ -116,7 +117,7 @@ async def create_batch(
             "name": batch_data.name.strip(),
             "description": batch_data.description.strip() if batch_data.description else "",
             "teacher_id": current_user.id,
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "status": "active",
             "student_ids": []
         }
@@ -186,7 +187,7 @@ async def update_batch(
         update_data = {
             "name": batch_data.name,
             "description": batch_data.description,
-            "updated_at": datetime.utcnow()
+            "updated_at": datetime.now(timezone.utc)
         }
         
         await db.batches.update_one(
@@ -306,7 +307,7 @@ async def get_batch_students(batch_id: str, current_user: UserModel = Depends(re
                 "email": student["email"],
                 "level": student.get("level", 1),
                 "xp": student.get("xp", 0),
-                "last_activity": student.get("last_activity", datetime.utcnow()).isoformat(),
+                "last_activity": student.get("last_activity", datetime.now(timezone.utc)).isoformat(),
                 "completed_assessments": student.get("completed_assessments", 0),
                 "average_score": student.get("average_score", 0)
             })
@@ -366,7 +367,7 @@ async def get_batch_analytics(batch_id: str, current_user: UserModel = Depends(r
             low_performers = 0
         
         # Get recent activity with student names
-        recent_submissions = sorted(submissions, key=lambda x: x.get("submitted_at", datetime.utcnow()), reverse=True)[:5]
+        recent_submissions = sorted(submissions, key=lambda x: x.get("submitted_at", datetime.now(timezone.utc)), reverse=True)[:5]
         
         recent_activity = []
         for sub in recent_submissions:
@@ -384,7 +385,7 @@ async def get_batch_analytics(batch_id: str, current_user: UserModel = Depends(r
                     pass
             
             # Handle submitted_at
-            submitted_at = sub.get("submitted_at", datetime.utcnow())
+            submitted_at = sub.get("submitted_at", datetime.now(timezone.utc))
             if hasattr(submitted_at, 'isoformat'):
                 submitted_at_str = submitted_at.isoformat()
             else:

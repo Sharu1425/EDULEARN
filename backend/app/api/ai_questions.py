@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 AI Questions API
 Manage AI-generated questions in a separate collection
@@ -62,7 +63,7 @@ async def create_ai_question(
             "difficulty": question_data.difficulty,
             "generated_by": question_data.generated_by,
             "metadata": question_data.metadata or {},
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "status": "active",
             "usage_count": 0,
             "quality_score": None,
@@ -230,7 +231,7 @@ async def update_ai_question(
         if update_data.metadata is not None:
             update_doc["metadata"] = update_data.metadata
         
-        update_doc["updated_at"] = datetime.utcnow()
+        update_doc["updated_at"] = datetime.now(timezone.utc)
         update_doc["updated_by"] = current_user.id
         
         # Update question

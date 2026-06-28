@@ -1,6 +1,7 @@
 import os
-import requests
+import httpx
 import time
+import asyncio
 import uuid
 from typing import List, Dict, Any
 from dotenv import load_dotenv
@@ -47,7 +48,7 @@ class HackerEarthExecutionService:
             "Content-Type": "application/json"
         }
 
-    def run_tests(self, language: str, code: str, test_cases: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    async def run_tests(self, language: str, code: str, test_cases: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Executes code against multiple test cases and returns the results.
         """
@@ -69,7 +70,7 @@ class HackerEarthExecutionService:
         results = []
         for test_case in test_cases:
             try:
-                result = self._execute_single_test(
+                result = await self._execute_single_test(
                     language=lang_code,
                     code=source_to_send,
                     test_case=test_case
@@ -208,23 +209,24 @@ class HackerEarthExecutionService:
             # Other languages: use as-is
             return code
 
-    def _fetch_output_from_url(self, url: str) -> str:
+    async def _fetch_output_from_url(self, url: str) -> str:
         """Fetch actual output content from HackerEarth S3 URL"""
         try:
             print(f"[DEBUG] [HACKEREARTH] Fetching output from URL: {url}")
-            response = requests.get(url, timeout=10)
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(url)
             response.raise_for_status()
             content = response.text.strip()
             print(f"[DEBUG] [HACKEREARTH] Fetched content length: {len(content)}")
             return content
-        except requests.exceptions.RequestException as e:
+        except httpx.RequestError as e:
             print(f"[ERROR] [HACKEREARTH] Failed to fetch output from URL: {str(e)}")
             return ""
         except Exception as e:
             print(f"[ERROR] [HACKEREARTH] Unexpected error fetching output: {str(e)}")
             return ""
 
-    def _execute_single_test(self, language: str, code: str, test_case: Dict[str, Any]) -> Dict[str, Any]:
+    async def _execute_single_test(self, language: str, code: str, test_case: Dict[str, Any]) -> Dict[str, Any]:
         """Execute code for a single test case"""
         input_data = test_case.get("input", "")
         expected_output = test_case.get("output", test_case.get("expected_output", ""))
@@ -267,12 +269,12 @@ class HackerEarthExecutionService:
 
         try:
             # Submit code to HackerEarth
-            response = requests.post(
-                HACKEREARTH_API_URL,
-                headers=self.headers,
-                json=payload,
-                timeout=30
-            )
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    HACKEREARTH_API_URL,
+                    headers=self.headers,
+                    json=payload
+                )
             response.raise_for_status()
             
             result_data = response.json()
@@ -291,15 +293,15 @@ class HackerEarthExecutionService:
             if request_status == "REQUEST_QUEUED" or result_data.get("he_id"):
                 # We have a submission ID, poll for results
                 submission_id = result_data.get("he_id") or unique_id
-                result_data = self._poll_for_result(submission_id, max_retries=20)
+                result_data = await self._poll_for_result(submission_id, max_retries=20)
             elif request_status != "SUCCESS":
                 # Request failed, return error
                 return self._format_error_result(result_data, test_case)
 
             # Format the result
-            return self._format_result(result_data, test_case)
+            return await self._format_result(result_data, test_case)
 
-        except requests.exceptions.RequestException as e:
+        except httpx.RequestError as e:
             # Handle API request errors gracefully
             error_msg = str(e)
             print(f"[ERROR] [HACKEREARTH] API request failed: {error_msg}")
@@ -334,7 +336,7 @@ class HackerEarthExecutionService:
                 }
             }
 
-    def _poll_for_result(self, submission_id: str, max_retries: int = 20) -> Dict[str, Any]:
+    async def _poll_for_result(self, submission_id: str, max_retries: int = 20) -> Dict[str, Any]:
         """Poll HackerEarth API for execution result"""
         # HackerEarth API v4 uses status endpoint to check submission status
         # Format: GET /v4/partner/code-evaluation/submissions/{he_id}/
@@ -342,14 +344,14 @@ class HackerEarthExecutionService:
         
         for attempt in range(max_retries):
             if attempt > 0:
-                time.sleep(1) # Wait 1 second between checks
+                await asyncio.sleep(1) # Wait 1 second between checks
             
             try:
-                response = requests.get(
-                    status_url,
-                    headers=self.headers,
-                    timeout=30
-                )
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    response = await client.get(
+                        status_url,
+                        headers=self.headers
+                    )
                 response.raise_for_status()
                 result = response.json()
                 
@@ -372,7 +374,7 @@ class HackerEarthExecutionService:
                 else:
                     return result
                     
-            except requests.exceptions.RequestException as e:
+            except httpx.RequestError as e:
                 # Log error but don't print full traceback for polling errors
                 error_msg = str(e)
                 if attempt == max_retries - 1:
@@ -425,7 +427,7 @@ class HackerEarthExecutionService:
             }
         }
 
-    def _format_result(self, result_data: Dict[str, Any], test_case: Dict[str, Any]) -> Dict[str, Any]:
+    async def _format_result(self, result_data: Dict[str, Any], test_case: Dict[str, Any]) -> Dict[str, Any]:
         """Format HackerEarth API response to match expected format"""
         print(f"[DEBUG] [HACKEREARTH] Formatting result - result_data keys: {result_data.keys()}")
         # Extract result object from HackerEarth response
@@ -443,7 +445,7 @@ class HackerEarthExecutionService:
         
         # Check if compile_status contains a URL (e.g., to compilation output)
         if compile_status and compile_status.startswith("http"):
-            compile_status = self._fetch_output_from_url(compile_status)
+            compile_status = await self._fetch_output_from_url(compile_status)
         
         # Get run status
         run_status = result_obj.get("run_status", {})
@@ -464,9 +466,9 @@ class HackerEarthExecutionService:
             # HackerEarth sometimes returns URLs to output instead of actual text
             # If stdout or stderr is a URL, fetch the actual content
             if stdout and stdout.startswith("http"):
-                stdout = self._fetch_output_from_url(stdout)
+                stdout = await self._fetch_output_from_url(stdout)
             if stderr and stderr.startswith("http"):
-                stderr = self._fetch_output_from_url(stderr)
+                stderr = await self._fetch_output_from_url(stderr)
         else:
             stdout = ""
             stderr = ""

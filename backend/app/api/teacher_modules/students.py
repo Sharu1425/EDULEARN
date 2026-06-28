@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Teacher Student Management
 Handles student addition, removal, and management operations
@@ -137,7 +138,7 @@ async def get_students(
                 "badges": student.get("badges", []),
                 "completed_assessments": student.get("completed_assessments", 0),
                 "average_score": student.get("average_score", 0),
-                "last_activity": student.get("last_activity", datetime.utcnow()).isoformat(),
+                "last_activity": student.get("last_activity", datetime.now(timezone.utc)).isoformat(),
                 "created_at": student["created_at"].isoformat()
             })
         
@@ -213,7 +214,7 @@ async def get_student_performance(
                 xp=student.get("xp", 0),
                 completed_assessments=student.get("completed_assessments", 0),
                 average_score=student.get("average_score", 0),
-                last_activity=student.get("last_activity", datetime.utcnow()).isoformat()
+                last_activity=student.get("last_activity", datetime.now(timezone.utc)).isoformat()
             ))
         
         return performance_data
@@ -276,7 +277,7 @@ async def add_student_to_batch(
                 "batch_name": batch["name"],
                 "password_hash": "temp_password",  # Will be set when they first login
                 "is_active": True,
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "level": 1,
                 "xp": 0,
                 "badges": [],
@@ -301,7 +302,7 @@ async def add_student_to_batch(
                 "message": f"You have been added to batch '{batch['name']}' by {current_user.username or 'your teacher'}. Welcome to the class!",
                 "batch_id": batch_object_id,
                 "teacher_id": ObjectId(current_user.id),
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "is_read": False,
                 "priority": "normal"
             }
@@ -323,7 +324,7 @@ async def add_student_to_batch(
                     "$set": {
                         "batch_id": ObjectId(student_data.batch_id),
                         "batch_name": batch["name"],
-                        "updated_at": datetime.utcnow()
+                        "updated_at": datetime.now(timezone.utc)
                     }
                 }
             )
@@ -342,7 +343,7 @@ async def add_student_to_batch(
                 "message": f"You have been added to batch '{batch['name']}' by {current_user.username or 'your teacher'}. Welcome to the class!",
                 "batch_id": ObjectId(student_data.batch_id),
                 "teacher_id": ObjectId(current_user.id),
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "is_read": False,
                 "priority": "normal"
             }
@@ -514,7 +515,7 @@ async def assign_students_to_batch(
                         },
                         "$set": {
                             "batch_name": batch["name"],  # Keep for backward compatibility
-                            "updated_at": datetime.utcnow()
+                            "updated_at": datetime.now(timezone.utc)
                         }
                     }
                 )
@@ -533,7 +534,7 @@ async def assign_students_to_batch(
                     "message": f"You have been added to batch '{batch['name']}' by {current_user.username or 'your teacher'}. Welcome to the class!",
                     "batch_id": batch_object_id,
                     "teacher_id": ObjectId(current_user.id),
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(timezone.utc),
                     "is_read": False,
                     "priority": "normal"
                 }
@@ -638,7 +639,7 @@ async def get_student_detailed_report(
                 "xp": student.get("xp", 0),
                 "badges": student.get("badges", []),
                 "created_at": student["created_at"].isoformat(),
-                "last_activity": student.get("last_activity", datetime.utcnow()).isoformat()
+                "last_activity": student.get("last_activity", datetime.now(timezone.utc)).isoformat()
             },
             "statistics": {
                 "total_assessments": len(all_submissions),

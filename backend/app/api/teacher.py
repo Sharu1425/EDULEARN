@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Teacher dashboard endpoints
 Handles teacher-specific functionality, student management, and educational tools
@@ -81,12 +82,12 @@ async def get_teacher_dashboard(current_user: UserModel = Depends(require_teache
                 "type": "assignment_submitted",
                 "student_name": "John Doe",
                 "assignment": "Math Quiz 1",
-                "timestamp": datetime.utcnow() - timedelta(hours=2)
+                "timestamp": datetime.now(timezone.utc) - timedelta(hours=2)
             },
             {
                 "type": "student_registered",
                 "student_name": "Jane Smith",
-                "timestamp": datetime.utcnow() - timedelta(hours=5)
+                "timestamp": datetime.now(timezone.utc) - timedelta(hours=5)
             }
         ]
         
@@ -148,7 +149,7 @@ async def get_batch_overview(current_user: UserModel = Depends(require_teacher_o
             student_count = student_counts.get(batch_id_str, 0)
             
             # Format created_at
-            created_at = batch.get("created_at", datetime.utcnow())
+            created_at = batch.get("created_at", datetime.now(timezone.utc))
             if hasattr(created_at, 'isoformat'):
                 created_at_str = created_at.isoformat()
             else:
@@ -251,7 +252,7 @@ async def get_students(
                 progress = student.get("average_score", 0)
             
             # Get last activity
-            last_activity = student.get("last_activity", student.get("last_login", student.get("created_at", datetime.utcnow())))
+            last_activity = student.get("last_activity", student.get("last_login", student.get("created_at", datetime.now(timezone.utc))))
             if hasattr(last_activity, 'isoformat'):
                 last_activity = last_activity.isoformat()
             else:
@@ -403,7 +404,7 @@ async def add_student_feedback(
             "batch_id": batch_id,
             "teacher_id": str(current_user.id),
             "feedback": feedback,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc)
         }
         
         # Insert feedback (assuming feedback collection exists)
@@ -501,7 +502,7 @@ async def create_batch(
             "name": batch_data.name,
             "description": batch_data.description,
             "teacher_id": current_user.id,
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "status": "active"
         }
         
@@ -640,9 +641,9 @@ async def add_student_to_batch(
                 "role": "student",
                 "batch_ids": [student_data.batch_id],  # Multi-batch support: use array
                 "batch_name": batch["name"],
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "last_login": None,
-                "last_activity": datetime.utcnow(),
+                "last_activity": datetime.now(timezone.utc),
                 "is_active": True,
                 "password_hash": pwd_context.hash("temppass123"),  # Temporary password
                 "level": 1,
@@ -669,7 +670,7 @@ async def add_student_to_batch(
                 "message": f"You have been added to batch '{batch['name']}' by {current_user.username or 'your teacher'}. Welcome to the class!",
                 "batch_id": ObjectId(student_data.batch_id),
                 "teacher_id": ObjectId(current_user.id),
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "is_read": False,
                 "priority": "normal"
             }
@@ -705,7 +706,7 @@ async def add_student_to_batch(
                     },
                     "$set": {
                         "batch_name": batch["name"],
-                        "updated_at": datetime.utcnow()
+                        "updated_at": datetime.now(timezone.utc)
                     }
                 }
             )
@@ -724,7 +725,7 @@ async def add_student_to_batch(
                 "message": f"You have been added to batch '{batch['name']}' by {current_user.username or 'your teacher'}. Welcome to the class!",
                 "batch_id": ObjectId(student_data.batch_id),
                 "teacher_id": ObjectId(current_user.id),
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "is_read": False,
                 "priority": "normal"
             }
@@ -814,7 +815,7 @@ async def remove_student_from_batch(
                     "batch_ids": student_data.batch_id  # Remove from array
                 },
                 "$set": {
-                    "updated_at": datetime.utcnow()
+                    "updated_at": datetime.now(timezone.utc)
                 }
             }
         )
@@ -824,7 +825,7 @@ async def remove_student_from_batch(
             {"_id": ObjectId(student_data.batch_id)},
             {
                 "$pull": {"student_ids": student_data.student_id},
-                "$set": {"updated_at": datetime.utcnow()}
+                "$set": {"updated_at": datetime.now(timezone.utc)}
             }
         )
         
@@ -836,7 +837,7 @@ async def remove_student_from_batch(
             "message": f"You have been removed from batch '{batch['name']}' by {current_user.username or 'your teacher'}. Contact your teacher if this was a mistake.",
             "batch_id": ObjectId(student_data.batch_id),
             "teacher_id": ObjectId(current_user.id),
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "is_read": False,
             "priority": "normal"
         }
@@ -867,7 +868,7 @@ async def teacher_health_check():
     return {
         "status": "healthy",
         "message": "Teacher router is working",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 @router.get("/test-batch-creation")
@@ -881,7 +882,7 @@ async def test_batch_creation(current_user: UserModel = Depends(require_teacher_
             "name": "Test Batch",
             "description": "Test batch for debugging",
             "teacher_id": current_user.id,
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "status": "active"
         }
         
@@ -915,7 +916,7 @@ async def test_student_creation(current_user: UserModel = Depends(require_teache
             "role": "student",
             "batch_id": "test_batch_id",
             "batch_name": "Test Batch",
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "is_active": True,
             "password": "temp_password_123"
         }
@@ -952,7 +953,7 @@ async def get_ai_reports(teacher_id: str, current_user: UserModel = Depends(requ
                     "id": str(d.get("_id")),
                     "studentId": d.get("studentId"),
                     "studentName": d.get("studentName"),
-                    "generatedAt": (d.get("generatedAt") or datetime.utcnow()).isoformat(),
+                    "generatedAt": (d.get("generatedAt") or datetime.now(timezone.utc)).isoformat(),
                     "summary": d.get("summary", ""),
                     "strengths": d.get("strengths", []),
                     "weaknesses": d.get("weaknesses", []),
@@ -979,7 +980,7 @@ async def generate_student_report(payload: GenerateReportRequest, current_user: 
             "teacherId": payload.teacherId,
             "studentId": payload.studentId,
             "studentName": student_name,
-            "generatedAt": datetime.utcnow(),
+            "generatedAt": datetime.now(timezone.utc),
             "summary": f"{student_name} is showing consistent progress across recent assessments.",
             "strengths": ["Problem Solving", "Consistency"],
             "weaknesses": ["Time Management"],
@@ -1228,7 +1229,7 @@ async def submit_teacher_assessment_coding_solution(
             "execution_time": exec_time_ms,
             "memory_used": mem_used_kb,
             "test_results": judge_results,
-            "submitted_at": datetime.utcnow(),
+            "submitted_at": datetime.now(timezone.utc),
             "attempts": previous_attempts + 1,
             "session_id": submission.session_id
         }
@@ -1244,7 +1245,7 @@ async def submit_teacher_assessment_coding_solution(
                         "$inc": {"submissions": 1},
                         "$set": {
                             "last_submission_status": status,
-                            "updated_at": datetime.utcnow()
+                            "updated_at": datetime.now(timezone.utc)
                         }
                     }
                 )
@@ -1580,7 +1581,7 @@ async def create_teacher_assessment(
             "batches": assessment_data.batches or [],
             "teacher_id": str(current_user.id),  # Store as string for consistency
             "type": assessment_data.type,
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "is_active": True,
             "status": "published"  # Set to published so students can see it
         }
@@ -1603,7 +1604,7 @@ async def create_teacher_assessment(
                 "topic": assessment_topic,
                 "difficulty": assessment_data.difficulty,
                 "assessment_id": assessment_id,
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "source": q_source
             }
             await db.ai_questions.insert_one(question_doc)
@@ -1682,7 +1683,7 @@ async def get_batch_students_list(batch_id: str, current_user: UserModel = Depen
                 "email": student["email"],
                 "level": student.get("level", 1),
                 "xp": student.get("xp", 0),
-                "last_activity": student.get("last_activity", datetime.utcnow()).isoformat(),
+                "last_activity": student.get("last_activity", datetime.now(timezone.utc)).isoformat(),
                 "completed_assessments": student.get("completed_assessments", 0),
                 "average_score": student.get("average_score", 0)
             })
@@ -1742,7 +1743,7 @@ async def get_single_batch_analytics(batch_id: str, current_user: UserModel = De
             low_performers = 0
         
         # Get recent activity with student names
-        recent_submissions = sorted(submissions, key=lambda x: x.get("submitted_at", datetime.utcnow()), reverse=True)[:5]
+        recent_submissions = sorted(submissions, key=lambda x: x.get("submitted_at", datetime.now(timezone.utc)), reverse=True)[:5]
         
         recent_activity = []
         for sub in recent_submissions:
@@ -1760,7 +1761,7 @@ async def get_single_batch_analytics(batch_id: str, current_user: UserModel = De
                     pass
             
             # Handle submitted_at
-            submitted_at = sub.get("submitted_at", datetime.utcnow())
+            submitted_at = sub.get("submitted_at", datetime.now(timezone.utc))
             if hasattr(submitted_at, 'isoformat'):
                 submitted_at_str = submitted_at.isoformat()
             else:

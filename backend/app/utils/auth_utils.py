@@ -1,10 +1,11 @@
+from datetime import timezone
 """
 Authentication utilities
 Contains password hashing, JWT token management, and authentication helpers
 """
 import bcrypt
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 
 from ..core.config import settings
@@ -31,9 +32,9 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
     """Create JWT access token"""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -46,13 +47,13 @@ def verify_token(token: str) -> Dict[str, Any]:
         return payload
     except jwt.ExpiredSignatureError:
         raise ValueError("Token has expired")
-    except jwt.JWTError:
+    except jwt.InvalidTokenError:
         raise ValueError("Invalid token")
 
 def create_refresh_token(data: Dict[str, Any]) -> str:
     """Create refresh token with longer expiration"""
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=7)  # 7 days for refresh token
+    expire = datetime.now(timezone.utc) + timedelta(days=7)  # 7 days for refresh token
     to_encode.update({"exp": expire, "type": "refresh"})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -66,7 +67,7 @@ def verify_refresh_token(token: str) -> Dict[str, Any]:
         return payload
     except jwt.ExpiredSignatureError:
         raise ValueError("Refresh token has expired")
-    except jwt.JWTError:
+    except jwt.InvalidTokenError:
         raise ValueError("Invalid refresh token")
 
 def get_user_id_from_token(token: str) -> Optional[str]:
@@ -83,16 +84,8 @@ def is_token_expired(token: str) -> bool:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": False})
         exp = payload.get("exp")
         if exp:
-            return datetime.utcnow().timestamp() > exp
+            return datetime.now(timezone.utc).timestamp() > exp
         return True
-    except jwt.JWTError:
+    except jwt.InvalidTokenError:
         return True
 
-def euclidean_distance(face1: list, face2: list) -> float:
-    """Calculate Euclidean distance between two face embeddings"""
-    if len(face1) != len(face2):
-        return float('inf')
-    
-    import math
-    distance = math.sqrt(sum((a - b) ** 2 for a, b in zip(face1, face2)))
-    return distance

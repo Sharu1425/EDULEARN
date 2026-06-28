@@ -1,3 +1,5 @@
+from datetime import timezone
+import asyncio
 import json
 from typing import List, Dict, Any
 from datetime import datetime, date, timedelta
@@ -80,7 +82,7 @@ class MasteryService:
         }}
         """
         try:
-            response = self.model.generate_content(prompt)
+            response = await asyncio.to_thread(self.model.generate_content, prompt)
             text = self._clean_json_response(response.text)
             data = json.loads(text)
             return data
@@ -117,7 +119,7 @@ class MasteryService:
         }}
         """
         try:
-            response = self.model.generate_content(prompt)
+            response = await asyncio.to_thread(self.model.generate_content, prompt)
             text = self._clean_json_response(response.text)
             data = json.loads(text)
             return data
@@ -196,7 +198,7 @@ class MasteryService:
         }}
         """
         try:
-            response = self.model.generate_content(prompt)
+            response = await asyncio.to_thread(self.model.generate_content, prompt)
             text = self._clean_json_response(response.text)
             data = json.loads(text)
             return data
@@ -246,7 +248,7 @@ class MasteryService:
         }}
         """
         try:
-            response = self.model.generate_content(prompt)
+            response = await asyncio.to_thread(self.model.generate_content, prompt)
             text = self._clean_json_response(response.text)
             data = json.loads(text)
             return data
@@ -265,7 +267,7 @@ class MasteryService:
         last_activity_date = user.get("last_activity_date")
         streak_count = user.get("streak_count", 0)
         
-        today = datetime.utcnow().date()
+        today = datetime.now(timezone.utc).date()
         
         if last_activity_date:
             if isinstance(last_activity_date, datetime):

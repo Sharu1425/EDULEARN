@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Teacher Assessment Operations
 Handles teacher-specific assessment creation and management
@@ -80,7 +81,7 @@ async def create_teacher_assessment(
             "batches": assessment_data.batches or [],
             "teacher_id": str(current_user.id),  # Store as string for consistency
             "type": assessment_data.type,
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "is_active": True,
             "status": "active"
         }
@@ -104,7 +105,7 @@ async def create_teacher_assessment(
                 "explanation": question.get("explanation", ""),
                 "difficulty": assessment_data.difficulty,
                 "topic": assessment_data.topic,
-                "generated_at": datetime.utcnow(),
+                "generated_at": datetime.now(timezone.utc),
                 "teacher_id": str(current_user.id),  # Store as string for consistency
                 "status": "generated"
             }

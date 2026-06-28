@@ -1,3 +1,4 @@
+from datetime import timezone
 from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import Dict, Any, List
 from bson import ObjectId
@@ -102,7 +103,7 @@ async def submit_thinktrace_answer(
             "dimension": current_q["dimension"],
             "chosen_option": chosen_opt,
             "chosen_text": chosen_text,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         session.answers.append(answer_record)
         
@@ -143,7 +144,7 @@ async def submit_thinktrace_answer(
                     "teacher_notes": review_data.get("teacher_notes"),
                     "answer_trace": review_data.get("answer_trace"),
                     "overall_strategy": review_data.get("overall_strategy"),
-                    "completed_at": datetime.utcnow()
+                    "completed_at": datetime.now(timezone.utc)
                 }
                 
                 await db.thinktrace_sessions.update_one(
@@ -171,7 +172,7 @@ async def submit_thinktrace_answer(
                     {"_id": ObjectId(session_id)},
                     {"$set": {
                         "decision_pattern": f"Parse Error. Raw model output:\n{raw_review}",
-                        "completed_at": datetime.utcnow()
+                        "completed_at": datetime.now(timezone.utc)
                     }}
                 )
                 

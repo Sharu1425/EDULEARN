@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Enhanced Validation Service
 Comprehensive validation for batches, assessments, inputs, and other entities
@@ -346,7 +347,7 @@ class ValidationService:
                 result["is_valid"] = False
             
             # Check if schedule is too far in the future
-            if start_date > datetime.utcnow() + timedelta(days=365):
+            if start_date > datetime.now(timezone.utc) + timedelta(days=365):
                 result["errors"].append("Assessment cannot be scheduled more than 1 year in advance")
                 result["is_valid"] = False
         

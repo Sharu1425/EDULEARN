@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Async Assessment Creation Endpoints
 Handles asynchronous assessment creation with background task processing
@@ -60,8 +61,8 @@ async def create_assessment_async(
             "assigned_students": [],
             "access_control": {},
             "created_by": current_user["_id"],
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc),
             "published_at": None,
             "analytics": {
                 "total_attempts": 0,
@@ -70,7 +71,7 @@ async def create_assessment_async(
                 "average_time": 0.0,
                 "difficulty_distribution": {},
                 "question_analytics": {},
-                "last_updated": datetime.utcnow()
+                "last_updated": datetime.now(timezone.utc)
             },
             "tags": assessment_data.tags,
             "metadata": {},

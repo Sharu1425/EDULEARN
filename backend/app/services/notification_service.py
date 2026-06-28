@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Unified Notification Service
 Centralized notification management and delivery
@@ -53,7 +54,7 @@ class NotificationService:
                     "student_id": str(student["_id"]),
                     "type": notification_type,
                     "assessment_id": assessment_id,
-                    "created_at": {"$gte": datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)}
+                    "created_at": {"$gte": datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)}
                 })
                 
                 if existing_notification:
@@ -66,7 +67,7 @@ class NotificationService:
                     "title": f"New Assessment: {assessment_title}",
                     "message": f"A new assessment '{assessment_title}' has been assigned to you.",
                     "assessment_id": assessment_id,
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(timezone.utc),
                     "is_read": False,
                     "priority": "normal"
                 }
@@ -99,7 +100,7 @@ class NotificationService:
                 "student_id": student_id,
                 "type": "batch_assignment",
                 "title": f"Added to Batch: {batch_name}",
-                "created_at": {"$gte": datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)}
+                "created_at": {"$gte": datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)}
             })
             
             if existing_notification:
@@ -111,7 +112,7 @@ class NotificationService:
                 "type": "batch_assignment",
                 "title": f"Added to Batch: {batch_name}",
                 "message": f"You have been added to batch '{batch_name}' by {teacher_name}. Welcome to the class!",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "is_read": False,
                 "priority": "normal"
             }
@@ -140,7 +141,7 @@ class NotificationService:
                 "type": "assessment_completed",
                 "title": "Assessment Completed",
                 "message": f"You completed '{assessment_title}' with a score of {score:.1f}%",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "is_read": False,
                 "priority": "normal"
             }
@@ -154,7 +155,7 @@ class NotificationService:
                     "type": "student_assessment_completed",
                     "title": "Student Assessment Completed",
                     "message": f"A student completed '{assessment_title}' with a score of {score:.1f}%",
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(timezone.utc),
                     "is_read": False,
                     "priority": "normal"
                 }
@@ -183,7 +184,7 @@ class NotificationService:
                 "student_id": student_id,
                 "type": "teacher_assessment_assigned",
                 "assessment_id": assessment_title,  # Using title as identifier
-                "created_at": {"$gte": datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)}
+                "created_at": {"$gte": datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)}
             })
             
             if existing_notification:
@@ -195,7 +196,7 @@ class NotificationService:
                 "type": "teacher_assessment_assigned",
                 "title": f"New Assessment: {assessment_title}",
                 "message": f"A new {difficulty} assessment on {topic} has been assigned to you.",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "is_read": False,
                 "priority": "normal"
             }
@@ -222,7 +223,7 @@ class NotificationService:
                 "type": "coding_feedback",
                 "title": f"Feedback for: {problem_title}",
                 "message": f"You have received feedback on your solution for '{problem_title}': {feedback[:100]}...",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "is_read": False,
                 "priority": "low"
             }
@@ -251,7 +252,7 @@ class NotificationService:
                         {"user_id": user_id}
                     ]
                 },
-                {"$set": {"is_read": True, "read_at": datetime.utcnow()}}
+                {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc)}}
             )
             
         except Exception as e:
@@ -292,7 +293,7 @@ class NotificationService:
             if not self.db:
                 await self.initialize()
             
-            cutoff_date = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+            cutoff_date = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
             cutoff_date = cutoff_date.replace(day=cutoff_date.day - days)
             
             result = await self.db.notifications.delete_many({

@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Code Execution Module
 Handles code execution, testing, and validation
@@ -56,7 +57,7 @@ async def execute_code(
         # We must wrap the single input into a test case structure.
         test_case = {"input": input_data, "output": ""}
         
-        results = execution_service.run_tests(
+        results = await execution_service.run_tests(
             code=code,
             language=language,
             test_cases=[test_case]
@@ -84,7 +85,7 @@ async def execute_code(
             "execution_time": result.get("execution_time", 0),
             "memory_used": result.get("memory", 0),  # Note: service returns "memory", not "memory_used"
             "status": status,
-            "executed_at": datetime.utcnow()
+            "executed_at": datetime.now(timezone.utc)
         }
         
         await db.code_executions.insert_one(execution_log)
@@ -210,7 +211,7 @@ async def test_code_against_problem(
             "status": status,
             "execution_time": sum(test["execution_time"] for test in test_results),
             "memory_used": sum(test["memory_used"] for test in test_results),
-            "submitted_at": datetime.utcnow()
+            "submitted_at": datetime.now(timezone.utc)
         }
         
         result_id = await db.coding_submissions.insert_one(test_result_doc)
@@ -327,7 +328,7 @@ async def update_user_analytics_task(user_id: str, solved: bool):
         
         # Update coding statistics
         update_data = {
-            "last_coding_activity": datetime.utcnow()
+            "last_coding_activity": datetime.now(timezone.utc)
         }
         
         if solved:
@@ -365,7 +366,7 @@ async def update_problem_stats_task(problem_id: str, solved: bool, execution_tim
         
         # Update problem statistics
         update_data = {
-            "last_attempted_at": datetime.utcnow()
+            "last_attempted_at": datetime.now(timezone.utc)
         }
         
         if solved:

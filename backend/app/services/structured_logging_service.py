@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Structured Logging and Audit Trail Service
 Comprehensive logging system with audit trail for production monitoring
@@ -104,8 +105,8 @@ class StructuredLogger:
                 "user_agent": user_agent,
                 "success": success,
                 "error_message": error_message,
-                "timestamp": datetime.utcnow(),
-                "created_at": datetime.utcnow()
+                "timestamp": datetime.now(timezone.utc),
+                "created_at": datetime.now(timezone.utc)
             }
             
             await self.audit_collection.insert_one(audit_event)
@@ -138,8 +139,8 @@ class StructuredLogger:
                 "context": context or {},
                 "user_id": user_id,
                 "request_id": request_id,
-                "timestamp": datetime.utcnow(),
-                "created_at": datetime.utcnow()
+                "timestamp": datetime.now(timezone.utc),
+                "created_at": datetime.now(timezone.utc)
             }
             
             if exception:
@@ -185,8 +186,8 @@ class StructuredLogger:
                 "response_size": response_size,
                 "ip_address": ip_address,
                 "user_agent": user_agent,
-                "timestamp": datetime.utcnow(),
-                "created_at": datetime.utcnow()
+                "timestamp": datetime.now(timezone.utc),
+                "created_at": datetime.now(timezone.utc)
             }
             
             await self.application_logs_collection.insert_one(api_log)
@@ -211,8 +212,8 @@ class StructuredLogger:
                 "ip_address": ip_address,
                 "details": details or {},
                 "severity": severity,
-                "timestamp": datetime.utcnow(),
-                "created_at": datetime.utcnow()
+                "timestamp": datetime.now(timezone.utc),
+                "created_at": datetime.now(timezone.utc)
             }
             
             await self.application_logs_collection.insert_one(security_event)
@@ -244,8 +245,8 @@ class StructuredLogger:
                 "value": value,
                 "unit": unit,
                 "context": context or {},
-                "timestamp": datetime.utcnow(),
-                "created_at": datetime.utcnow()
+                "timestamp": datetime.now(timezone.utc),
+                "created_at": datetime.now(timezone.utc)
             }
             
             await self.application_logs_collection.insert_one(performance_log)
@@ -266,8 +267,8 @@ class StructuredLogger:
                 "level": level.value,
                 "message": message,
                 "context": context or {},
-                "timestamp": datetime.utcnow(),
-                "created_at": datetime.utcnow()
+                "timestamp": datetime.now(timezone.utc),
+                "created_at": datetime.now(timezone.utc)
             }
             
             await self.application_logs_collection.insert_one(log_entry)
@@ -351,7 +352,7 @@ class StructuredLogger:
     async def cleanup_old_logs(self, days: int = 90):
         """Clean up old logs"""
         try:
-            cutoff_date = datetime.utcnow() - timedelta(days=days)
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
             
             # Clean up audit logs
             audit_result = await self.audit_collection.delete_many({

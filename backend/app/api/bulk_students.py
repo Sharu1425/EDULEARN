@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Bulk Student Management API
 Handles bulk student addition via Excel file upload
@@ -252,7 +253,7 @@ async def create_student_accounts(
                 "roll_number": student['roll_number'],
                 "full_name": student['name'],
                 "is_active": True,
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "last_login": None,
                 "profile_completed": False,
                 "created_by": "bulk_upload",
@@ -345,7 +346,7 @@ async def bulk_upload_students(
         bulk_record = {
             "batch_id": batch_id,
             "uploaded_by": current_user.id,
-            "uploaded_at": datetime.utcnow(),
+            "uploaded_at": datetime.now(timezone.utc),
             "total_rows": len(df),
             "successful_imports": len(created_students),
             "updated_imports": len(updated_students),

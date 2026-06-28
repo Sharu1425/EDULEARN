@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Assessment Service
 Centralized assessment business logic and operations
@@ -39,7 +40,7 @@ class AssessmentService:
                 "max_attempts": assessment_data.get("max_attempts", 1),
                 "type": assessment_type,
                 "created_by": user_id,
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "status": "draft",
                 "question_count": len(assessment_data.get("questions", [])),
                 "questions": assessment_data.get("questions", []),
@@ -90,7 +91,7 @@ class AssessmentService:
                 "batches": assessment_data["batches"],
                 "teacher_id": teacher_id,
                 "type": "ai_generated",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "is_active": True,
                 "status": "published"
             }
@@ -173,7 +174,7 @@ class AssessmentService:
                 "score": score,
                 "percentage": percentage,
                 "time_taken": time_taken,
-                "submitted_at": datetime.utcnow(),
+                "submitted_at": datetime.now(timezone.utc),
                 "total_questions": len(questions),
                 "attempt_number": 1
             }
@@ -322,7 +323,7 @@ class AssessmentService:
                     "explanation": question.get("explanation", ""),
                     "difficulty": assessment_data["difficulty"],
                     "topic": assessment_data["topic"],
-                    "generated_at": datetime.utcnow(),
+                    "generated_at": datetime.now(timezone.utc),
                     "teacher_id": teacher_id,
                     "status": "generated"
                 }

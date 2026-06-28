@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Coding Submission Handling
 Handles submission management, analytics, and session tracking
@@ -140,7 +141,7 @@ async def submit_solution(
             "status": status,
             "execution_time": sum(test["execution_time"] for test in test_results),
             "memory_used": sum(test["memory_used"] for test in test_results),
-            "submitted_at": datetime.utcnow()
+            "submitted_at": datetime.now(timezone.utc)
         }
         
         result = await db.coding_submissions.insert_one(submission_doc)
@@ -311,7 +312,7 @@ async def start_coding_session(
         session_doc = {
             "problem_id": problem_id,
             "student_id": str(current_user.id),
-            "start_time": datetime.utcnow(),
+            "start_time": datetime.now(timezone.utc),
             "status": "active",
             "code_snapshots": [],
             "total_time": 0
@@ -360,7 +361,7 @@ async def update_coding_session(
             # Save code snapshot
             code_snapshot = {
                 "code": update_data["code"],
-                "timestamp": datetime.utcnow()
+                "timestamp": datetime.now(timezone.utc)
             }
             
             await db.coding_sessions.update_one(
@@ -408,7 +409,7 @@ async def end_coding_session(
             raise HTTPException(status_code=404, detail="Active session not found")
         
         # Calculate session duration
-        end_time = datetime.utcnow()
+        end_time = datetime.now(timezone.utc)
         duration = int((end_time - session["start_time"]).total_seconds())
         
         # Update session
@@ -568,7 +569,7 @@ async def generate_ai_feedback_task(submission_id: str, code: str, test_results:
             "student_id": submission["student_id"],
             "problem_id": submission["problem_id"],
             "feedback": feedback,
-            "generated_at": datetime.utcnow(),
+            "generated_at": datetime.now(timezone.utc),
             "ai_generated": True
         }
         
@@ -589,7 +590,7 @@ async def update_user_analytics_task(user_id: str, solved: bool):
             return
         
         update_data = {
-            "last_coding_activity": datetime.utcnow()
+            "last_coding_activity": datetime.now(timezone.utc)
         }
         
         if solved:
@@ -620,7 +621,7 @@ async def update_problem_stats_task(problem_id: str, solved: bool, execution_tim
         db = await get_db()
         
         update_data = {
-            "last_attempted_at": datetime.utcnow()
+            "last_attempted_at": datetime.now(timezone.utc)
         }
         
         if solved:

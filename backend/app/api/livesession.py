@@ -1,3 +1,4 @@
+from datetime import timezone
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status, Body
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, ConfigDict
@@ -148,7 +149,7 @@ async def start_live_session(
             "batch_id": req.batch_id,
             "teacher_id": user_id,
             "topic": req.topic,
-            "started_at": datetime.utcnow(),
+            "started_at": datetime.now(timezone.utc),
             "status": "active",
             "students_joined": [],
         }
@@ -176,7 +177,7 @@ async def end_live_session(
         db = await get_db()
         await db.live_sessions.update_one(
             {"_id": ObjectId(session_id)},
-            {"$set": {"status": "ended", "ended_at": datetime.utcnow()}}
+            {"$set": {"status": "ended", "ended_at": datetime.now(timezone.utc)}}
         )
         return {"success": True, "session_id": session_id}
     except Exception as e:

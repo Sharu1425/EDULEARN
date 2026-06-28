@@ -12,13 +12,18 @@ from .core.security import security_manager
 from .db import get_db
 from .models.models import UserModel
 from .schemas.schemas import UserResponse
+from .utils.db_utils import parse_object_id
+from cachetools import TTLCache
+import jwt
 
 security = HTTPBearer()
+
+# Cache valid user models for 60 seconds to prevent DB hit on every request
+user_cache = TTLCache(maxsize=1000, ttl=60)
 
 async def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Optional[str]:
     """Get current user ID from JWT token"""
     try:
-        import jwt
         payload = jwt.decode(credentials.credentials, settings.effective_secret_key, algorithms=[settings.algorithm])
         user_id = payload.get("sub")
         if user_id is None:
@@ -30,7 +35,6 @@ async def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depend
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> UserModel:
     """Get current authenticated user"""
     try:
-        import jwt
         payload = jwt.decode(credentials.credentials, settings.effective_secret_key, algorithms=[settings.algorithm])
         user_id = payload.get("sub")
 
@@ -40,13 +44,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
                 detail="Could not validate credentials"
             )
 
-        db = await get_db()
+        # Check cache first
+        if user_id in user_cache:
+            return user_cache[user_id]
 
-        from bson import ObjectId
-        try:
-            user_doc = await db.users.find_one({"_id": ObjectId(user_id)})
-        except Exception:
-            user_doc = await db.users.find_one({"_id": user_id})
+        db = await get_db()
+        user_doc = await db.users.find_one({"_id": parse_object_id(user_id)})
 
         if not user_doc:
             raise HTTPException(
@@ -54,7 +57,9 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
                 detail="User not found"
             )
 
-        return UserModel(**user_doc)
+        user_model = UserModel(**user_doc)
+        user_cache[user_id] = user_model
+        return user_model
 
     except HTTPException:
         raise

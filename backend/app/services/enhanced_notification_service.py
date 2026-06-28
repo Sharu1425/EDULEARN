@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Enhanced Notification Service
 Handles notifications with duplicate detection, batching, and spam prevention
@@ -53,7 +54,7 @@ class EnhancedNotificationService:
                 "type": notification_type,
                 "priority": priority,
                 "is_read": False,
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "read_at": None,
                 "assessment_id": assessment_id,
                 "batch_id": batch_id,
@@ -183,7 +184,7 @@ class EnhancedNotificationService:
                     "type": notification_type,
                     "priority": priority,
                     "is_read": False,
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(timezone.utc),
                     "read_at": None,
                     "assessment_id": assessment_id,
                     "batch_id": batch_id,
@@ -237,7 +238,7 @@ class EnhancedNotificationService:
                 return True
             
             # Check database for recent duplicates (last 24 hours)
-            cutoff_time = datetime.utcnow() - timedelta(hours=24)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
             
             existing_notification = await self.notifications_collection.find_one({
                 "user_id": user_id,
@@ -265,7 +266,7 @@ class EnhancedNotificationService:
             limits = rate_limits.get(notification_type, rate_limits["info"])
             
             # Check hourly limit
-            hour_ago = datetime.utcnow() - timedelta(hours=1)
+            hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
             hourly_count = await self.notifications_collection.count_documents({
                 "user_id": user_id,
                 "type": notification_type,
@@ -276,7 +277,7 @@ class EnhancedNotificationService:
                 return True
             
             # Check daily limit
-            day_ago = datetime.utcnow() - timedelta(days=1)
+            day_ago = datetime.now(timezone.utc) - timedelta(days=1)
             daily_count = await self.notifications_collection.count_documents({
                 "user_id": user_id,
                 "type": notification_type,
@@ -305,10 +306,10 @@ class EnhancedNotificationService:
         """Add notification to duplicate cache"""
         try:
             cache_key = f"{user_id}:{duplicate_hash}"
-            self.duplicate_cache[cache_key] = datetime.utcnow()
+            self.duplicate_cache[cache_key] = datetime.now(timezone.utc)
             
             # Clean up old cache entries (older than 24 hours)
-            cutoff_time = datetime.utcnow() - timedelta(hours=24)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
             self.duplicate_cache = {
                 k: v for k, v in self.duplicate_cache.items()
                 if v > cutoff_time
@@ -361,7 +362,7 @@ class EnhancedNotificationService:
                 {
                     "$set": {
                         "is_read": True,
-                        "read_at": datetime.utcnow()
+                        "read_at": datetime.now(timezone.utc)
                     }
                 }
             )
@@ -380,7 +381,7 @@ class EnhancedNotificationService:
                 {
                     "$set": {
                         "is_read": True,
-                        "read_at": datetime.utcnow()
+                        "read_at": datetime.now(timezone.utc)
                     }
                 }
             )
@@ -408,7 +409,7 @@ class EnhancedNotificationService:
     async def cleanup_old_notifications(self, days: int = 90) -> int:
         """Clean up old notifications"""
         try:
-            cutoff_date = datetime.utcnow() - timedelta(days=days)
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
             
             result = await self.notifications_collection.delete_many({
                 "is_read": True,

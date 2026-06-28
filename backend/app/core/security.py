@@ -1,9 +1,10 @@
+from datetime import timezone
 """
 Security utilities and JWT token management
 """
 import os
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from fastapi import HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -12,7 +13,8 @@ class SecurityManager:
     """Centralized security management"""
     
     def __init__(self):
-        self.secret_key = os.getenv("SECRET_KEY", "your-secret-key-here")
+        from .config import settings
+        self.secret_key = settings.effective_secret_key
         self.algorithm = "HS256"
         self.access_token_expire_minutes = 30
         self.security = HTTPBearer()
@@ -21,9 +23,9 @@ class SecurityManager:
         """Create JWT access token"""
         to_encode = data.copy()
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=self.access_token_expire_minutes)
+            expire = datetime.now(timezone.utc) + timedelta(minutes=self.access_token_expire_minutes)
         
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
@@ -40,7 +42,7 @@ class SecurityManager:
                 detail="Token has expired",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        except jwt.JWTError:
+        except jwt.InvalidTokenError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials",

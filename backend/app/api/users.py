@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 User management endpoints
 Handles user CRUD operations, profile management, and user-specific features
@@ -126,7 +127,7 @@ async def update_my_profile(
         # Update user
         await db.users.update_one(
             {"_id": current_user.id},
-            {"$set": {**update_data, "updated_at": datetime.utcnow()}}
+            {"$set": {**update_data, "updated_at": datetime.now(timezone.utc)}}
         )
         
         # Get updated user
@@ -191,7 +192,7 @@ async def update_user(
         # Update user
         await db.users.update_one(
             {"_id": user_id},
-            {"$set": {**update_data, "updated_at": datetime.utcnow()}}
+            {"$set": {**update_data, "updated_at": datetime.now(timezone.utc)}}
         )
         
         # Get updated user
@@ -226,7 +227,7 @@ async def delete_user(
         # Soft delete (set is_active to False)
         await db.users.update_one(
             {"_id": user_id},
-            {"$set": {"is_active": False, "deleted_at": datetime.utcnow()}}
+            {"$set": {"is_active": False, "deleted_at": datetime.now(timezone.utc)}}
         )
         
         return {"message": "User deleted successfully"}
@@ -249,13 +250,13 @@ async def get_user_stats(current_user: UserModel = Depends(require_admin)):
         total_users = await db.users.count_documents({})
         
         # Get active users (logged in within last 30 days)
-        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
         active_users = await db.users.count_documents({
             "last_login": {"$gte": thirty_days_ago}
         })
         
         # Get new users today
-        today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         new_users_today = await db.users.count_documents({
             "created_at": {"$gte": today}
         })
@@ -300,7 +301,7 @@ async def update_user_activity(
         db = await get_db()
         
         # Update last activity and increment streak if it's a new day
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         today = now.replace(hour=0, minute=0, second=0, microsecond=0)
         
         user_doc = await db.users.find_one({"_id": ObjectId(user_id)})

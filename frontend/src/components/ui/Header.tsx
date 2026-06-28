@@ -10,6 +10,7 @@ import { useCredits } from "../../hooks/useCredits"
 import { useCountUp } from "../../hooks/useCountUp"
 import { getPageTitle } from "../../lib/pageTitles"
 import { useHeaderTitleOverride } from "../../contexts/HeaderTitleContext"
+import Lanyard from "./Lanyard"
 
 interface HeaderProps {
     onMenuClick?: () => void
@@ -176,6 +177,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, collapsed = false, onToggl
 
                     {/* Profile */}
                     <div className="relative">
+                        {location.pathname === '/profile' && user && (
+                            <Lanyard user={user} isAdmin={user.role === 'admin' || user.is_admin} />
+                        )}
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             onClick={() => setShowProfileDropdown(!showProfileDropdown)}

@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Topics and assessment configuration endpoints
 Handles topic selection and assessment configuration
@@ -116,7 +117,7 @@ async def process_topic_config(
             "topic": config.topic,
             "qnCount": config.qnCount,
             "difficulty": config.difficulty,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc)
         }
         
         # Insert or update the configuration
