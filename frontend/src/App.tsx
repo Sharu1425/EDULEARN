@@ -38,6 +38,7 @@ import ProtectedRoute from "./components/ProtectedRoute"
 import AnimatedOrbs from "./components/ui/AnimatedOrbs"
 import ParticleField from "./components/ui/ParticleField"
 import CursorGlow from "./components/ui/CursorGlow"
+import CommandPalette from "./components/ui/CommandPalette"
 import { cn } from "./lib/utils"
 import { useBackgroundTier } from "./hooks/useBackgroundTier"
 import { pageTransition, instant } from "./lib/motion"
@@ -158,6 +159,7 @@ const AppLayout: React.FC<{
       {bgTier === "full" && <ParticleField />}
       {bgTier !== "off" && <CursorGlow />}
       <ThemeFlash />
+      {showSidebarAndHeader && <CommandPalette />}
       <ToastContainer toasts={toasts} onClose={removeToast} />
 
       <div className="flex h-full flex-col relative overflow-hidden">
@@ -178,7 +180,7 @@ const AppLayout: React.FC<{
 
           {/* Main content — the only scroll container */}
           <main className={cn(
-            "flex-1 min-h-0 overflow-y-auto w-full relative",
+            "flex-1 min-h-0 overflow-x-hidden overflow-y-auto w-full relative",
             showSidebarAndHeader && "bg-background/40"
           )}>
             <div className={cn(

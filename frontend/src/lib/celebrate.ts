@@ -8,7 +8,7 @@ export function celebrate(options?: { count?: number; originY?: number }) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
 
   const count = options?.count ?? 90
-  const colors = ["#10b981", "#14b8a6", "#a78bfa", "#fbbf24", "#34d399", "#f472b6"]
+  const colors = ["#10b981", "#14b8a6", "#5eead4", "#fbbf24", "#34d399", "#f472b6"]
 
   const container = document.createElement("div")
   container.style.cssText =

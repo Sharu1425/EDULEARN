@@ -70,7 +70,7 @@ const TeacherSettings: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen pt-20 px-4 pb-8">
+    <div className="px-4 py-6 sm:px-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <motion.div

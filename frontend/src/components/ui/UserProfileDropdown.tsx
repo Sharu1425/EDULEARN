@@ -83,7 +83,7 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ user, onLogou
             ? colorScheme === 'dark'
               ? 'bg-gray-600 text-gray-200'
               : 'bg-gray-700 text-white'
-            : 'bg-gradient-to-br from-blue-500 to-emerald-500 text-white'
+            : 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white'
           }
         `}>
           {getInitials(user.name || user.username || 'User')}

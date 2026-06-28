@@ -261,15 +261,15 @@ const PerformanceAnalytics: React.FC<PerformanceAnalyticsProps> = ({
   const getInsightColor = (type: string) => {
     switch (type) {
       case "strength":
-        return "border-green-500/30 bg-green-500/10 dark:bg-green-900/20"
+        return "border-green-500/30 bg-green-900/20"
       case "weakness":
-        return "border-yellow-500/30 bg-amber-500/10 dark:bg-amber-900/20"
+        return "border-yellow-500/30 bg-yellow-900/20"
       case "improvement":
-        return "border-border bg-muted"
+        return "border-blue-500/30 bg-blue-900/20"
       case "concern":
-        return "border-red-500/30 bg-rose-500/10 dark:bg-rose-900/20"
+        return "border-red-500/30 bg-red-900/20"
       default:
-        return "border-border bg-muted"
+        return "border-blue-500/30 bg-blue-900/20"
     }
   }
 
@@ -278,7 +278,7 @@ const PerformanceAnalytics: React.FC<PerformanceAnalyticsProps> = ({
       <Card className="p-6">
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading performance analytics...</p>
+          <p className="text-blue-300">Loading performance analytics...</p>
         </div>
       </Card>
     )
@@ -288,8 +288,8 @@ const PerformanceAnalytics: React.FC<PerformanceAnalyticsProps> = ({
     return (
       <Card className="p-6">
         <div className="text-center py-8">
-          <h3 className="text-lg font-semibold text-rose-600 dark:text-rose-400 mb-2">Error</h3>
-          <p className="text-muted-foreground">Failed to load performance analytics.</p>
+          <h3 className="text-lg font-semibold text-red-400 mb-2">Error</h3>
+          <p className="text-blue-300">Failed to load performance analytics.</p>
         </div>
       </Card>
     )
@@ -298,16 +298,16 @@ const PerformanceAnalytics: React.FC<PerformanceAnalyticsProps> = ({
   return (
     <Card className="p-6">
       <div className="mb-6">
-        <h3 className="text-xl font-semibold text-foreground mb-4">Performance Analytics</h3>
+        <h3 className="text-xl font-semibold text-blue-200 mb-4">Performance Analytics</h3>
         
         {/* Tab Navigation */}
-        <div className="flex space-x-1 bg-muted rounded-lg p-1 mb-6">
+        <div className="flex space-x-1 bg-blue-800/30 rounded-lg p-1 mb-6">
           <button
             onClick={() => setActiveTab("overview")}
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
               activeTab === "overview"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                ? "bg-blue-500 text-white"
+                : "text-blue-300 hover:text-blue-200 hover:bg-blue-800/50"
             }`}
           >
             Overview
@@ -316,8 +316,8 @@ const PerformanceAnalytics: React.FC<PerformanceAnalyticsProps> = ({
             onClick={() => setActiveTab("trends")}
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
               activeTab === "trends"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                ? "bg-blue-500 text-white"
+                : "text-blue-300 hover:text-blue-200 hover:bg-blue-800/50"
             }`}
           >
             Trends
@@ -326,8 +326,8 @@ const PerformanceAnalytics: React.FC<PerformanceAnalyticsProps> = ({
             onClick={() => setActiveTab("insights")}
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
               activeTab === "insights"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                ? "bg-blue-500 text-white"
+                : "text-blue-300 hover:text-blue-200 hover:bg-blue-800/50"
             }`}
           >
             Insights
@@ -344,27 +344,27 @@ const PerformanceAnalytics: React.FC<PerformanceAnalyticsProps> = ({
         >
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-border rounded-lg p-4">
-              <p className="text-muted-foreground text-sm font-medium">Total Assessments</p>
-              <p className="text-2xl font-bold text-foreground">
+            <div className="bg-gradient-to-r from-emerald-500/20 to-teal-600/20 border border-blue-500/30 rounded-lg p-4">
+              <p className="text-blue-300 text-sm font-medium">Total Assessments</p>
+              <p className="text-2xl font-bold text-blue-200">
                 {data.student_performance.total_assessments}
               </p>
             </div>
             <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-lg p-4">
-              <p className="text-muted-foreground text-sm font-medium">Average Score</p>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-green-300 text-sm font-medium">Average Score</p>
+              <p className="text-2xl font-bold text-green-200">
                 {data.student_performance.average_score.toFixed(1)}%
               </p>
             </div>
             <div className="bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-lg p-4">
-              <p className="text-muted-foreground text-sm font-medium">Improvement Trend</p>
-              <p className={`text-2xl font-bold ${data.student_performance.improvement_trend >= 0 ? 'text-foreground' : 'text-red-200'}`}>
+              <p className="text-yellow-300 text-sm font-medium">Improvement Trend</p>
+              <p className={`text-2xl font-bold ${data.student_performance.improvement_trend >= 0 ? 'text-green-200' : 'text-red-200'}`}>
                 {data.student_performance.improvement_trend >= 0 ? '+' : ''}{data.student_performance.improvement_trend.toFixed(1)}%
               </p>
             </div>
-            <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-500/30 rounded-lg p-4">
-              <p className="text-muted-foreground text-sm font-medium">Class Rank</p>
-              <p className="text-2xl font-bold text-foreground">
+            <div className="bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 border border-emerald-500/30 rounded-lg p-4">
+              <p className="text-emerald-300 text-sm font-medium">Class Rank</p>
+              <p className="text-2xl font-bold text-emerald-200">
                 {data.class_comparison.percentile_rank}th
               </p>
             </div>
@@ -373,23 +373,23 @@ const PerformanceAnalytics: React.FC<PerformanceAnalyticsProps> = ({
           {/* Subject Breakdown */}
           {Object.keys(data.student_performance.subject_breakdown).length > 0 && (
             <div className="mb-6">
-              <h4 className="text-lg font-semibold text-foreground mb-4">Subject Performance</h4>
+              <h4 className="text-lg font-semibold text-blue-200 mb-4">Subject Performance</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Object.entries(data.student_performance.subject_breakdown).map(([subject, data]) => (
-                  <div key={subject} className="bg-muted border border-border rounded-lg p-4">
-                    <h5 className="font-semibold text-foreground mb-2">{subject}</h5>
+                  <div key={subject} className="bg-blue-800/20 border border-blue-500/30 rounded-lg p-4">
+                    <h5 className="font-semibold text-blue-200 mb-2">{subject}</h5>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Average</span>
-                        <span className="text-foreground font-medium">{data.average.toFixed(1)}%</span>
+                        <span className="text-blue-300">Average</span>
+                        <span className="text-blue-200 font-medium">{data.average.toFixed(1)}%</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Assessments</span>
-                        <span className="text-foreground font-medium">{data.count}</span>
+                        <span className="text-blue-300">Assessments</span>
+                        <span className="text-blue-200 font-medium">{data.count}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Trend</span>
-                        <span className={`font-medium ${data.trend >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-400'}`}>
+                        <span className="text-blue-300">Trend</span>
+                        <span className={`font-medium ${data.trend >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                           {data.trend >= 0 ? '+' : ''}{data.trend.toFixed(1)}%
                         </span>
                       </div>
@@ -409,22 +409,22 @@ const PerformanceAnalytics: React.FC<PerformanceAnalyticsProps> = ({
           initial="initial"
           animate="animate"
         >
-          <h4 className="text-lg font-semibold text-foreground mb-4">Recent Performance</h4>
+          <h4 className="text-lg font-semibold text-blue-200 mb-4">Recent Performance</h4>
           <div className="space-y-4">
             {data.student_performance.recent_scores.map((score, index) => (
-              <div key={index} className="bg-muted border border-border rounded-lg p-4">
+              <div key={index} className="bg-blue-800/20 border border-blue-500/30 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h5 className="font-semibold text-foreground">{score.assessment_title}</h5>
-                  <span className="text-muted-foreground text-sm">{score.date}</span>
+                  <h5 className="font-semibold text-blue-200">{score.assessment_title}</h5>
+                  <span className="text-blue-300 text-sm">{score.date}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="flex-1 bg-muted rounded-full h-2">
+                  <div className="flex-1 bg-blue-800/30 rounded-full h-2">
                     <div
-                      className="bg-gradient-to-r from-blue-400 to-emerald-400 h-2 rounded-full"
+                      className="bg-gradient-to-r from-emerald-400 to-teal-400 h-2 rounded-full"
                       style={{ width: `${score.score}%` }}
                     ></div>
                   </div>
-                  <span className="text-foreground font-semibold">{score.score.toFixed(1)}%</span>
+                  <span className="text-blue-200 font-semibold">{score.score.toFixed(1)}%</span>
                 </div>
               </div>
             ))}
@@ -439,7 +439,7 @@ const PerformanceAnalytics: React.FC<PerformanceAnalyticsProps> = ({
           initial="initial"
           animate="animate"
         >
-          <h4 className="text-lg font-semibold text-foreground mb-4">Performance Insights</h4>
+          <h4 className="text-lg font-semibold text-blue-200 mb-4">Performance Insights</h4>
           <div className="space-y-4">
             {data.insights.map((insight, index) => (
               <div key={index} className={`border rounded-lg p-4 ${getInsightColor(insight.type)}`}>
@@ -448,10 +448,10 @@ const PerformanceAnalytics: React.FC<PerformanceAnalyticsProps> = ({
                     {getInsightIcon(insight.type)}
                   </div>
                   <div className="flex-1">
-                    <h5 className="font-semibold text-foreground mb-2">{insight.title}</h5>
-                    <p className="text-muted-foreground text-sm mb-3">{insight.description}</p>
-                    <div className="bg-muted border border-border rounded-md p-3">
-                      <p className="text-foreground text-sm">
+                    <h5 className="font-semibold text-blue-200 mb-2">{insight.title}</h5>
+                    <p className="text-blue-300 text-sm mb-3">{insight.description}</p>
+                    <div className="bg-blue-800/30 border border-blue-500/30 rounded-md p-3">
+                      <p className="text-blue-200 text-sm">
                         <span className="font-medium">Recommendation:</span> {insight.recommendation}
                       </p>
                     </div>

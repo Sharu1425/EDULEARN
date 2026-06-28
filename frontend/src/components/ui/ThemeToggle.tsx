@@ -25,7 +25,7 @@ const ThemeToggle: React.FC = () => {
         transition={spring.snappy}
         className={`
           flex h-5 w-5 items-center justify-center rounded-full shadow-e1
-          ${isDark ? 'bg-background text-yellow-400' : 'bg-white text-teal-500'}
+          ${isDark ? 'bg-background text-yellow-400' : 'bg-white text-emerald-500'}
         `}
       >
         {isDark ? <Moon className="h-3 w-3" /> : <Sun className="h-3 w-3" />}

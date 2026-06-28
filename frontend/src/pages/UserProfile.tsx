@@ -88,13 +88,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
       title: "Total Attempts",
       value: stats.totalAttempts,
       icon: "📊",
-      color: "from-blue-500 to-emerald-500",
+      color: "from-emerald-500 to-teal-500",
     },
     {
       title: "Average Score",
       value: `${stats.averageScore}%`,
       icon: "📈",
-      color: "from-blue-500 to-emerald-500",
+      color: "from-emerald-500 to-teal-500",
     },
     {
       title: "Best Score",
@@ -111,7 +111,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
   ]
 
   return (
-    <div className="min-h-screen pt-20 px-4">
+    <div className="px-4 py-6 sm:px-6">
       <motion.div
         variants={ANIMATION_VARIANTS.fadeIn}
         initial="initial"

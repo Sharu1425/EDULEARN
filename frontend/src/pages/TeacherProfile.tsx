@@ -188,14 +188,14 @@ const TeacherProfile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
+      <div className="flex h-full items-center justify-center p-6">
         <LoadingSpinner size="lg" text="Loading profile..." />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen pt-20 px-4 pb-8">
+    <div className="px-4 py-6 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -240,7 +240,7 @@ const TeacherProfile: React.FC = () => {
                   <p className="text-sm text-muted-foreground mb-1">Assessments Created</p>
                   <h3 className="text-3xl font-bold text-foreground">{stats.totalAssessments}</h3>
                 </div>
-                <Award className="h-12 w-12 text-purple-500 opacity-20" />
+                <Award className="h-12 w-12 text-emerald-500 opacity-20" />
               </div>
             </Card>
           </motion.div>

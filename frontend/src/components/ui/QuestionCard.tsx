@@ -48,7 +48,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 
   const getOptionColor = (index: number) => {
     const colors = [
-      'from-blue-500 to-blue-600',
+      'from-emerald-500 to-teal-600',
       'from-green-500 to-green-600',
       'from-orange-500 to-orange-600',
       'from-red-500 to-red-600'
@@ -70,14 +70,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       <div className={`
         backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden
         ${colorScheme === 'dark' 
-          ? 'bg-gradient-to-br from-blue-900/20 via-emerald-900/10 to-blue-900/20 border-blue-500/30' 
-          : 'bg-gradient-to-br from-white/80 via-purple-50/50 to-pink-50/50 border-purple-200/50'
+          ? 'bg-gradient-to-br from-blue-900/20 via-teal-900/10 to-blue-900/20 border-blue-500/30' 
+          : 'bg-gradient-to-br from-white/80 via-emerald-50/50 to-pink-50/50 border-emerald-200/50'
         }
       `}>
         {/* Header */}
         <div className={`
           p-6 border-b
-          ${colorScheme === 'dark' ? 'border-purple-500/20' : 'border-purple-200/50'}
+          ${colorScheme === 'dark' ? 'border-emerald-500/20' : 'border-emerald-200/50'}
         `}>
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
@@ -85,8 +85,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 className={`
                   w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg
                   ${colorScheme === 'dark' 
-                    ? 'bg-gradient-to-r from-blue-500 to-emerald-500 text-white' 
-                    : 'bg-gradient-to-r from-blue-600 to-emerald-600 text-white'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white' 
+                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white'
                   }
                 `}
                 initial={{ scale: 0 }}
@@ -98,7 +98,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               <div>
                 <h3 className={`
                   text-xl font-semibold
-                  ${colorScheme === 'dark' ? 'text-purple-200' : 'text-purple-800'}
+                  ${colorScheme === 'dark' ? 'text-emerald-200' : 'text-emerald-800'}
                 `}>
                   Question {questionNumber} of {totalQuestions}
                 </h3>
@@ -107,7 +107,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                     text-sm
                     ${timeRemaining < 60 
                       ? 'text-red-400' 
-                      : colorScheme === 'dark' ? 'text-purple-300' : 'text-purple-600'
+                      : colorScheme === 'dark' ? 'text-emerald-300' : 'text-emerald-600'
                     }
                   `}>
                     Time remaining: {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
@@ -130,7 +130,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   stroke="currentColor"
                   strokeWidth="4"
                   fill="transparent"
-                  className={colorScheme === 'dark' ? 'text-purple-900/30' : 'text-purple-200/50'}
+                  className={colorScheme === 'dark' ? 'text-emerald-900/30' : 'text-emerald-200/50'}
                 />
                 <motion.circle
                   cx="32"
@@ -148,7 +148,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 />
                 <defs>
                   <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#f59e0b" />
+                    <stop offset="0%" stopColor="#14b8a6" />
                     <stop offset="100%" stopColor="#ec4899" />
                   </linearGradient>
                 </defs>
@@ -166,15 +166,15 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             className={`
               p-6 rounded-xl mb-8 border
               ${colorScheme === 'dark' 
-                ? 'bg-purple-900/20 border-purple-500/30' 
-                : 'bg-white/60 border-purple-200/50'
+                ? 'bg-emerald-900/20 border-emerald-500/30' 
+                : 'bg-white/60 border-emerald-200/50'
               }
             `}
           >
             <p className={`
               text-xl leading-relaxed
               ${mode === 'professional' ? 'font-serif' : 'font-sans'}
-              ${colorScheme === 'dark' ? 'text-purple-100' : 'text-purple-900'}
+              ${colorScheme === 'dark' ? 'text-emerald-100' : 'text-emerald-900'}
             `}>
               {question.question}
             </p>
@@ -195,8 +195,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 className={`
                   group relative p-6 rounded-xl text-left transition-all duration-300 overflow-hidden
                   ${colorScheme === 'dark' 
-                    ? 'bg-purple-900/20 border border-purple-500/30 hover:bg-purple-900/40 hover:border-purple-400/50' 
-                    : 'bg-white/60 border border-purple-200/50 hover:bg-white/80 hover:border-purple-300/70'
+                    ? 'bg-emerald-900/20 border border-emerald-500/30 hover:bg-emerald-900/40 hover:border-emerald-400/50' 
+                    : 'bg-white/60 border border-emerald-200/50 hover:bg-white/80 hover:border-emerald-300/70'
                   }
                 `}
               >
@@ -214,7 +214,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   <span className={`
                     flex-1 font-medium
                     ${mode === 'professional' ? 'font-serif' : 'font-sans'}
-                    ${colorScheme === 'dark' ? 'text-purple-200 group-hover:text-white' : 'text-purple-800 group-hover:text-purple-900'}
+                    ${colorScheme === 'dark' ? 'text-emerald-200 group-hover:text-white' : 'text-emerald-800 group-hover:text-emerald-900'}
                   `}>
                     {option}
                   </span>

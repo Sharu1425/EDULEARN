@@ -9,7 +9,6 @@ import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
 import Input from "../components/ui/Input"
 import ConfirmDialog from "../components/ui/ConfirmDialog"
-import AnimatedBackground from "../components/AnimatedBackground"
 import BatchPerformanceControl from "../components/teacher/BatchPerformanceControl"
 import AIStudentReports from "../components/teacher/AIStudentReports"
 import { BulkUploadModal } from "../components/BulkUploadModal"
@@ -85,7 +84,7 @@ const StudentManagement: React.FC = () => {
   // Early return if user is not available
   if (!user) {
     return (
-      <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
+      <div className="flex h-full items-center justify-center p-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">Loading...</h1>
           <p className="text-muted-foreground">Please wait while we load your dashboard.</p>
@@ -299,7 +298,7 @@ const StudentManagement: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
+      <div className="flex h-full items-center justify-center p-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">Loading...</h1>
           <p className="text-muted-foreground">Please wait while we load your dashboard.</p>
@@ -310,8 +309,7 @@ const StudentManagement: React.FC = () => {
 
   return (
     <>
-      <AnimatedBackground />
-      <div className="min-h-screen pt-20 px-4 relative z-10">
+      <div className="px-4 py-6 sm:px-6">
         <motion.div
           initial="hidden"
           animate="visible"

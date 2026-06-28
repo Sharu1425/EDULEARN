@@ -21,10 +21,10 @@ const TestPage: React.FC = () => {
 
   if (!assessmentId) {
     return (
-      <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
+      <div className="flex h-full items-center justify-center p-6">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-400 mb-2">Invalid Assessment</h2>
-          <p className="text-red-300">Assessment ID is missing.</p>
+          <h2 className="text-2xl font-bold text-destructive mb-2">Invalid Assessment</h2>
+          <p className="text-muted-foreground">Assessment ID is missing.</p>
         </div>
       </div>
     );

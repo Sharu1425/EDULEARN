@@ -422,8 +422,8 @@ const CreateAssessment: React.FC = () => {
           />
         </div>
 
-        <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-          <h4 className="font-semibold text-purple-400 mb-2">AI Features</h4>
+        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+          <h4 className="font-semibold text-emerald-400 mb-2">AI Features</h4>
           <ul className="text-sm text-muted-foreground space-y-1">
             <li>✓ Automatically generates questions based on topic</li>
             <li>✓ Adaptive difficulty levels</li>
@@ -587,7 +587,7 @@ const CreateAssessment: React.FC = () => {
   )
 
   return (
-    <div className="min-h-screen pt-20 px-4 pb-8">
+    <div className="px-4 py-6 sm:px-6">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -767,9 +767,9 @@ const CreateAssessment: React.FC = () => {
                   )}
                 </div>
               ) : activeType === "ai" ? (
-                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
                   <p className="text-foreground">
-                    <span className="font-semibold text-purple-400">AI-Generated Assessment</span>
+                    <span className="font-semibold text-emerald-400">AI-Generated Assessment</span>
                     <br />
                     <span className="text-sm text-muted-foreground">
                       {questionCount} questions will be automatically generated on topic: <span className="font-semibold text-foreground">{topic || "Not specified"}</span>
@@ -777,9 +777,9 @@ const CreateAssessment: React.FC = () => {
                   </p>
                 </div>
               ) : activeType === "ai_coding" ? (
-                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
                   <p className="text-foreground">
-                    <span className="font-semibold text-purple-400">AI Coding Assessment</span>
+                    <span className="font-semibold text-emerald-400">AI Coding Assessment</span>
                     <br />
                     <span className="text-sm text-muted-foreground">
                       {questionCount} coding problems will be automatically generated on topic: <span className="font-semibold text-foreground">{topic || "Not specified"}</span>

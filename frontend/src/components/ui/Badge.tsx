@@ -46,7 +46,7 @@ const dotClasses: Record<BadgeVariant, string> = {
 const Badge: React.FC<BadgeProps> = ({ variant = "default", dot = false, className, children }) => (
   <span
     className={cn(
-      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold backdrop-blur-sm",
+      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold backdrop-blur-sm transition-colors duration-200",
       variantClasses[variant],
       className
     )}

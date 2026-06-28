@@ -259,7 +259,7 @@ const SettingsPanel: React.FC = () => {
 
           <div className="flex items-center justify-between p-4 bg-card rounded-lg border border-border">
             <div className="flex items-center gap-3">
-              <Bell className="h-5 w-5 text-purple-400" />
+              <Bell className="h-5 w-5 text-emerald-400" />
               <div>
                 <div className="font-medium text-foreground">Weekly Reports</div>
                 <div className="text-sm text-muted-foreground">Send weekly summaries</div>
@@ -281,8 +281,8 @@ const SettingsPanel: React.FC = () => {
       {/* System Configuration */}
       <Card className="p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-purple-500/20 rounded-lg">
-            <Server className="h-5 w-5 text-purple-400" />
+          <div className="p-2 bg-emerald-500/20 rounded-lg">
+            <Server className="h-5 w-5 text-emerald-400" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-foreground">System Configuration</h3>

@@ -705,8 +705,8 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
     return (
       <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-purple-300">Loading assessment...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+          <p className="text-emerald-300">Loading assessment...</p>
         </div>
       </div>
     );
@@ -1035,7 +1035,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
 
                   {/* Monaco Code Editor */}
                   <div
-                    className="border border-purple-500/20 rounded-lg overflow-hidden"
+                    className="border border-emerald-500/20 rounded-lg overflow-hidden"
                     style={{
                       minHeight: "500px",
                       maxHeight: "70vh",
@@ -1212,7 +1212,7 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="mt-6 bg-purple-900/20 rounded-lg p-4 border border-purple-500/30"
+                      className="mt-6 bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/30"
                       style={{ maxHeight: "600px", display: "flex", flexDirection: "column" }}
                     >
                       <div className="flex items-center justify-between mb-4 flex-shrink-0">
@@ -1276,14 +1276,14 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
                                   initial={{ opacity: 0, height: 0 }}
                                   animate={{ opacity: 1, height: "auto" }}
                                   exit={{ opacity: 0, height: 0 }}
-                                  className="space-y-4 mt-4 pt-4 border-t border-purple-500/20"
+                                  className="space-y-4 mt-4 pt-4 border-t border-emerald-500/20"
                                 >
                                   {/* Test Case Input */}
                                   <div>
                                     <div className="flex items-center space-x-2 mb-2">
                                       <span className="text-sm font-medium text-foreground">Input:</span>
                                     </div>
-                                    <div className="p-3 bg-black/30 rounded-lg border border-purple-500/20 font-mono text-sm">
+                                    <div className="p-3 bg-black/30 rounded-lg border border-emerald-500/20 font-mono text-sm">
                                       {result.input ? (
                                         typeof result.input === "string" ? (
                                           result.input

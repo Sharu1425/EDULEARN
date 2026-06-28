@@ -52,7 +52,7 @@ const BatchGrid: React.FC<BatchGridProps> = ({
 
         {/* Batch Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20 border border-blue-500/30 rounded-lg p-4">
+          <div className="bg-gradient-to-r from-emerald-500/10 to-teal-600/10 dark:from-emerald-500/20 dark:to-teal-600/20 border border-blue-500/30 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm">Total Batches</p>
@@ -64,7 +64,7 @@ const BatchGrid: React.FC<BatchGridProps> = ({
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20 border border-blue-500/30 rounded-lg p-4">
+          <div className="bg-gradient-to-r from-emerald-500/10 to-teal-600/10 dark:from-emerald-500/20 dark:to-teal-600/20 border border-blue-500/30 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm">Total Students</p>

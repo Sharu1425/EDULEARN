@@ -33,7 +33,7 @@ const UnifiedAssessment: React.FC = () => {
 
   const difficultyOptions = [
     { value: "Very Easy", label: "Very Easy", color: "from-green-400 to-green-600" },
-    { value: "Easy", label: "Easy", color: "from-blue-400 to-blue-600" },
+    { value: "Easy", label: "Easy", color: "from-emerald-400 to-teal-600" },
     { value: "Medium", label: "Medium", color: "from-yellow-400 to-orange-500" },
     { value: "Hard", label: "Hard", color: "from-orange-500 to-red-500" },
     { value: "Very Hard", label: "Very Hard", color: "from-red-500 to-red-700" },

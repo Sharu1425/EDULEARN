@@ -8,7 +8,7 @@ import type { TestResult } from "../types"
 import { useAuth } from "../hooks/useAuth"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
-import PageShell from "../components/ui/PageShell"
+import StatTile from "../components/ui/StatTile"
 import ErrorState from "../components/ErrorState"
 import LoadingSpinner from "../components/ui/LoadingSpinner"
 import api from "../utils/api"
@@ -128,40 +128,25 @@ const StudentResults: React.FC = () => {
     { id: "coding" as Tab, label: "Coding", icon: <Code2 className="w-4 h-4" />, count: codingResults.length },
   ]
 
-  const statCards = [
-    { title: "Total Attempts", value: stats.totalAttempts, icon: <BookOpen className="w-6 h-6" />, color: "from-blue-500 to-teal-500" },
-    { title: "Average Score", value: `${stats.averageScore}%`, icon: <Target className="w-6 h-6" />, color: "from-primary to-accent" },
-    { title: "Best Score", value: `${stats.bestScore}%`, icon: <Award className="w-6 h-6" />, color: "from-amber-400 to-orange-500" },
-    { title: "Topics Studied", value: stats.topicsStudied, icon: <Clock className="w-6 h-6" />, color: "from-emerald-400 to-teal-500" },
-  ]
-
   const getScoreStyle = (pct: number) =>
     pct >= 80 ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
       : pct >= 60 ? "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20"
         : "text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20"
 
   return (
-    <PageShell title="My Results" subtitle="Track your assessment progress and review past performances">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
 
-        {/* Stats Grid */}
+        {/* Stats */}
         <motion.div
           variants={ANIMATION_VARIANTS.stagger}
           initial="initial"
           animate="animate"
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
+          className="grid grid-cols-2 gap-4 lg:grid-cols-4"
         >
-          {statCards.map((stat, index) => (
-            <motion.div key={stat.title} variants={ANIMATION_VARIANTS.slideUp} transition={{ delay: index * 0.1 }}>
-              <Card className="p-6 text-center group h-full transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center mx-auto mb-4 text-white shadow-lg group-hover:scale-110 transition-transform`}>
-                  {stat.icon}
-                </div>
-                <h3 className="text-3xl font-bold font-heading text-foreground mb-1">{stat.value}</h3>
-                <p className="text-muted-foreground text-sm font-medium">{stat.title}</p>
-              </Card>
-            </motion.div>
-          ))}
+          <StatTile label="Total Attempts" value={stats.totalAttempts} icon={<BookOpen className="h-4 w-4" />} accent="primary" />
+          <StatTile label="Average Score" value={stats.averageScore} suffix="%" icon={<Target className="h-4 w-4" />} accent="info" />
+          <StatTile label="Best Score" value={stats.bestScore} suffix="%" icon={<Award className="h-4 w-4" />} accent="accent" />
+          <StatTile label="Topics Studied" value={stats.topicsStudied} icon={<BookOpen className="h-4 w-4" />} accent="secondary" />
         </motion.div>
 
         {/* Tab Bar */}
@@ -262,7 +247,7 @@ const StudentResults: React.FC = () => {
           {activeTab === "thinktrace" && (
             <Card className="p-6">
               <h3 className="text-xl font-bold font-heading text-foreground mb-6 flex items-center gap-2">
-                <Brain className="w-6 h-6 text-amber-500" />
+                <Brain className="w-6 h-6 text-teal-500" />
                 ThinkTrace Session History
               </h3>
 
@@ -272,11 +257,11 @@ const StudentResults: React.FC = () => {
                 <ErrorState title="Failed to Load" message={ttError} onRetry={fetchThinkTraceSessions} retryText="Retry" />
               ) : ttSessions.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🧠</div>
+                  <div className="w-20 h-20 bg-teal-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🧠</div>
                   <h4 className="text-lg font-semibold text-foreground mb-2">No ThinkTrace sessions yet</h4>
                   <p className="text-muted-foreground mb-6">Complete a ThinkTrace interview to see your cognitive profile here.</p>
                   <Link to="/assessment-choice">
-                    <Button variant="primary" className="!bg-gradient-to-r !from-amber-600 !to-purple-600">Start ThinkTrace</Button>
+                    <Button variant="primary" className="!bg-gradient-to-r !from-teal-600 !to-emerald-600">Start ThinkTrace</Button>
                   </Link>
                 </div>
               ) : (
@@ -331,7 +316,7 @@ const StudentResults: React.FC = () => {
           {activeTab === "coding" && (
             <Card className="p-6">
               <h3 className="text-xl font-bold font-heading text-foreground mb-6 flex items-center gap-2">
-                <Code2 className="w-6 h-6 text-blue-500" />
+                <Code2 className="w-6 h-6 text-info" />
                 Coding Challenge History
               </h3>
 
@@ -345,7 +330,7 @@ const StudentResults: React.FC = () => {
                   <h4 className="text-lg font-semibold text-foreground mb-2">No coding challenges yet</h4>
                   <p className="text-muted-foreground mb-6">Solve a coding problem to see your results here.</p>
                   <Link to="/coding">
-                    <Button variant="primary" className="!bg-gradient-to-r !from-blue-600 !to-emerald-600">Browse Coding problems</Button>
+                    <Button variant="primary" className="!bg-gradient-to-r !from-emerald-600 !to-teal-600">Browse Coding problems</Button>
                   </Link>
                 </div>
               ) : (
@@ -405,8 +390,7 @@ const StudentResults: React.FC = () => {
             </Card>
           )}
         </motion.div>
-      </div>
-    </PageShell>
+    </div>
   )
 }
 

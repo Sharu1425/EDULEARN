@@ -115,7 +115,7 @@ export const BulkTeacherUploadModal: React.FC<Props> = ({ isOpen, onClose, onSuc
                   ) : (
                     <div className="space-y-4">
                       <Upload className="w-10 h-10 text-gray-400 mx-auto" />
-                      <Button onClick={() => inputRef.current?.click()} className="bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600">Select File</Button>
+                      <Button onClick={() => inputRef.current?.click()} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">Select File</Button>
                     </div>
                   )}
                 </div>
@@ -124,7 +124,7 @@ export const BulkTeacherUploadModal: React.FC<Props> = ({ isOpen, onClose, onSuc
                     <Download className="w-4 h-4 mr-2" /> Download Template
                   </Button>
                   {file && (
-                    <Button onClick={onValidate} disabled={loading} className="bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600">
+                    <Button onClick={onValidate} disabled={loading} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
                       {loading ? (<><LoadingSpinner size="sm" /><span className="ml-2">Validating...</span></>) : 'Validate File'}
                     </Button>
                   )}
@@ -148,7 +148,7 @@ export const BulkTeacherUploadModal: React.FC<Props> = ({ isOpen, onClose, onSuc
                 )}
                 <div className="flex justify-center gap-3">
                   <Button variant="secondary" onClick={() => setStep('select')}>Back</Button>
-                  <Button onClick={onUpload} disabled={loading || validRows === 0} className="bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600">
+                  <Button onClick={onUpload} disabled={loading || validRows === 0} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
                     {loading ? (<><LoadingSpinner size="sm" /><span className="ml-2">Uploading...</span></>) : `Upload ${validRows} Teachers`}
                   </Button>
                 </div>
@@ -180,7 +180,7 @@ export const BulkTeacherUploadModal: React.FC<Props> = ({ isOpen, onClose, onSuc
                   </div>
                 )}
                 <div className="flex justify-center">
-                  <Button onClick={close} className="bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600">Done</Button>
+                  <Button onClick={close} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">Done</Button>
                 </div>
               </div>
             )}

@@ -247,7 +247,7 @@ export const BulkUploadModal: React.FC<BulkUploadModalProps> = ({
             </div>
             <Button
               onClick={() => fileInputRef.current?.click()}
-              className="bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600"
+              className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
             >
               Select File
             </Button>
@@ -271,7 +271,7 @@ export const BulkUploadModal: React.FC<BulkUploadModalProps> = ({
           <Button
             onClick={handleValidateFile}
             disabled={isLoading}
-            className="bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600"
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
           >
             {isLoading ? (
               <>
@@ -389,7 +389,7 @@ export const BulkUploadModal: React.FC<BulkUploadModalProps> = ({
           <Button
             onClick={handleUploadStudents}
             disabled={isLoading || validationResult.valid_rows === 0}
-            className="bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600"
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
           >
             {isLoading ? (
               <>
@@ -481,7 +481,7 @@ export const BulkUploadModal: React.FC<BulkUploadModalProps> = ({
         <div className="flex justify-center">
           <Button
             onClick={handleClose}
-            className="bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600"
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
           >
             Done
           </Button>

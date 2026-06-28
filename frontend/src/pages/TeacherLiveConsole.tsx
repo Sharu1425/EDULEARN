@@ -303,7 +303,7 @@ const TeacherLiveConsole: React.FC = () => {
             {/* Header */}
             <header className="h-16 border-b border-gray-800 flex items-center justify-between px-6 bg-gray-900/50 backdrop-blur-md sticky top-0 z-50">
                 <div className="flex items-center gap-4">
-                    <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-400 to-emerald-400 bg-clip-text text-transparent">
                         Live Class <span className="text-gray-500 text-sm font-normal">| {batchId}</span>
                     </h1>
                     <div className="bg-gray-800 px-3 py-1 rounded-full text-xs font-mono text-blue-300 flex items-center gap-2">
@@ -376,7 +376,7 @@ const TeacherLiveConsole: React.FC = () => {
                             <div className="flex-1 overflow-y-auto p-2 space-y-1">
                                 {activeStudents.map((s, i) => (
                                     <div key={i} className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors">
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold relative">
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-emerald-500 flex items-center justify-center text-xs font-bold relative">
                                             {s.name.charAt(0)}
                                             {s.isFocused === false && (
                                                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-gray-900 rounded-full" title="Student Away"></span>
@@ -499,7 +499,7 @@ const TeacherLiveConsole: React.FC = () => {
                                             variant="primary"
                                             onClick={handleGenerateLevelQuestions}
                                             disabled={lsIsGenerating || lsLevels.length === 0}
-                                            className="w-full bg-purple-600 hover:bg-purple-700"
+                                            className="w-full bg-emerald-600 hover:bg-emerald-700"
                                         >
                                             {lsIsGenerating ? (
                                                 <span className="flex items-center justify-center gap-2">
@@ -523,14 +523,14 @@ const TeacherLiveConsole: React.FC = () => {
                                             <p className="text-sm text-gray-400">Each student receives their level-calibrated variant. Click a question to broadcast it to the whole class at once.</p>
                                             <div className="space-y-3">
                                                 {firstLevelQuestions.map((q: any, i: number) => (
-                                                    <div key={i} className="flex items-start gap-3 p-3 bg-gray-900/60 rounded-xl border border-gray-700 hover:border-purple-500/40 transition-all">
+                                                    <div key={i} className="flex items-start gap-3 p-3 bg-gray-900/60 rounded-xl border border-gray-700 hover:border-emerald-500/40 transition-all">
                                                         <div className="flex items-center gap-2">
                                                             <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${q.type === 'mcq' ? 'bg-blue-800 text-blue-300' : q.type === 'short_ans' ? 'bg-green-800 text-green-300' : 'bg-orange-800 text-orange-300'}`}>{q.type}</span>
                                                         </div>
                                                         <p className="flex-1 text-sm text-gray-200 truncate">{q.question}</p>
                                                         <Button
                                                             size="sm"
-                                                            className="shrink-0 text-xs bg-purple-700 hover:bg-purple-600 border-none"
+                                                            className="shrink-0 text-xs bg-emerald-700 hover:bg-emerald-600 border-none"
                                                             onClick={() => broadcastLevelQuestions(i)}
                                                         >
                                                             Push
@@ -543,9 +543,9 @@ const TeacherLiveConsole: React.FC = () => {
                                 })()}
 
                                 {/* Pulse Check */}
-                                <Card className="p-6 bg-gradient-to-br from-purple-900/40 to-purple-800/20 border-purple-500/30 hover:border-purple-500/50 transition-colors">
+                                <Card className="p-6 bg-success/10 border-success/30 hover:border-success/50 transition-colors">
                                     <div className="flex justify-between items-start mb-4">
-                                        <div className="p-3 bg-purple-500/20 rounded-lg text-purple-400">
+                                        <div className="p-3 bg-emerald-500/20 rounded-lg text-emerald-400">
                                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                                         </div>
                                     </div>

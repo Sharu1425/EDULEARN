@@ -198,7 +198,7 @@ const TeacherAssessmentResults: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
+      <div className="flex h-full items-center justify-center p-6">
         <LoadingState size="lg" />
       </div>
     )
@@ -206,7 +206,7 @@ const TeacherAssessmentResults: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
+      <div className="flex h-full items-center justify-center p-6">
         <Card className="p-8 text-center">
           <ErrorState
             title="Unable to load results"
@@ -221,7 +221,7 @@ const TeacherAssessmentResults: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen pt-16 px-4">
+    <div className="px-4 py-6 sm:px-6">
       <motion.div
         variants={ANIMATION_VARIANTS.fadeIn}
         initial="initial"

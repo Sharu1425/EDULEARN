@@ -36,7 +36,7 @@ const AnimatedBackground: React.FC = () => {
                 this.speedX = Math.random() * 0.5 - 0.25;
                 this.speedY = Math.random() * 0.5 - 0.25;
                 this.opacity = Math.random() * 0.5 + 0.2;
-                this.color = Math.random() > 0.5 ? '#f59e0b' : '#ec4899';
+                this.color = Math.random() > 0.5 ? '#14b8a6' : '#ec4899';
             }
 
             update() {
@@ -72,7 +72,7 @@ const AnimatedBackground: React.FC = () => {
 
                     if (distance < 150) {
                         ctx.beginPath();
-                        ctx.strokeStyle = `rgba(245, 158, 11, ${0.3 * (1 - distance / 150)})`;
+                        ctx.strokeStyle = `rgba(139, 92, 246, ${0.3 * (1 - distance / 150)})`;
                         ctx.lineWidth = 1;
                         ctx.moveTo(particles[i].x, particles[i].y);
                         ctx.lineTo(particles[j].x, particles[j].y);
@@ -110,7 +110,7 @@ const AnimatedBackground: React.FC = () => {
                 ref={canvasRef}
                 className="w-full h-full blur-[1px]"
                 style={{
-                    background: 'radial-gradient(circle at center, rgba(245, 158, 11, 0.15) 0%, rgba(236, 72, 153, 0.1) 100%)'
+                    background: 'radial-gradient(circle at center, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.1) 100%)'
                 }}
             />
         </div>

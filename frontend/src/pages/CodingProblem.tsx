@@ -725,7 +725,7 @@ int main() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
+      <div className="flex h-full items-center justify-center p-6">
         <LoadingSpinner size="lg" text="Loading problem..." />
       </div>
     )
@@ -733,7 +733,7 @@ int main() {
 
   if (!problem) {
     return (
-      <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
+      <div className="flex h-full items-center justify-center p-6">
         <PageShell
           title="Problem"
           headerRight={
@@ -998,7 +998,7 @@ int main() {
 
                   {/* Monaco Code Editor */}
                   <div
-                    className="border border-purple-500/20 rounded-lg overflow-hidden"
+                    className="border border-emerald-500/20 rounded-lg overflow-hidden"
                     style={{
                       minHeight: "500px",
                       maxHeight: "70vh",
@@ -1168,7 +1168,7 @@ int main() {
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="mt-6 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-300 dark:border-purple-500/30"
+                      className="mt-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4 border border-emerald-300 dark:border-emerald-500/30"
                       style={{ maxHeight: "600px", display: "flex", flexDirection: "column" }}
                     >
                       <div className="flex items-center justify-between mb-4 flex-shrink-0">
@@ -1234,14 +1234,14 @@ int main() {
                                   initial={{ opacity: 0, height: 0 }}
                                   animate={{ opacity: 1, height: "auto" }}
                                   exit={{ opacity: 0, height: 0 }}
-                                  className="space-y-4 mt-4 pt-4 border-t border-gray-300 dark:border-purple-500/20"
+                                  className="space-y-4 mt-4 pt-4 border-t border-gray-300 dark:border-emerald-500/20"
                                 >
                                   {/* Test Case Input */}
                                   <div>
                                     <div className="flex items-center space-x-2 mb-2">
                                       <span className="text-sm font-medium text-foreground">Input:</span>
                                     </div>
-                                    <div className="p-3 bg-gray-100 dark:bg-black/30 rounded-lg border border-gray-300 dark:border-purple-500/20 font-mono text-sm text-foreground">
+                                    <div className="p-3 bg-gray-100 dark:bg-black/30 rounded-lg border border-gray-300 dark:border-emerald-500/20 font-mono text-sm text-foreground">
                                       {result.input ? (
                                         typeof result.input === "string" ? (
                                           result.input

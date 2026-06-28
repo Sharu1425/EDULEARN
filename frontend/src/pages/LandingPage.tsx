@@ -18,7 +18,7 @@ const features = [
     icon: Brain,
     title: "AI-Powered Assessments",
     description: "Generate unique, adaptive questions with Gemini AI — personalized to your topic, difficulty, and learning style.",
-    gradient: "from-emerald-500 to-blue-600",
+    gradient: "from-teal-500 to-teal-600",
     glow: "rgba(34,211,238,0.3)",
     badge: "+40% retention",
   },
@@ -34,8 +34,8 @@ const features = [
     icon: BarChart3,
     title: "Smart Analytics",
     description: "Deep insights into your performance trajectory. AI detects patterns humans can't see and suggests micro-improvements.",
-    gradient: "from-amber-500 to-purple-600",
-    glow: "rgba(245, 158, 11,0.3)",
+    gradient: "from-teal-500 to-emerald-600",
+    glow: "rgba(139,92,246,0.3)",
     badge: "AI Insights",
   },
   {
@@ -77,21 +77,21 @@ const steps = [
     title: "Generate or Take AI Assessments",
     desc: "Teachers craft exams in seconds. Students attempt personalized tests with real-time AI feedback.",
     icon: "🧠",
-    color: "#f59e0b",
+    color: "#14b8a6",
   },
   {
     num: "03",
     title: "Track, Compete & Grow",
     desc: "Monitor progress with rich analytics, compete on leaderboards, and unlock your full potential.",
     icon: "🚀",
-    color: "#34d399",
+    color: "#2dd4bf",
   },
 ]
 
 const aiTags = [
   { text: "+12% improvement detected", color: "#10b981" },
-  { text: "AI adapting difficulty...", color: "#f59e0b" },
-  { text: "3 new insights ready", color: "#34d399" },
+  { text: "AI adapting difficulty...", color: "#14b8a6" },
+  { text: "3 new insights ready", color: "#2dd4bf" },
   { text: "89% accuracy predicted", color: "#34d399" },
 ]
 
@@ -164,15 +164,15 @@ const HeroCard: React.FC = () => {
         style={{
           background: "rgba(10,18,40,0.7)",
           backdropFilter: "blur(20px)",
-          borderColor: "rgba(16, 185, 129,0.2)",
-          boxShadow: "0 25px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(16, 185, 129,0.1)",
+          borderColor: "rgba(56,189,248,0.2)",
+          boxShadow: "0 25px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(56,189,248,0.1)",
         }}
       >
         {/* Shimmer overlay */}
         <motion.div
           className="absolute inset-0 pointer-events-none rounded-3xl opacity-30"
           style={{
-            background: `radial-gradient(circle at ${glowX} ${glowY}, rgba(16, 185, 129,0.2), transparent 60%)`,
+            background: `radial-gradient(circle at ${glowX} ${glowY}, rgba(56,189,248,0.2), transparent 60%)`,
           }}
         />
 
@@ -180,7 +180,7 @@ const HeroCard: React.FC = () => {
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg,#10b981,#f59e0b)" }}>
+              style={{ background: "linear-gradient(135deg,#10b981,#14b8a6)" }}>
               <Brain className="h-4 w-4 text-white" />
             </div>
             <div>
@@ -198,8 +198,8 @@ const HeroCard: React.FC = () => {
         <div className="space-y-3 mb-5">
           {[
             { label: "Data Structures", val: 78, color: "#10b981" },
-            { label: "Algorithms", val: 62, color: "#f59e0b" },
-            { label: "System Design", val: 45, color: "#34d399" },
+            { label: "Algorithms", val: 62, color: "#14b8a6" },
+            { label: "System Design", val: 45, color: "#2dd4bf" },
           ].map((item) => (
             <div key={item.label}>
               <div className="flex justify-between text-[11px] mb-1">
@@ -221,7 +221,7 @@ const HeroCard: React.FC = () => {
 
         {/* AI Insight */}
         <div className="rounded-xl p-3 flex items-center gap-3"
-          style={{ background: "rgba(16, 185, 129,0.08)", border: "1px solid rgba(16, 185, 129,0.15)" }}>
+          style={{ background: "rgba(56,189,248,0.08)", border: "1px solid rgba(56,189,248,0.15)" }}>
           <Sparkles className="h-4 w-4 shrink-0" style={{ color: "#10b981" }} />
           <p className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>
             AI detected you struggle with <strong style={{ color: "#10b981" }}>Graph traversal</strong>. 
@@ -232,8 +232,8 @@ const HeroCard: React.FC = () => {
         {/* Score badge */}
         <div className="absolute -top-3 -right-3 w-14 h-14 rounded-full flex flex-col items-center justify-center text-center"
           style={{
-            background: "linear-gradient(135deg,#10b981,#f59e0b)",
-            boxShadow: "0 0 30px rgba(16, 185, 129,0.5)",
+            background: "linear-gradient(135deg,#10b981,#14b8a6)",
+            boxShadow: "0 0 30px rgba(56,189,248,0.5)",
           }}>
           <span className="text-white font-black text-lg leading-none">92</span>
           <span className="text-white/70 text-[9px] font-semibold">SCORE</span>
@@ -285,7 +285,7 @@ const FeatureCard: React.FC<typeof features[0] & { index: number }> = ({
           style={{
             background: `${glow.replace("0.3", "0.12")}`,
             border: `1px solid ${glow.replace("0.3", "0.35")}`,
-            color: glow.includes("34,211") ? "#34d399" : glow.includes("139,92") ? "#a78bfa" : "#10b981",
+            color: glow.includes("34,211") ? "#34d399" : glow.includes("139,92") ? "#5eead4" : "#10b981",
           }}>
           <Sparkles className="h-2.5 w-2.5" />
           {badge}
@@ -400,8 +400,8 @@ const NeuralWave: React.FC = () => (
       <defs>
         <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#10b981" />
-          <stop offset="50%" stopColor="#f59e0b" />
-          <stop offset="100%" stopColor="#34d399" />
+          <stop offset="50%" stopColor="#14b8a6" />
+          <stop offset="100%" stopColor="#2dd4bf" />
         </linearGradient>
       </defs>
       {WAVE_PATHS.map((d, i) => (
@@ -428,7 +428,7 @@ const LandingPage: React.FC = () => {
   const howItWorksRef = useRef(null)
 
   return (
-    <div className="relative overflow-hidden bg-[#020617]">
+    <div className="relative overflow-hidden bg-background">
       {/* Grid overlay */}
       <div className="grid-overlay" />
 
@@ -437,8 +437,8 @@ const LandingPage: React.FC = () => {
         <NeuralWave />
 
         {/* Background hero glows */}
-        <div className="hero-glow bg-blue-500/10 top-1/4 -left-1/4" />
-        <div className="hero-glow bg-purple-500/10 top-1/3 -right-1/4" />
+        <div className="hero-glow bg-emerald-500/10 top-1/4 -left-1/4" />
+        <div className="hero-glow bg-teal-500/10 top-1/3 -right-1/4" />
 
         {/* Floating AI Tags */}
         <FloatingTag text={aiTags[0].text} color={aiTags[0].color} delay={1.5} className="top-1/4 left-8" />
@@ -474,7 +474,7 @@ const LandingPage: React.FC = () => {
               <span
                 className="bg-clip-text text-transparent"
                 style={{
-                  backgroundImage: "linear-gradient(135deg, #10b981 0%, #14b8a6 50%, #a78bfa 100%)",
+                  backgroundImage: "linear-gradient(135deg, #10b981 0%, #14b8a6 50%, #5eead4 100%)",
                   backgroundSize: "200% 200%",
                   animation: "gradient-shift 4s ease infinite",
                 }}
@@ -581,7 +581,7 @@ const LandingPage: React.FC = () => {
       <section ref={featuresRef} className="relative py-28 px-4 sm:px-6 lg:px-8">
         {/* Section glow */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="hero-glow bg-amber-500/5 top-0 left-1/4" />
+          <div className="hero-glow bg-emerald-500/5 top-0 left-1/4" />
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
@@ -607,7 +607,7 @@ const LandingPage: React.FC = () => {
               Everything you need to{" "}
               <span
                 className="bg-clip-text text-transparent"
-                style={{ backgroundImage: "linear-gradient(135deg, #10b981, #f59e0b)" }}
+                style={{ backgroundImage: "linear-gradient(135deg, #10b981, #14b8a6)" }}
               >
                 excel
               </span>
@@ -636,7 +636,7 @@ const LandingPage: React.FC = () => {
       {/* ── HOW IT WORKS ────────────────────────────────────────────────────── */}
       <section ref={howItWorksRef} className="relative py-28 px-4 sm:px-6 lg:px-8">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="hero-glow bg-emerald-500/5 top-1/2 right-0" />
+          <div className="hero-glow bg-teal-500/5 top-1/2 right-0" />
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
@@ -660,7 +660,7 @@ const LandingPage: React.FC = () => {
             >
               Three steps to{" "}
               <span className="bg-clip-text text-transparent"
-                style={{ backgroundImage: "linear-gradient(135deg, #34d399, #f59e0b)" }}>
+                style={{ backgroundImage: "linear-gradient(135deg, #2dd4bf, #14b8a6)" }}>
                 transform
               </span>{" "}
               your learning
@@ -676,11 +676,11 @@ const LandingPage: React.FC = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
                 className="h-full origin-left"
-                style={{ background: "linear-gradient(90deg, #10b981, #f59e0b, #34d399)" }}
+                style={{ background: "linear-gradient(90deg, #10b981, #14b8a6, #2dd4bf)" }}
               />
               {/* Connector dots */}
               <div className="absolute -top-1.5 left-0 h-3 w-3 rounded-full bg-[#10b981]" />
-              <div className="absolute -top-1.5 right-0 h-3 w-3 rounded-full bg-[#34d399]" />
+              <div className="absolute -top-1.5 right-0 h-3 w-3 rounded-full bg-[#2dd4bf]" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
@@ -704,14 +704,14 @@ const LandingPage: React.FC = () => {
             style={{
               background: "rgba(10,14,30,0.7)",
               backdropFilter: "blur(20px)",
-              borderColor: "rgba(16, 185, 129,0.15)",
-              boxShadow: "0 0 80px rgba(16, 185, 129,0.08), 0 40px 80px rgba(0,0,0,0.4)",
+              borderColor: "rgba(56,189,248,0.15)",
+              boxShadow: "0 0 80px rgba(56,189,248,0.08), 0 40px 80px rgba(0,0,0,0.4)",
             }}
           >
             {/* Background shimmer */}
             <div className="absolute inset-0 pointer-events-none rounded-3xl overflow-hidden">
               <div className="absolute -top-1/2 -left-1/2 w-full h-full rounded-full animate-spin-slow opacity-10"
-                style={{ background: "conic-gradient(from 0deg, #10b981, #f59e0b, #34d399, transparent)" }} />
+                style={{ background: "conic-gradient(from 0deg, #10b981, #14b8a6, #2dd4bf, transparent)" }} />
             </div>
 
             <div className="relative z-10">
@@ -723,7 +723,7 @@ const LandingPage: React.FC = () => {
               <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
                 Ready to Transform Your{" "}
                 <span className="bg-clip-text text-transparent"
-                  style={{ backgroundImage: "linear-gradient(135deg, #10b981, #f59e0b)" }}>
+                  style={{ backgroundImage: "linear-gradient(135deg, #10b981, #14b8a6)" }}>
                   Learning?
                 </span>
               </h2>

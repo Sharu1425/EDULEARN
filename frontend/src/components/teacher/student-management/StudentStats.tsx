@@ -65,7 +65,7 @@ const StudentStats: React.FC<StudentStatsProps> = ({
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20 border border-blue-500/30 rounded-lg p-4">
+          <div className="bg-gradient-to-r from-emerald-500/10 to-teal-600/10 dark:from-emerald-500/20 dark:to-teal-600/20 border border-blue-500/30 rounded-lg p-4">
             <div>
               <p className="text-muted-foreground text-sm">Total Students</p>
               <p className="text-2xl font-bold text-foreground">{totalStudents}</p>
@@ -79,7 +79,7 @@ const StudentStats: React.FC<StudentStatsProps> = ({
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-purple-500/10 to-purple-600/10 dark:from-purple-500/20 dark:to-purple-600/20 border border-purple-500/30 rounded-lg p-4">
+          <div className="bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 dark:from-emerald-500/20 dark:to-emerald-600/20 border border-emerald-500/30 rounded-lg p-4">
             <div>
               <p className="text-muted-foreground text-sm">Active (7 days)</p>
               <p className="text-2xl font-bold text-foreground">{activeStudents}</p>

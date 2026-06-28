@@ -187,10 +187,10 @@ const SmartAssessmentCreator: React.FC<SmartAssessmentCreatorProps> = ({
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-purple-200 mb-2">
+        <h2 className="text-3xl font-bold text-emerald-200 mb-2">
           🧠 Smart Assessment Creator
         </h2>
-        <p className="text-purple-300">
+        <p className="text-emerald-300">
           Create AI-powered assessments tailored to your students' needs
         </p>
       </div>
@@ -206,14 +206,14 @@ const SmartAssessmentCreator: React.FC<SmartAssessmentCreatorProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Configuration Form */}
         <Card className="p-6">
-          <h3 className="text-xl font-semibold text-purple-200 mb-6">
+          <h3 className="text-xl font-semibold text-emerald-200 mb-6">
             Assessment Configuration
           </h3>
 
           <div className="space-y-4">
             {/* Basic Info */}
             <div>
-              <label className="block text-sm font-medium text-purple-300 mb-2">
+              <label className="block text-sm font-medium text-emerald-300 mb-2">
                 Assessment Title
               </label>
               <Input
@@ -225,27 +225,27 @@ const SmartAssessmentCreator: React.FC<SmartAssessmentCreatorProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-purple-300 mb-2">
+              <label className="block text-sm font-medium text-emerald-300 mb-2">
                 Description (Optional)
               </label>
               <textarea
                 value={assessmentDescription}
                 onChange={(e) => setAssessmentDescription(e.target.value)}
                 placeholder="Enter assessment description"
-                className="w-full p-3 rounded-lg bg-purple-900/20 border border-purple-500/30 text-purple-200 placeholder-purple-400 focus:border-purple-400 focus:outline-none"
+                className="w-full p-3 rounded-lg bg-emerald-900/20 border border-emerald-500/30 text-emerald-200 placeholder-emerald-400 focus:border-emerald-400 focus:outline-none"
                 rows={3}
               />
             </div>
 
             {/* Batch Selection */}
             <div>
-              <label className="block text-sm font-medium text-purple-300 mb-2">
+              <label className="block text-sm font-medium text-emerald-300 mb-2">
                 Target Batch
               </label>
               <select
                 value={selectedBatch}
                 onChange={(e) => setSelectedBatch(e.target.value)}
-                className="w-full p-3 rounded-lg bg-purple-900/20 border border-purple-500/30 text-purple-200 focus:border-purple-400 focus:outline-none"
+                className="w-full p-3 rounded-lg bg-emerald-900/20 border border-emerald-500/30 text-emerald-200 focus:border-emerald-400 focus:outline-none"
               >
                 <option value="">Select a batch</option>
                 {batches.map((batch) => (
@@ -258,19 +258,19 @@ const SmartAssessmentCreator: React.FC<SmartAssessmentCreatorProps> = ({
 
             {/* Adapt to Weaknesses */}
             {selectedBatch && (
-              <div className="p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg">
+              <div className="p-4 bg-emerald-900/20 border border-emerald-500/30 rounded-lg">
                 <label className="flex items-center space-x-3">
                   <input
                     type="checkbox"
                     checked={adaptToWeaknesses}
                     onChange={(e) => setAdaptToWeaknesses(e.target.checked)}
-                    className="w-4 h-4 text-purple-600 bg-purple-900 border-purple-500 rounded focus:ring-purple-500"
+                    className="w-4 h-4 text-emerald-600 bg-emerald-900 border-emerald-500 rounded focus:ring-emerald-500"
                   />
                   <div>
-                    <span className="text-sm font-medium text-purple-200">
+                    <span className="text-sm font-medium text-emerald-200">
                       Adapt to Batch Weaknesses
                     </span>
-                    <p className="text-xs text-purple-400">
+                    <p className="text-xs text-emerald-400">
                       Generate questions targeting this batch's common weak points
                     </p>
                   </div>
@@ -278,7 +278,7 @@ const SmartAssessmentCreator: React.FC<SmartAssessmentCreatorProps> = ({
                 
                 {adaptToWeaknesses && getSelectedBatch() && (
                   <div className="mt-3">
-                    <p className="text-sm text-purple-300 mb-2">Identified weaknesses:</p>
+                    <p className="text-sm text-emerald-300 mb-2">Identified weaknesses:</p>
                     <div className="flex flex-wrap gap-2">
                       {getSelectedBatch()?.weaknesses.map((weakness, idx) => (
                         <span 
@@ -296,13 +296,13 @@ const SmartAssessmentCreator: React.FC<SmartAssessmentCreatorProps> = ({
 
             {/* Question Count */}
             <div>
-              <label className="block text-sm font-medium text-purple-300 mb-2">
+              <label className="block text-sm font-medium text-emerald-300 mb-2">
                 Number of Questions
               </label>
               <select
                 value={questionCount}
                 onChange={(e) => setQuestionCount(Number(e.target.value))}
-                className="w-full p-3 rounded-lg bg-purple-900/20 border border-purple-500/30 text-purple-200 focus:border-purple-400 focus:outline-none"
+                className="w-full p-3 rounded-lg bg-emerald-900/20 border border-emerald-500/30 text-emerald-200 focus:border-emerald-400 focus:outline-none"
               >
                 <option value={5}>5 questions</option>
                 <option value={10}>10 questions</option>
@@ -314,13 +314,13 @@ const SmartAssessmentCreator: React.FC<SmartAssessmentCreatorProps> = ({
 
             {/* Difficulty */}
             <div>
-              <label className="block text-sm font-medium text-purple-300 mb-2">
+              <label className="block text-sm font-medium text-emerald-300 mb-2">
                 Difficulty Level
               </label>
               <select
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value)}
-                className="w-full p-3 rounded-lg bg-purple-900/20 border border-purple-500/30 text-purple-200 focus:border-purple-400 focus:outline-none"
+                className="w-full p-3 rounded-lg bg-emerald-900/20 border border-emerald-500/30 text-emerald-200 focus:border-emerald-400 focus:outline-none"
               >
                 <option value="easy">Easy</option>
                 <option value="medium">Medium</option>
@@ -330,7 +330,7 @@ const SmartAssessmentCreator: React.FC<SmartAssessmentCreatorProps> = ({
 
             {/* Topics */}
             <div>
-              <label className="block text-sm font-medium text-purple-300 mb-2">
+              <label className="block text-sm font-medium text-emerald-300 mb-2">
                 Topics (Optional)
               </label>
               <div className="flex flex-wrap gap-2">
@@ -340,8 +340,8 @@ const SmartAssessmentCreator: React.FC<SmartAssessmentCreatorProps> = ({
                     onClick={() => handleTopicToggle(topic)}
                     className={`px-3 py-1 rounded-full text-sm transition-colors ${
                       selectedTopics.includes(topic)
-                        ? "bg-purple-500 text-white"
-                        : "bg-purple-900/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/20"
+                        ? "bg-emerald-500 text-white"
+                        : "bg-emerald-900/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20"
                     }`}
                   >
                     {topic}
@@ -370,32 +370,32 @@ const SmartAssessmentCreator: React.FC<SmartAssessmentCreatorProps> = ({
         {/* Generated Assessment Preview */}
         {generatedAssessment && (
           <Card className="p-6">
-            <h3 className="text-xl font-semibold text-purple-200 mb-4">
+            <h3 className="text-xl font-semibold text-emerald-200 mb-4">
               Generated Assessment Preview
             </h3>
             
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold text-purple-200">{generatedAssessment.title}</h4>
-                <p className="text-sm text-purple-300">{generatedAssessment.description}</p>
+                <h4 className="font-semibold text-emerald-200">{generatedAssessment.title}</h4>
+                <p className="text-sm text-emerald-300">{generatedAssessment.description}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-purple-400">Questions:</span>
-                  <span className="text-purple-200 ml-2">{generatedAssessment.questions.length}</span>
+                  <span className="text-emerald-400">Questions:</span>
+                  <span className="text-emerald-200 ml-2">{generatedAssessment.questions.length}</span>
                 </div>
                 <div>
-                  <span className="text-purple-400">Difficulty:</span>
-                  <span className="text-purple-200 ml-2 capitalize">{generatedAssessment.difficulty}</span>
+                  <span className="text-emerald-400">Difficulty:</span>
+                  <span className="text-emerald-200 ml-2 capitalize">{generatedAssessment.difficulty}</span>
                 </div>
                 <div>
-                  <span className="text-purple-400">Est. Time:</span>
-                  <span className="text-purple-200 ml-2">{generatedAssessment.estimatedTime} min</span>
+                  <span className="text-emerald-400">Est. Time:</span>
+                  <span className="text-emerald-200 ml-2">{generatedAssessment.estimatedTime} min</span>
                 </div>
                 <div>
-                  <span className="text-purple-400">Targeted:</span>
-                  <span className="text-purple-200 ml-2">
+                  <span className="text-emerald-400">Targeted:</span>
+                  <span className="text-emerald-200 ml-2">
                     {generatedAssessment.targetWeaknesses.length} weaknesses
                   </span>
                 </div>
@@ -403,7 +403,7 @@ const SmartAssessmentCreator: React.FC<SmartAssessmentCreatorProps> = ({
 
               {generatedAssessment.targetWeaknesses.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-purple-300 mb-2">Targeted Weaknesses:</p>
+                  <p className="text-sm font-medium text-emerald-300 mb-2">Targeted Weaknesses:</p>
                   <div className="flex flex-wrap gap-1">
                     {generatedAssessment.targetWeaknesses.map((weakness, idx) => (
                       <span 
@@ -418,17 +418,17 @@ const SmartAssessmentCreator: React.FC<SmartAssessmentCreatorProps> = ({
               )}
 
               <div className="space-y-2">
-                <h5 className="font-semibold text-purple-200">Sample Questions:</h5>
+                <h5 className="font-semibold text-emerald-200">Sample Questions:</h5>
                 {generatedAssessment.questions.slice(0, 2).map((question, idx) => (
-                  <div key={idx} className="p-3 bg-purple-900/20 rounded-lg">
-                    <p className="text-sm text-purple-300 mb-2">{question.question}</p>
-                    <div className="text-xs text-purple-400">
+                  <div key={idx} className="p-3 bg-emerald-900/20 rounded-lg">
+                    <p className="text-sm text-emerald-300 mb-2">{question.question}</p>
+                    <div className="text-xs text-emerald-400">
                       {question.topic} • {question.difficulty}
                     </div>
                   </div>
                 ))}
                 {generatedAssessment.questions.length > 2 && (
-                  <p className="text-xs text-purple-400">
+                  <p className="text-xs text-emerald-400">
                     +{generatedAssessment.questions.length - 2} more questions...
                   </p>
                 )}

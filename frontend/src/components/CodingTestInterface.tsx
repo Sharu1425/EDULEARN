@@ -461,7 +461,7 @@ const CodingTestInterface: React.FC<CodingTestInterfaceProps> = ({ assessmentId,
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="px-3 py-2 bg-purple-800/30 border border-purple-500/30 rounded text-purple-100 text-sm focus:outline-none focus:border-purple-400"
+                  className="px-3 py-2 bg-emerald-800/30 border border-emerald-500/30 rounded text-emerald-100 text-sm focus:outline-none focus:border-emerald-400"
                 >
                   {languages.map((lang) => (
                     <option key={lang.value} value={lang.value}>
@@ -481,7 +481,7 @@ const CodingTestInterface: React.FC<CodingTestInterfaceProps> = ({ assessmentId,
             </div>
 
             {/* Monaco Editor */}
-            <div className="border border-purple-500/20 rounded-lg overflow-hidden" style={{ minHeight: "500px" }}>
+            <div className="border border-emerald-500/20 rounded-lg overflow-hidden" style={{ minHeight: "500px" }}>
               <Editor
                 height="500px"
                 width="100%"
@@ -555,11 +555,11 @@ const CodingTestInterface: React.FC<CodingTestInterfaceProps> = ({ assessmentId,
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-6 bg-purple-900/20 rounded-lg p-6 border border-purple-500/30"
+              className="mt-6 bg-emerald-900/20 rounded-lg p-6 border border-emerald-500/30"
               style={{ maxHeight: "600px", display: "flex", flexDirection: "column" }}
             >
               <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                <h4 className="text-lg font-semibold text-purple-200 flex items-center">
+                <h4 className="text-lg font-semibold text-emerald-200 flex items-center">
                   <span className="mr-2">🧪</span>
                   Test Results
                 </h4>
@@ -575,7 +575,7 @@ const CodingTestInterface: React.FC<CodingTestInterfaceProps> = ({ assessmentId,
                   </div>
                   <button
                     onClick={() => setExpandedTests(new Set(testResults.map((_, i) => i)))}
-                    className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                    className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
                   >
                     {expandedTests.size === testResults.length ? "Collapse All" : "Expand All"}
                   </button>
@@ -599,13 +599,13 @@ const CodingTestInterface: React.FC<CodingTestInterfaceProps> = ({ assessmentId,
                           className="font-medium flex items-center space-x-3 hover:opacity-80 transition-opacity group"
                         >
                           <div className="flex items-center space-x-2">
-                            <span className="text-sm font-medium text-purple-300">Test {index + 1}:</span>
+                            <span className="text-sm font-medium text-emerald-300">Test {index + 1}:</span>
                             <span className={`font-semibold ${result.passed ? "text-green-400" : "text-red-400"}`}>
                               {result.passed ? "✅ Passed" : "❌ Failed"}
                             </span>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <span className="text-xs text-purple-400">{result.execution_time || 0}ms</span>
+                            <span className="text-xs text-emerald-400">{result.execution_time || 0}ms</span>
                             <span className="text-lg group-hover:scale-110 transition-transform">
                               {isExpanded ? "▼" : "▶"}
                             </span>
@@ -619,14 +619,14 @@ const CodingTestInterface: React.FC<CodingTestInterfaceProps> = ({ assessmentId,
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="space-y-4 mt-4 pt-4 border-t border-purple-500/20"
+                          className="space-y-4 mt-4 pt-4 border-t border-emerald-500/20"
                         >
                           {/* Test Case Input */}
                           <div>
                             <div className="flex items-center space-x-2 mb-2">
-                              <span className="text-sm font-medium text-purple-300">Input:</span>
+                              <span className="text-sm font-medium text-emerald-300">Input:</span>
                             </div>
-                            <div className="p-3 bg-black/30 rounded-lg border border-purple-500/20 font-mono text-sm">
+                            <div className="p-3 bg-black/30 rounded-lg border border-emerald-500/20 font-mono text-sm">
                               {result.input ? (
                                 typeof result.input === "string" ? (
                                   result.input
@@ -634,7 +634,7 @@ const CodingTestInterface: React.FC<CodingTestInterfaceProps> = ({ assessmentId,
                                   JSON.stringify(result.input, null, 2)
                                 )
                               ) : (
-                                <span className="text-purple-400 opacity-75">No input data</span>
+                                <span className="text-emerald-400 opacity-75">No input data</span>
                               )}
                             </div>
                           </div>

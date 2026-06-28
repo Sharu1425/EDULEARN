@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Question } from "../types";
-import AnimatedBackground from "../components/AnimatedBackground";
+import { FileText, CheckCircle2, Clock, Hash, Zap, Brain, Lightbulb, Check, X } from "lucide-react";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
+import StatTile from "../components/ui/StatTile";
+import ProgressRing from "../components/ui/ProgressRing";
 import EmptyState from "../components/EmptyState";
 import { ANIMATION_VARIANTS, TRANSITION_DEFAULTS } from "../utils/constants";
 
@@ -37,12 +39,7 @@ const Results: React.FC<ResultsProps> = ({ }) => {
     const percentage = ((score / totalQuestions) * 100).toFixed(2);
 
     useEffect(() => {
-        console.log("📊 Results page state:", location.state);
-        console.log("📊 User answers received:", userAnswers);
-        console.log("📊 Questions received:", questions?.length);
-
         if (!location.state) {
-            console.log("❌ No state found, redirecting to dashboard");
             navigate('/dashboard');
             return;
         }
@@ -53,8 +50,6 @@ const Results: React.FC<ResultsProps> = ({ }) => {
             setExplanations(built);
         }
     }, [location.state, navigate, questions, stateExplanations]);
-
-
 
     const getScoreMessage = (percentage: number | string) => {
         const perc = typeof percentage === 'string' ? parseFloat(percentage) : percentage;
@@ -74,441 +69,308 @@ const Results: React.FC<ResultsProps> = ({ }) => {
 
     if (!location.state) {
         return (
-            <>
-                <AnimatedBackground />
-                <div className="min-h-screen pt-20 px-4 relative z-10 flex items-center justify-center">
-                    <EmptyState
-                        title="No Results Found"
-                        message="No assessment results were found. Please complete an assessment first."
-                        actionText="Start Assessment"
-                        onAction={() => navigate("/assessconfig")}
-                        icon={
-                            <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        }
-                    />
-                </div>
-            </>
+            <div className="flex h-full items-center justify-center p-6">
+                <EmptyState
+                    title="No Results Found"
+                    message="No assessment results were found. Please complete an assessment first."
+                    actionText="Start Assessment"
+                    onAction={() => navigate("/assessconfig")}
+                    icon={<FileText className="mx-auto mb-4 h-16 w-16" />}
+                />
+            </div>
         );
     }
 
     return (
-        <>
-            <AnimatedBackground />
-            <motion.div
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={ANIMATION_VARIANTS.fadeIn}
-                transition={TRANSITION_DEFAULTS}
-                className="container mx-auto px-4 pt-24 py-8 relative z-10"
-            >
-                <motion.div
-                    variants={ANIMATION_VARIANTS.slideDown}
-                    className="text-center mb-12"
-                >
-                    <h2 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400 mb-4">
-                        Assessment Results
-                    </h2>
-                    <p className="text-purple-200 text-xl">Here's how you performed</p>
-                </motion.div>
+        <motion.div
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={ANIMATION_VARIANTS.fadeIn}
+            transition={TRANSITION_DEFAULTS}
+            className="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6"
+        >
+            {/* Hero */}
+            <motion.div variants={ANIMATION_VARIANTS.slideUp}>
+                <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 text-center sm:p-9">
+                    <div className="aurora-mesh" />
+                    <div className="relative z-10">
+                        <h2 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                            Assessment Results
+                        </h2>
+                        <p className="mt-2 text-muted-foreground">Here's how you performed</p>
+                    </div>
+                </Card>
+            </motion.div>
 
-                {/* Score Card */}
-                <motion.div
-                    variants={ANIMATION_VARIANTS.slideUp}
-                    className="max-w-4xl mx-auto mb-8"
-                >
-                    <Card className="p-8 text-center bg-gradient-to-br from-purple-900/40 to-blue-900/40 border-2 border-purple-500/30">
-                        {/* Circular Score */}
-                        <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.3, type: "spring", stiffness: 100 }}
-                            className="mb-6"
-                        >
-                            <div className="w-48 h-48 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-orange-500/50">
-                                <span className="text-5xl font-bold text-white">{percentage}%</span>
-                            </div>
-
-                            {/* Motivational Message */}
-                            <div className="flex items-center justify-center space-x-2 mb-6">
-                                <h3 className="text-2xl font-bold text-white">
-                                    {getScoreMessage(percentage)}
-                                </h3>
-                                <div className="flex space-x-1">
-                                    <div className="w-3 h-3 bg-red-500 rounded"></div>
-                                    <div className="w-3 h-3 bg-green-500 rounded"></div>
-                                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* Progress Bar */}
-                        <div className="w-full bg-purple-900/50 rounded-full h-4 mb-8">
-                            <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${parseFloat(percentage)}%` }}
-                                transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
-                                className="bg-gradient-to-r from-yellow-500 to-orange-500 h-4 rounded-full shadow-lg"
-                            />
+            {/* Score + metrics */}
+            <motion.div variants={ANIMATION_VARIANTS.slideUp}>
+                <Card className="p-6 sm:p-8">
+                    <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-center sm:gap-10">
+                        <ProgressRing progress={parseFloat(percentage)} size={150} />
+                        <div className="text-center sm:text-left">
+                            <h3 className="font-heading text-2xl font-bold text-foreground">
+                                {getScoreMessage(percentage)}
+                            </h3>
+                            <p className="mt-1 text-muted-foreground">
+                                You scored <span className="font-semibold text-foreground">{score}</span> out of{" "}
+                                <span className="font-semibold text-foreground">{totalQuestions}</span>.
+                            </p>
                         </div>
+                    </div>
 
-                        {/* Metric Cards */}
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                            {[
-                                {
-                                    label: "Total Questions",
-                                    value: totalQuestions,
-                                    icon: (
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                    )
-                                },
-                                {
-                                    label: "Correct Answers",
-                                    value: score,
-                                    icon: (
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    )
-                                },
-                                {
-                                    label: "Time Taken",
-                                    value: formatTime(timeTaken),
-                                    icon: (
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    )
-                                },
-                                {
-                                    label: "Topic",
-                                    value: topic || "N/A",
-                                    icon: (
-                                        <div className="flex space-x-1">
-                                            <div className="w-2 h-2 bg-green-500 rounded"></div>
-                                            <div className="w-2 h-2 bg-red-500 rounded"></div>
-                                            <div className="w-2 h-2 bg-blue-500 rounded"></div>
-                                        </div>
-                                    )
-                                },
-                                {
-                                    label: "Difficulty",
-                                    value: difficulty || "N/A",
-                                    icon: (
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                        </svg>
-                                    )
-                                }
-                            ].map((stat, index) => (
-                                <motion.div
-                                    key={stat.label}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.7 + index * 0.1 }}
-                                    className="p-5 rounded-lg bg-purple-900/30 border border-purple-500/30 text-center"
-                                >
-                                    <div className="flex justify-center mb-3 text-white">
-                                        {stat.icon}
-                                    </div>
-                                    <p className="text-white font-bold text-xl mb-1">
-                                        {stat.value}
-                                    </p>
-                                    <p className="text-white/80 text-sm">{stat.label}</p>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </Card>
-                </motion.div>
+                    {/* Metric tiles */}
+                    <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-5">
+                        <StatTile label="Questions" value={totalQuestions} icon={<FileText className="h-4 w-4" />} accent="primary" />
+                        <StatTile label="Correct" value={score} icon={<CheckCircle2 className="h-4 w-4" />} accent="success" />
+                        <StatTile label="Time Taken" value={formatTime(timeTaken)} icon={<Clock className="h-4 w-4" />} accent="info" />
+                        <StatTile label="Topic" value={topic || "N/A"} icon={<Hash className="h-4 w-4" />} accent="secondary" />
+                        <StatTile label="Difficulty" value={difficulty || "N/A"} icon={<Zap className="h-4 w-4" />} accent="accent" />
+                    </div>
+                </Card>
+            </motion.div>
 
-                {/* Action Buttons */}
-                <motion.div
-                    variants={ANIMATION_VARIANTS.slideUp}
-                    className="text-center mb-8 space-x-4"
-                >
-                    <Link to="/assessment-choice">
-                        <Button variant="primary" size="lg">
-                            Take Another Assessment
-                        </Button>
-                    </Link>
-                    <Link to="/dashboard">
-                        <Button variant="secondary" size="lg">
-                            Back to Dashboard
-                        </Button>
-                    </Link>
-                    {questions && questions.length > 0 && (
-                        <Button
-                            variant="outline"
-                            size="lg"
-                            onClick={() => setShowExplanations(!showExplanations)}
-                        >
-                            {showExplanations ? 'Hide' : 'Show'} Question Review
-                        </Button>
-                    )}
-                </motion.div>
+            {/* Action Buttons */}
+            <motion.div variants={ANIMATION_VARIANTS.slideUp} className="flex flex-wrap justify-center gap-3">
+                <Link to="/assessment-choice">
+                    <Button variant="primary" size="lg">Take Another Assessment</Button>
+                </Link>
+                <Link to="/dashboard">
+                    <Button variant="secondary" size="lg">Back to Dashboard</Button>
+                </Link>
+                {questions && questions.length > 0 && (
+                    <Button variant="outline" size="lg" onClick={() => setShowExplanations(!showExplanations)}>
+                        {showExplanations ? 'Hide' : 'Show'} Question Review
+                    </Button>
+                )}
+            </motion.div>
 
-                {/* Question Review Section */}
-                <AnimatePresence>
-                    {showExplanations && questions && questions.length > 0 && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="max-w-4xl mx-auto"
-                        >
-                            <Card className="p-8">
-                                <div className="text-center mb-8">
-                                    <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400 mb-4">
-                                        Question Review
-                                    </h3>
-                                    {/* Explanations available instantly */}
-                                </div>
+            {/* Question Review Section */}
+            <AnimatePresence>
+                {showExplanations && questions && questions.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                    >
+                        <Card className="p-6 sm:p-8">
+                            <h3 className="mb-8 text-center font-heading text-2xl font-bold text-foreground">
+                                Question Review
+                            </h3>
 
-                                <div className="space-y-6">
-                                    {questions.map((question: Question, index: number) => {
-                                        // Use questionReviews data if available, otherwise fall back to manual calculation
-                                        let questionReview = null;
-                                        if (questionReviews && questionReviews.length > index) {
-                                            questionReview = questionReviews[index];
-                                        }
+                            <div className="space-y-6">
+                                {questions.map((question: Question, index: number) => {
+                                    // Use questionReviews data if available, otherwise fall back to manual calculation
+                                    let questionReview = null;
+                                    if (questionReviews && questionReviews.length > index) {
+                                        questionReview = questionReviews[index];
+                                    }
 
-                                        // Get user answer - prefer questionReview, then userAnswers array
-                                        let userAnswer = questionReview?.user_answer || userAnswers[index] || '';
+                                    // Get user answer - prefer questionReview, then userAnswers array
+                                    let userAnswer = questionReview?.user_answer || userAnswers[index] || '';
 
-                                        // Get correct answer - prefer questionReview, then calculate from question
-                                        let correctAnswer = questionReview?.correct_answer || '';
-                                        if (!correctAnswer && question.options && typeof question.correct_answer === 'number') {
-                                            correctAnswer = question.options[question.correct_answer] || '';
-                                        } else if (!correctAnswer && question.answer) {
-                                            correctAnswer = question.answer;
-                                        }
+                                    // Get correct answer - prefer questionReview, then calculate from question
+                                    let correctAnswer = questionReview?.correct_answer || '';
+                                    if (!correctAnswer && question.options && typeof question.correct_answer === 'number') {
+                                        correctAnswer = question.options[question.correct_answer] || '';
+                                    } else if (!correctAnswer && question.answer) {
+                                        correctAnswer = question.answer;
+                                    }
 
-                                        // Determine if correct - prefer questionReview, otherwise calculate
-                                        let isCorrect = false;
-                                        if (questionReview !== null) {
-                                            isCorrect = questionReview.is_correct ?? false;
-                                        } else {
-                                            // Fallback: compare user answer with correct answer
-                                            const normalizedUserAnswer = (userAnswer || '').trim().toLowerCase();
-                                            const normalizedCorrectAnswer = (correctAnswer || '').trim().toLowerCase();
-                                            isCorrect = normalizedUserAnswer === normalizedCorrectAnswer && normalizedUserAnswer !== '';
-                                        }
+                                    // Determine if correct - prefer questionReview, otherwise calculate
+                                    let isCorrect = false;
+                                    if (questionReview !== null) {
+                                        isCorrect = questionReview.is_correct ?? false;
+                                    } else {
+                                        const normalizedUserAnswer = (userAnswer || '').trim().toLowerCase();
+                                        const normalizedCorrectAnswer = (correctAnswer || '').trim().toLowerCase();
+                                        isCorrect = normalizedUserAnswer === normalizedCorrectAnswer && normalizedUserAnswer !== '';
+                                    }
 
-                                        const explanation = questionReview?.explanation || explanations.find(exp => exp.questionIndex === index)?.explanation || '';
+                                    const explanation = questionReview?.explanation || explanations.find(exp => exp.questionIndex === index)?.explanation || '';
 
-                                        console.log(`🔍 [RESULTS] Question ${index + 1}:`, {
-                                            userAnswer,
-                                            correctAnswer,
-                                            isCorrect,
-                                            hasQuestionReview: !!questionReview,
-                                            userAnswersArray: userAnswers[index]
-                                        });
-
-                                        return (
-                                            <motion.div
-                                                key={index}
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: index * 0.1 }}
-                                                className={`border rounded-xl p-6 transition-all duration-300 ${isCorrect
-                                                        ? 'border-green-500/50 bg-green-500/5'
-                                                        : 'border-red-500/50 bg-red-500/5'
-                                                    }`}
-                                            >
-                                                {/* Question Header */}
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <h4 className="text-lg font-semibold text-purple-200">
-                                                        Question {index + 1}
-                                                    </h4>
-                                                    <div className={`px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2 ${isCorrect
-                                                            ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                                                            : 'bg-red-500/20 text-red-300 border border-red-500/30'
-                                                        }`}>
-                                                        <span>{isCorrect ? '✓' : '✗'}</span>
-                                                        <span>{isCorrect ? 'Correct' : 'Incorrect'}</span>
-                                                    </div>
+                                    return (
+                                        <motion.div
+                                            key={index}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.06 }}
+                                            className={`rounded-xl border p-6 transition-colors ${isCorrect
+                                                ? 'border-success/40 bg-success/5'
+                                                : 'border-destructive/40 bg-destructive/5'
+                                                }`}
+                                        >
+                                            {/* Question Header */}
+                                            <div className="mb-4 flex items-center justify-between">
+                                                <h4 className="font-heading text-lg font-semibold text-foreground">
+                                                    Question {index + 1}
+                                                </h4>
+                                                <div className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium ${isCorrect
+                                                    ? 'border-success/30 bg-success/10 text-success'
+                                                    : 'border-destructive/30 bg-destructive/10 text-destructive'
+                                                    }`}>
+                                                    {isCorrect ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                                                    <span>{isCorrect ? 'Correct' : 'Incorrect'}</span>
                                                 </div>
+                                            </div>
 
-                                                {/* Question Text */}
-                                                <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4 mb-6">
-                                                    <p className="text-purple-100 text-lg leading-relaxed">
-                                                        {question.question}
-                                                    </p>
-                                                </div>
+                                            {/* Question Text */}
+                                            <div className="mb-6 rounded-lg border border-border bg-muted/40 p-4">
+                                                <p className="leading-relaxed text-foreground">
+                                                    {question.question}
+                                                </p>
+                                            </div>
 
-                                                {/* Options */}
-                                                <div className="space-y-3 mb-6">
-                                                    {question.type === 'coding' ? (
-                                                        <div className="space-y-4">
-                                                            <div className="p-5 rounded-lg border bg-purple-900/30 border-purple-500/30 text-white font-mono text-sm whitespace-pre-wrap">
-                                                                {/* Display User's Code for Coding Questions */}
-                                                                <div className="mb-2 text-purple-300 font-semibold">Your Code:</div>
-                                                                {userAnswer || 'No code submitted.'}
-                                                            </div>
+                                            {/* Options */}
+                                            <div className="mb-6 space-y-3">
+                                                {question.type === 'coding' ? (
+                                                    <div className="space-y-4">
+                                                        <div className="whitespace-pre-wrap rounded-lg border border-border bg-muted/50 p-5 font-mono text-sm text-foreground">
+                                                            <div className="mb-2 font-semibold text-muted-foreground">Your Code:</div>
+                                                            {userAnswer || 'No code submitted.'}
+                                                        </div>
 
-                                                            {/* Actual Answer for Coding Question */}
-                                                            {question.reference_solution && (
-                                                                <div className="p-5 rounded-lg border bg-green-900/20 border-green-500/30 text-green-100 font-mono text-sm whitespace-pre-wrap shadow-lg shadow-green-500/10">
-                                                                    <div className="mb-2 text-green-300 font-semibold flex items-center gap-2">
-                                                                        <span className="text-lg">✅</span> Actual Answer:
-                                                                    </div>
-                                                                    {question.reference_solution}
+                                                        {/* Reference Solution for Coding Question */}
+                                                        {question.reference_solution && (
+                                                            <div className="whitespace-pre-wrap rounded-lg border border-success/20 bg-success/5 p-5 font-mono text-sm text-foreground">
+                                                                <div className="mb-2 flex items-center gap-2 font-semibold text-success">
+                                                                    <CheckCircle2 className="h-4 w-4" /> Reference Answer:
                                                                 </div>
-                                                            )}
+                                                                {question.reference_solution}
+                                                            </div>
+                                                        )}
 
-                                                            {/* AI Feedback for Coding Question */}
-                                                            {stateAiFeedback && (
-                                                                <div className="bg-blue-900/20 rounded-xl p-5 border border-blue-500/30">
-                                                                    <div className="flex items-center space-x-2 mb-4 text-blue-400">
-                                                                        <div className="p-2 bg-blue-500/20 rounded-lg">
-                                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                                                            </svg>
-                                                                        </div>
-                                                                        <h4 className="font-bold text-lg">AI Code Insights</h4>
+                                                        {/* AI Feedback for Coding Question */}
+                                                        {stateAiFeedback && (
+                                                            <div className="rounded-xl border border-info/30 bg-info/10 p-5">
+                                                                <div className="mb-4 flex items-center gap-2 text-info">
+                                                                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-info/15">
+                                                                        <Brain className="h-5 w-5" />
+                                                                    </span>
+                                                                    <h4 className="text-lg font-bold">AI Code Insights</h4>
+                                                                </div>
+
+                                                                {stateAiFeedback.overall_score && (
+                                                                    <div className="mb-4 flex items-center justify-between">
+                                                                        <span className="text-sm text-muted-foreground">Quality Score:</span>
+                                                                        <span className="text-xl font-bold text-info">{stateAiFeedback.overall_score}/100</span>
                                                                     </div>
-                                                                    
-                                                                    {stateAiFeedback.overall_score && (
-                                                                        <div className="mb-4 flex items-center justify-between">
-                                                                            <span className="text-sm text-purple-300">Quality Score:</span>
-                                                                            <span className="text-xl font-bold text-blue-400">{stateAiFeedback.overall_score}/100</span>
+                                                                )}
+
+                                                                <div className="space-y-4">
+                                                                    {stateAiFeedback.correctness && (
+                                                                        <div>
+                                                                            <div className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Correctness</div>
+                                                                            <ul className="space-y-1">
+                                                                                {stateAiFeedback.correctness.issues?.map((issue: string, i: number) => (
+                                                                                    <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                                                                        <span className="mt-1 text-destructive">•</span>
+                                                                                        <span>{issue}</span>
+                                                                                    </li>
+                                                                                ))}
+                                                                            </ul>
                                                                         </div>
                                                                     )}
 
-                                                                    <div className="space-y-4">
-                                                                        {stateAiFeedback.correctness && (
-                                                                            <div>
-                                                                                <div className="text-xs text-purple-400 uppercase tracking-widest mb-2 font-bold">Correctness</div>
-                                                                                <ul className="space-y-1">
-                                                                                    {stateAiFeedback.correctness.issues?.map((issue: string, i: number) => (
-                                                                                        <li key={i} className="text-sm text-red-200 flex items-start space-x-2">
-                                                                                            <span className="text-red-400 mt-1">•</span>
-                                                                                            <span>{issue}</span>
-                                                                                        </li>
-                                                                                    ))}
-                                                                                </ul>
+                                                                    {stateAiFeedback.performance && (
+                                                                        <div>
+                                                                            <div className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Performance</div>
+                                                                            <div className="flex gap-3">
+                                                                                <span className="rounded bg-info/10 px-2 py-0.5 text-xs text-foreground">Time: {stateAiFeedback.performance.time_complexity}</span>
+                                                                                <span className="rounded bg-info/10 px-2 py-0.5 text-xs text-foreground">Space: {stateAiFeedback.performance.space_complexity}</span>
                                                                             </div>
-                                                                        )}
-                                                                        
-                                                                        {stateAiFeedback.performance && (
-                                                                            <div>
-                                                                                <div className="text-xs text-purple-400 uppercase tracking-widest mb-2 font-bold">Performance</div>
-                                                                                <div className="flex space-x-3 mb-2">
-                                                                                    <span className="text-xs bg-blue-500/10 px-2 py-0.5 rounded text-blue-200">Time: {stateAiFeedback.performance.time_complexity}</span>
-                                                                                    <span className="text-xs bg-blue-500/10 px-2 py-0.5 rounded text-blue-200">Space: {stateAiFeedback.performance.space_complexity}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        question.options?.map((option: string, optionIndex: number) => {
-                                                            // Use normalized comparison for better matching
-                                                            const normalizedOption = (option || '').trim();
-                                                            const normalizedUserAnswer = (userAnswer || '').trim();
-                                                            const normalizedCorrectAnswer = (correctAnswer || '').trim();
-
-                                                            // Check if this option matches user answer or correct answer
-                                                            const isUserChoice = normalizedOption.toLowerCase() === normalizedUserAnswer.toLowerCase();
-                                                            const isCorrectChoice = normalizedOption.toLowerCase() === normalizedCorrectAnswer.toLowerCase();
-
-                                                            // Priority: Correct answer always shows in green, wrong user answer shows in red (if not correct)
-                                                            const showAsCorrect = isCorrectChoice;
-                                                            const showAsWrong = isUserChoice && !isCorrectChoice;
-
-                                                            let optionClasses = "p-5 rounded-lg border transition-all duration-200 ";
-
-                                                            if (showAsCorrect) {
-                                                                optionClasses += "bg-green-600 border-2 border-green-500";
-                                                            } else if (showAsWrong) {
-                                                                optionClasses += "bg-red-600 border-2 border-red-500";
-                                                            } else {
-                                                                optionClasses += "bg-purple-900/30 border border-purple-500/30";
-                                                            }
-
-                                                            return (
-                                                                <div key={optionIndex} className={optionClasses}>
-                                                                    <div className="flex items-center justify-between">
-                                                                        <div className="flex items-center space-x-3 flex-1">
-                                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${showAsCorrect
-                                                                                    ? 'bg-green-700 text-white'
-                                                                                    : showAsWrong
-                                                                                        ? 'bg-red-700 text-white'
-                                                                                        : 'bg-purple-500/20 border border-purple-500/50 text-white'
-                                                                                }`}>
-                                                                                {String.fromCharCode(65 + optionIndex)}
-                                                                            </div>
-                                                                            <span className={`flex-1 font-medium text-base ${showAsCorrect || showAsWrong ? 'text-white font-semibold' : 'text-white'}`}>{option}</span>
                                                                         </div>
-                                                                        {/* Icons and Labels on the right */}
-                                                                        <div className="flex items-center space-x-2">
-                                                                            {showAsCorrect && (
-                                                                                <>
-                                                                                    <span className="text-green-200 text-xl font-bold">✓</span>
-                                                                                    <span className="px-3 py-1 rounded-full bg-green-700/50 text-white text-sm font-semibold">
-                                                                                        Correct
-                                                                                    </span>
-                                                                                </>
-                                                                            )}
-                                                                            {isUserChoice && isCorrect && (
-                                                                                <span className="px-3 py-1 rounded-full bg-green-700/50 text-white text-sm font-semibold">
-                                                                                    Your Choice
-                                                                                </span>
-                                                                            )}
-                                                                            {showAsWrong && (
-                                                                                <>
-                                                                                    <span className="text-red-200 text-xl font-bold">✗</span>
-                                                                                    <span className="px-3 py-1 rounded-full bg-red-700/50 text-white text-sm font-semibold">
-                                                                                        Your Choice
-                                                                                    </span>
-                                                                                </>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
+                                                                    )}
                                                                 </div>
-                                                            );
-                                                        })
-                                                    )}
-                                                </div>
-
-                                                {/* Explanation Section */}
-                                                <div className="border-t border-purple-500/20 pt-6">
-                                                    <div className="flex items-center space-x-2 mb-3">
-                                                        <span className="text-yellow-400 text-xl">💡</span>
-                                                        <h5 className="text-white font-semibold text-lg">Explanation</h5>
+                                                            </div>
+                                                        )}
                                                     </div>
+                                                ) : (
+                                                    question.options?.map((option: string, optionIndex: number) => {
+                                                        const normalizedOption = (option || '').trim();
+                                                        const normalizedUserAnswer = (userAnswer || '').trim();
+                                                        const normalizedCorrectAnswer = (correctAnswer || '').trim();
 
-                                                    {explanation && (typeof explanation === 'string' ? explanation : explanation.explanation) ? (
-                                                        <div className="bg-blue-900/40 rounded-lg p-4 border border-blue-500/50">
-                                                            <p className="text-blue-100 text-base leading-relaxed whitespace-pre-wrap">
-                                                                {typeof explanation === 'string' ? explanation : explanation.explanation}
-                                                            </p>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-600/30">
-                                                            <p className="text-gray-400 text-sm leading-relaxed italic">
-                                                                No explanation available for this question.
-                                                            </p>
-                                                        </div>
-                                                    )}
+                                                        const isUserChoice = normalizedOption.toLowerCase() === normalizedUserAnswer.toLowerCase();
+                                                        const isCorrectChoice = normalizedOption.toLowerCase() === normalizedCorrectAnswer.toLowerCase();
+
+                                                        const showAsCorrect = isCorrectChoice;
+                                                        const showAsWrong = isUserChoice && !isCorrectChoice;
+
+                                                        let optionClasses = "rounded-lg border p-4 transition-colors ";
+                                                        if (showAsCorrect) {
+                                                            optionClasses += "border-success/40 bg-success/10";
+                                                        } else if (showAsWrong) {
+                                                            optionClasses += "border-destructive/40 bg-destructive/10";
+                                                        } else {
+                                                            optionClasses += "border-border bg-muted/40";
+                                                        }
+
+                                                        return (
+                                                            <div key={optionIndex} className={optionClasses}>
+                                                                <div className="flex items-center justify-between gap-3">
+                                                                    <div className="flex flex-1 items-center gap-3">
+                                                                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${showAsCorrect
+                                                                            ? 'bg-success text-white'
+                                                                            : showAsWrong
+                                                                                ? 'bg-destructive text-white'
+                                                                                : 'border border-border bg-muted text-foreground'
+                                                                            }`}>
+                                                                            {String.fromCharCode(65 + optionIndex)}
+                                                                        </div>
+                                                                        <span className="flex-1 text-base font-medium text-foreground">{option}</span>
+                                                                    </div>
+                                                                    {/* Icons and Labels on the right */}
+                                                                    <div className="flex items-center gap-2">
+                                                                        {showAsCorrect && (
+                                                                            <span className="rounded-full bg-success/20 px-3 py-1 text-sm font-semibold text-success">Correct</span>
+                                                                        )}
+                                                                        {isUserChoice && isCorrect && (
+                                                                            <span className="rounded-full bg-success/20 px-3 py-1 text-sm font-semibold text-success">Your Choice</span>
+                                                                        )}
+                                                                        {showAsWrong && (
+                                                                            <span className="rounded-full bg-destructive/20 px-3 py-1 text-sm font-semibold text-destructive">Your Choice</span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+
+                                            {/* Explanation Section */}
+                                            <div className="border-t border-border pt-6">
+                                                <div className="mb-3 flex items-center gap-2">
+                                                    <Lightbulb className="h-5 w-5 text-warning" />
+                                                    <h5 className="font-heading text-lg font-semibold text-foreground">Explanation</h5>
                                                 </div>
-                                            </motion.div>
-                                        );
-                                    })}
-                                </div>
-                            </Card>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </motion.div>
-        </>
+
+                                                {explanation && (typeof explanation === 'string' ? explanation : explanation.explanation) ? (
+                                                    <div className="rounded-lg border border-info/30 bg-info/10 p-4">
+                                                        <p className="whitespace-pre-wrap leading-relaxed text-foreground">
+                                                            {typeof explanation === 'string' ? explanation : explanation.explanation}
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="rounded-lg border border-border bg-muted/40 p-4">
+                                                        <p className="text-sm italic leading-relaxed text-muted-foreground">
+                                                            No explanation available for this question.
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+                        </Card>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
     );
 };
 

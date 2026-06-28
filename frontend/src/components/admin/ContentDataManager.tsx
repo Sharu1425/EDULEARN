@@ -347,7 +347,7 @@ const ContentDataManager: React.FC = () => {
                           <td className="px-4 py-3 text-sm text-foreground">{assessment.subject}</td>
                           <td className="px-4 py-3 text-sm">
                             <span className={`px-2 py-1 rounded-full text-xs ${
-                              assessment.type === 'manual' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'
+                              assessment.type === 'manual' ? 'bg-blue-500/20 text-blue-400' : 'bg-emerald-500/20 text-emerald-400'
                             }`}>
                               {assessment.type}
                             </span>

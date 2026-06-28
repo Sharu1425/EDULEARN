@@ -18,7 +18,7 @@ const AssessmentChoice: React.FC<AssessmentChoiceProps> = ({ }) => {
 
   return (
     <>
-      <div className="min-h-screen pt-20 px-4 relative z-10">
+      <div className="px-4 py-6 sm:px-6">
         <motion.div
           variants={ANIMATION_VARIANTS.fadeIn}
           initial="initial"
@@ -27,8 +27,8 @@ const AssessmentChoice: React.FC<AssessmentChoiceProps> = ({ }) => {
         >
           {/* Header */}
           <motion.div variants={ANIMATION_VARIANTS.slideDown} className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">Choose Your Assessment Type</h1>
-            <p className="text-gray-600 dark:text-gray-300 text-lg">
+            <h1 className="text-4xl font-bold text-foreground mb-4">Choose Your Assessment Type</h1>
+            <p className="text-muted-foreground text-lg">
               Select the type of assessment you'd like to take today
             </p>
           </motion.div>

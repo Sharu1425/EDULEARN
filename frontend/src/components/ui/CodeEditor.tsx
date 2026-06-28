@@ -488,7 +488,7 @@ func main() {
               <button
                 className={`px-4 py-2 text-sm font-medium ${
                   selectedTab === 'debug'
-                    ? 'text-purple-400 border-b-2 border-purple-400'
+                    ? 'text-emerald-400 border-b-2 border-emerald-400'
                     : 'text-gray-400 hover:text-gray-300'
                 }`}
                 onClick={() => setSelectedTab('debug')}
@@ -560,7 +560,7 @@ func main() {
                   </div>
                   <div>
                     <div className="text-sm font-medium text-gray-300 mb-2">Call Stack:</div>
-                    <pre className="bg-gray-900 p-3 rounded text-sm text-purple-400 font-mono">
+                    <pre className="bg-gray-900 p-3 rounded text-sm text-emerald-400 font-mono">
                       {JSON.stringify(callStack, null, 2)}
                     </pre>
                   </div>

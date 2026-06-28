@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom"
 import { useToast } from "../contexts/ToastContext"
 import { useAuth } from "../hooks/useAuth"
 import Card from "../components/ui/Card"
-import AnimatedBackground from "../components/AnimatedBackground"
 import api from "../utils/api"
 import { ANIMATION_VARIANTS } from "../utils/constants"
 import {
@@ -33,7 +32,7 @@ const AssessmentManagement: React.FC = () => {
   // Early return if user is not available
   if (!user) {
     return (
-      <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
+      <div className="flex h-full items-center justify-center p-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">Loading...</h1>
           <p className="text-muted-foreground">Please wait while we load your dashboard.</p>
@@ -81,8 +80,7 @@ const AssessmentManagement: React.FC = () => {
   if (loading) {
     return (
       <>
-        <AnimatedBackground />
-        <div className="min-h-screen pt-20 px-4 flex items-center justify-center relative z-10">
+        <div className="flex h-full items-center justify-center p-6">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-foreground mb-4">Loading Assessment Management...</h1>
             <p className="text-muted-foreground">Please wait while we load your data.</p>
@@ -94,8 +92,7 @@ const AssessmentManagement: React.FC = () => {
 
   return (
     <>
-      <AnimatedBackground />
-      <div className="min-h-screen pt-20 px-4 relative z-10">
+      <div className="px-4 py-6 sm:px-6">
         <motion.div
           variants={ANIMATION_VARIANTS.fadeIn}
           initial="initial"

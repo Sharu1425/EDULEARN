@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Bell, Menu, LogOut, Settings, User as UserIcon, Moon, Sun, Coins, PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import { Bell, Menu, LogOut, Settings, User as UserIcon, Moon, Sun, Coins, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
 import { useTheme } from "../../contexts/ThemeContext"
 import { useNavigate, useLocation, Link } from "react-router-dom"
@@ -115,6 +115,24 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, collapsed = false, onToggl
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 sm:gap-3">
+                    {/* Command palette trigger */}
+                    <button
+                        onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
+                        className="hidden items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground sm:flex"
+                        aria-label="Open command palette"
+                    >
+                        <Search className="h-3.5 w-3.5" />
+                        <span>Search</span>
+                        <kbd className="rounded border border-border bg-background/60 px-1 text-[10px] font-medium">⌘K</kbd>
+                    </button>
+                    <button
+                        onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-primary sm:hidden"
+                        aria-label="Search"
+                    >
+                        <Search className="h-4 w-4" />
+                    </button>
+
                     <motion.button
                         whileHover={{ scale: 1.1, rotate: 15 }}
                         whileTap={{ scale: 0.9 }}
@@ -122,7 +140,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, collapsed = false, onToggl
                         className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-primary"
                         aria-label="Toggle theme"
                     >
-                        {isDark ? <Sun className="h-4 w-4 text-yellow-400" /> : <Moon className="h-4 w-4 text-teal-500" />}
+                        {isDark ? <Sun className="h-4 w-4 text-yellow-400" /> : <Moon className="h-4 w-4 text-emerald-500" />}
                     </motion.button>
 
                     <motion.button
@@ -132,7 +150,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, collapsed = false, onToggl
                         aria-label="Notifications"
                     >
                         <Bell className="h-4 w-4" />
-                        <span className="absolute right-1.5 top-1.5 h-2 w-2 animate-pulse rounded-full border-2 border-background bg-emerald-400" />
+                        <span className="absolute right-1.5 top-1.5 h-2 w-2 animate-pulse rounded-full border-2 border-background bg-teal-400" />
                     </motion.button>
 
                     <motion.div
@@ -162,14 +180,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, collapsed = false, onToggl
                             className="flex items-center gap-3 rounded-full border border-transparent py-1 pl-1 pr-3 transition-all hover:border-border/30 hover:bg-muted/40"
                         >
                             <div className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold uppercase text-white"
-                                style={{ background: "linear-gradient(135deg, #10b981, #14b8a6)" }}>
+                                style={{ background: "linear-gradient(135deg, #10b981, #2dd4bf)" }}>
                                 {(user?.name || user?.username || user?.email || "U")[0]}
                             </div>
                             <div className="hidden flex-col items-start pr-1 md:flex">
                                 <span className="max-w-[110px] truncate text-sm font-semibold leading-tight text-foreground">
                                     {user?.name || user?.username || user?.email?.split("@")[0] || "User"}
                                 </span>
-                                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: isDark ? "#34d399" : "#059669" }}>
+                                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: isDark ? "#10b981" : "#059669" }}>
                                     {user?.role || "Student"}
                                 </span>
                             </div>

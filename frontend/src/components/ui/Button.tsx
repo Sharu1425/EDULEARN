@@ -44,7 +44,7 @@ const Button: React.FC<ButtonProps> = ({
   }
 
   const glowGradient = variant === "glow"
-    ? "bg-gradient-to-r from-[#10b981] via-[#14b8a6] to-[#a78bfa] animate-gradient"
+    ? "bg-gradient-to-r from-[#10b981] via-[#14b8a6] to-[#2dd4bf] animate-gradient"
     : ""
 
   // Restrained specular sweep — only on the filled, high-emphasis variants.

@@ -140,7 +140,7 @@ const CreateSchedule: React.FC = () => {
                     className="w-full max-w-4xl bg-gray-900/60 backdrop-blur-xl border border-gray-800 rounded-3xl overflow-hidden shadow-2xl"
                 >
                     <div className="p-8 md:p-12 border-b border-gray-800">
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-emerald-400 bg-clip-text text-transparent mb-3">
                             Create Course Schedule
                         </h1>
                         <p className="text-gray-400 text-lg">AI-powered schedule generation from your course materials.</p>
@@ -151,8 +151,8 @@ const CreateSchedule: React.FC = () => {
                             {/* Step Indicator */}
                             <div className="flex items-center justify-center mb-12">
                                 <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 ${step >= 1 ? 'border-blue-500 bg-blue-500/20 text-blue-400 shadow-lg shadow-blue-500/20' : 'border-gray-700 bg-gray-800 text-gray-500'} font-bold text-lg transition-all`}>1</div>
-                                <div className={`w-24 h-1 mx-4 rounded-full ${step >= 2 ? 'bg-gradient-to-r from-blue-500 to-purple-500' : 'bg-gray-800'}`} />
-                                <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 ${step >= 2 ? 'border-purple-500 bg-purple-500/20 text-purple-400 shadow-lg shadow-purple-500/20' : 'border-gray-700 bg-gray-800 text-gray-500'} font-bold text-lg transition-all`}>2</div>
+                                <div className={`w-24 h-1 mx-4 rounded-full ${step >= 2 ? 'bg-gradient-to-r from-emerald-500 to-emerald-500' : 'bg-gray-800'}`} />
+                                <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 ${step >= 2 ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400 shadow-lg shadow-emerald-500/20' : 'border-gray-700 bg-gray-800 text-gray-500'} font-bold text-lg transition-all`}>2</div>
                             </div>
 
                             <AnimatePresence mode="wait">
@@ -195,7 +195,7 @@ const CreateSchedule: React.FC = () => {
                                                         name="subject"
                                                         value={formData.subject}
                                                         onChange={handleChange}
-                                                        className="w-full pl-4 pr-10 py-4 bg-black/40 border border-gray-700 rounded-xl focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white appearance-none outline-none transition-all cursor-pointer hover:border-gray-600"
+                                                        className="w-full pl-4 pr-10 py-4 bg-black/40 border border-gray-700 rounded-xl focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white appearance-none outline-none transition-all cursor-pointer hover:border-gray-600"
                                                         required
                                                     >
                                                         <option value="" disabled>Select Subject</option>
@@ -217,7 +217,7 @@ const CreateSchedule: React.FC = () => {
                                                         value={formData.customSubject}
                                                         onChange={handleChange}
                                                         placeholder="Enter custom subject name"
-                                                        className="w-full px-4 py-3 bg-black/40 border border-purple-500/50 rounded-xl focus:border-purple-500 text-white placeholder-gray-600 outline-none"
+                                                        className="w-full px-4 py-3 bg-black/40 border border-emerald-500/50 rounded-xl focus:border-emerald-500 text-white placeholder-gray-600 outline-none"
                                                     />
                                                 )}
                                             </div>
@@ -293,7 +293,7 @@ const CreateSchedule: React.FC = () => {
                                                 variant="primary"
                                                 onClick={() => setStep(2)}
                                                 disabled={!files.handout || !formData.subject || (!formData.subject && !formData.customSubject)}
-                                                className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white px-8 py-3 rounded-xl shadow-lg shadow-blue-500/20 text-lg"
+                                                className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white px-8 py-3 rounded-xl shadow-lg shadow-blue-500/20 text-lg"
                                             >
                                                 Next Step
                                             </Button>
@@ -315,7 +315,7 @@ const CreateSchedule: React.FC = () => {
                                                     name="start_date"
                                                     value={formData.start_date}
                                                     onChange={handleChange}
-                                                    className="w-full px-4 py-4 bg-black/40 border border-gray-700 rounded-xl focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white appearance-none outline-none transition-all cursor-pointer [color-scheme:dark]"
+                                                    className="w-full px-4 py-4 bg-black/40 border border-gray-700 rounded-xl focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white appearance-none outline-none transition-all cursor-pointer [color-scheme:dark]"
                                                     required
                                                 />
                                             </div>
@@ -326,7 +326,7 @@ const CreateSchedule: React.FC = () => {
                                                     name="start_time"
                                                     value={formData.start_time}
                                                     onChange={handleChange}
-                                                    className="w-full px-4 py-4 bg-black/40 border border-gray-700 rounded-xl focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white appearance-none outline-none transition-all cursor-pointer [color-scheme:dark]"
+                                                    className="w-full px-4 py-4 bg-black/40 border border-gray-700 rounded-xl focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white appearance-none outline-none transition-all cursor-pointer [color-scheme:dark]"
                                                     required
                                                 />
                                             </div>
@@ -342,7 +342,7 @@ const CreateSchedule: React.FC = () => {
                                                         onClick={() => handleDayToggle(day)}
                                                         className={`px-6 py-3 rounded-xl text-sm font-medium transition-all duration-200 border transform active:scale-95
                                                         ${formData.days_of_week.includes(day)
-                                                                ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/25 scale-105'
+                                                                ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-500/25 scale-105'
                                                                 : 'bg-black/40 border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white'
                                                             }`}
                                                     >

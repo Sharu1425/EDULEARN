@@ -284,8 +284,8 @@ const AssessmentAnalytics: React.FC<AssessmentAnalyticsProps> = ({ assessmentId,
                       <p className="text-blue-300 text-sm font-medium">Time Limit</p>
                       <p className="text-2xl font-bold text-blue-200">{data.assessment.time_limit}m</p>
                     </div>
-                    <div className="w-10 h-10 bg-purple-500/30 rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-10 h-10 bg-emerald-500/30 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>

@@ -100,7 +100,7 @@ const AssessConfig: React.FC<AssessConfigProps> = () => {
 
   const difficultyOptions = [
     { value: "Very Easy", label: "Very Easy", color: "from-green-400 to-green-600" },
-    { value: "Easy", label: "Easy", color: "from-blue-400 to-blue-600" },
+    { value: "Easy", label: "Easy", color: "from-emerald-400 to-teal-600" },
     { value: "Medium", label: "Medium", color: "from-yellow-400 to-orange-500" },
     { value: "Hard", label: "Hard", color: "from-orange-500 to-red-500" },
     { value: "Very Hard", label: "Very Hard", color: "from-red-500 to-red-700" },
@@ -108,7 +108,7 @@ const AssessConfig: React.FC<AssessConfigProps> = () => {
 
   return (
     <>
-      <div className="min-h-screen pt-20 px-4 relative z-10">
+      <div className="px-4 py-6 sm:px-6">
         <motion.div
           variants={ANIMATION_VARIANTS.scaleIn}
           initial="initial"

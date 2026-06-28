@@ -518,12 +518,12 @@ const StudentLiveRoom: React.FC = () => {
                         >
                             {payload.type === 'fillups' ? (
                                 <div className="text-left w-full max-w-2xl mx-auto">
-                                    <h3 className="text-2xl font-bold mb-6 text-purple-400 text-center">Fill-in-the-Blanks</h3>
+                                    <h3 className="text-2xl font-bold mb-6 text-emerald-400 text-center">Fill-in-the-Blanks</h3>
                                     <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                                         {payload.items.map((item: any, idx: number) => (
-                                            <div key={idx} className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50 hover:border-purple-500/30 transition-all">
+                                            <div key={idx} className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50 hover:border-emerald-500/30 transition-all">
                                                 <p className="font-medium text-lg mb-4 leading-relaxed">
-                                                    <span className="text-purple-400 font-bold mr-2">{idx + 1}.</span>
+                                                    <span className="text-emerald-400 font-bold mr-2">{idx + 1}.</span>
                                                     {item.text.replace(/_+/g, '___________')}
                                                 </p>
                                                 <div className="flex items-center gap-3 group">
@@ -575,7 +575,7 @@ const StudentLiveRoom: React.FC = () => {
                                 </div>
                             ) : (
                                 <>
-                                    <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-purple-400">
+                                    <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-400">
                                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                     </div>
                                     <h2 className="text-xl font-bold text-white mb-2">New Material Shared</h2>
@@ -585,7 +585,7 @@ const StudentLiveRoom: React.FC = () => {
                                         href={payload.url}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 rounded-xl font-bold text-white shadow-lg hover:shadow-purple-500/20 transition-all"
+                                        className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-3 rounded-xl font-bold text-white shadow-lg hover:shadow-emerald-500/20 transition-all"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                         Open / Save

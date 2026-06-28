@@ -143,7 +143,7 @@ const BatchAnalytics: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
+      <div className="flex h-full items-center justify-center p-6">
         <LoadingSpinner size="lg" text="Loading batch analytics..." />
       </div>
     )
@@ -151,7 +151,7 @@ const BatchAnalytics: React.FC = () => {
 
   if (batches.length === 0) {
     return (
-      <div className="min-h-screen pt-20 px-4">
+      <div className="px-4 py-6 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-bold text-foreground mb-8">Batch Analytics</h1>
           <Card className="p-12 text-center">
@@ -165,7 +165,7 @@ const BatchAnalytics: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen pt-20 px-4 pb-8">
+    <div className="px-4 py-6 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -242,7 +242,7 @@ const BatchAnalytics: React.FC = () => {
                       <p className="text-sm text-muted-foreground mb-1">Average Performance</p>
                       <h3 className="text-3xl font-bold text-foreground">{analytics.averagePerformance}%</h3>
                     </div>
-                    <TrendingUp className="h-12 w-12 text-purple-500 opacity-20" />
+                    <TrendingUp className="h-12 w-12 text-emerald-500 opacity-20" />
                   </div>
                 </Card>
               </motion.div>
