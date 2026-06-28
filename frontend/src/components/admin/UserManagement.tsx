@@ -12,6 +12,7 @@ import { useToast } from "../../contexts/ToastContext"
 import api from "../../utils/api"
 import BulkTeacherUploadModal from "./BulkTeacherUploadModal"
 import { BulkTeacherUploadResponse } from "../../api/bulkTeacherService"
+import TeacherPerformanceView from "./TeacherPerformanceView"
 
 interface User {
   id: string
@@ -50,8 +51,7 @@ const UserManagement: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [selectedUser, setSelectedUser] = useState<UserDetails | null>(null)
   const [showUserDetails, setShowUserDetails] = useState(false)
-  const [showCreateUser, setShowCreateUser] = useState(false)
-  const [showBulkImport, setShowBulkImport] = useState(false)
+
   const [showBulkTeacherModal, setShowBulkTeacherModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("")
@@ -59,6 +59,7 @@ const UserManagement: React.FC = () => {
   const [sortOrder, setSortOrder] = useState("desc")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [activeTab, setActiveTab] = useState<"users" | "teacher-performance">("users")
 
   const itemsPerPage = 20
 
@@ -96,28 +97,6 @@ const UserManagement: React.FC = () => {
     }
   }
 
-  // Create user
-  const createUser = async (userData: any) => {
-    try {
-      await api.post("/api/admin/users", userData)
-      success("User created successfully", "The new user has been added to the platform")
-      setShowCreateUser(false)
-      fetchUsers()
-    } catch (err: any) {
-      error("Failed to create user", err.response?.data?.detail || "Unknown error")
-    }
-  }
-
-  // Update user
-  const updateUser = async (userId: string, userData: any) => {
-    try {
-      await api.put(`/api/admin/users/${userId}`, userData)
-      success("User updated successfully", "The user information has been updated")
-      fetchUsers()
-    } catch (err: any) {
-      error("Failed to update user", err.response?.data?.detail || "Unknown error")
-    }
-  }
 
   // Delete user
   const deleteUser = async (userId: string) => {
@@ -163,27 +142,6 @@ const UserManagement: React.FC = () => {
     }
   }
 
-  // Bulk import users
-  const handleBulkImport = async (file: File) => {
-    try {
-      const formData = new FormData()
-      formData.append("file", file)
-
-      const response = await api.post("/api/admin/users/bulk-import", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-
-      success(
-        "Bulk import completed",
-        `Successfully imported ${response.data.success_count} users. ${response.data.error_count} errors occurred.`,
-      )
-
-      setShowBulkImport(false)
-      fetchUsers()
-    } catch (err: any) {
-      error("Failed to import users", err.response?.data?.detail || "Unknown error")
-    }
-  }
 
   useEffect(() => {
     fetchUsers()
@@ -229,14 +187,6 @@ const UserManagement: React.FC = () => {
 
         <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => setShowCreateUser(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <UserPlus className="h-4 w-4" />
-            Add User
-          </button>
-
-          <button
             onClick={() => setShowBulkTeacherModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
@@ -263,7 +213,30 @@ const UserManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Filters and Search */}
+      <div className="flex gap-2 border-b border-border pb-1">
+        <button
+          onClick={() => setActiveTab("users")}
+          className={`px-4 py-2 font-semibold text-sm transition-colors border-b-2 ${
+            activeTab === "users" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          All Users
+        </button>
+        <button
+          onClick={() => setActiveTab("teacher-performance")}
+          className={`px-4 py-2 font-semibold text-sm transition-colors border-b-2 ${
+            activeTab === "teacher-performance" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Teacher Analytics
+        </button>
+      </div>
+
+      {activeTab === "teacher-performance" ? (
+        <TeacherPerformanceView />
+      ) : (
+        <>
+          {/* Filters and Search */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <div className="relative">
@@ -470,6 +443,8 @@ const UserManagement: React.FC = () => {
             Next
           </button>
         </div>
+      )}
+      </>
       )}
 
       {/* User Details Modal */}

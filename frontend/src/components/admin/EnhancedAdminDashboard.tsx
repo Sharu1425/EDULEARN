@@ -11,6 +11,15 @@ import { useToast } from "../../contexts/ToastContext"
 import { useAuth } from "../../hooks/useAuth"
 import UserManagement from "./UserManagement"
 import ContentDataManager from "./ContentDataManager"
+import FeatureIntelligenceView from "./FeatureIntelligenceView"
+import CollusionDetectionView from "./CollusionDetectionView"
+import AIAuditView from "./AIAuditView"
+import AlignmentMapper from "./AlignmentMapper"
+import InfrastructureDashboard from "./InfrastructureDashboard"
+import ROIDashboard from "./ROIDashboard"
+import ComplianceCenter from "./ComplianceCenter"
+import SyntheticDataGenerator from "./SyntheticDataGenerator"
+import InstitutionManager from "./InstitutionManager"
 import SettingsPanel from "./SettingsPanel"
 import Card from "../ui/Card"
 import Badge from "../ui/Badge"
@@ -19,7 +28,8 @@ import ProgressRing from "../ui/ProgressRing"
 import LoadingSpinner from "../ui/LoadingSpinner"
 import { staggerContainer, staggerItem } from "../../lib/motion"
 import api from "../../utils/api"
-import { Users, LayoutGrid, Settings, ShieldCheck, Activity, BrainCircuit, AlertTriangle } from "lucide-react"
+import { trackEvent } from "../../utils/analytics"
+import { Users, LayoutGrid, Settings, ShieldCheck, Activity, BrainCircuit, AlertTriangle, FileText, Server, TrendingUp, Shield, Database, Building2 } from "lucide-react"
 
 interface DashboardStats {
   total_users: number
@@ -37,6 +47,15 @@ interface DashboardStats {
 const TABS = [
   { id: "users", label: "Users", Icon: Users },
   { id: "content", label: "Content", Icon: LayoutGrid },
+  { id: "feature_intel", label: "Feature Intel", Icon: Activity },
+  { id: "integrity", label: "Integrity", Icon: ShieldCheck },
+  { id: "ai_audit", label: "AI Audit", Icon: BrainCircuit },
+  { id: "alignment", label: "Alignment", Icon: FileText },
+  { id: "infrastructure", label: "Infrastructure", Icon: Server },
+  { id: "roi", label: "ROI", Icon: TrendingUp },
+  { id: "compliance", label: "Compliance", Icon: Shield },
+  { id: "data_tools", label: "Data Tools", Icon: Database },
+  { id: "institutions", label: "Institutions", Icon: Building2 },
   { id: "settings", label: "Settings", Icon: Settings },
 ] as const
 
@@ -72,7 +91,7 @@ const TypedText: React.FC<{ text: string; className?: string }> = ({ text, class
 const EnhancedAdminDashboard: React.FC = () => {
   const { user } = useAuth()
   const { error: showError } = useToast()
-  const [activeTab, setActiveTab] = useState<"users" | "content" | "settings">("users")
+  const [activeTab, setActiveTab] = useState<"users" | "content" | "feature_intel" | "integrity" | "ai_audit" | "alignment" | "infrastructure" | "roi" | "compliance" | "data_tools" | "institutions" | "settings">("users")
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -154,7 +173,10 @@ const EnhancedAdminDashboard: React.FC = () => {
         {TABS.map(({ id, label, Icon }) => (
           <button
             key={id}
-            onClick={() => setActiveTab(id)}
+            onClick={() => {
+              setActiveTab(id)
+              trackEvent("feature_engagement", `admin_tab_${id}`)
+            }}
             className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
               activeTab === id ? "bg-primary text-primary-foreground shadow-e2" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
             }`}
@@ -168,6 +190,15 @@ const EnhancedAdminDashboard: React.FC = () => {
       <div className="min-h-[400px]">
         {activeTab === "users" && <motion.div key="users" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><UserManagement /></motion.div>}
         {activeTab === "content" && <motion.div key="content" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><ContentDataManager /></motion.div>}
+        {activeTab === "feature_intel" && <motion.div key="feature_intel" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><FeatureIntelligenceView /></motion.div>}
+        {activeTab === "integrity" && <motion.div key="integrity" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><CollusionDetectionView /></motion.div>}
+        {activeTab === "ai_audit" && <motion.div key="ai_audit" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><AIAuditView /></motion.div>}
+        {activeTab === "alignment" && <motion.div key="alignment" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><AlignmentMapper /></motion.div>}
+        {activeTab === "infrastructure" && <motion.div key="infrastructure" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><InfrastructureDashboard /></motion.div>}
+        {activeTab === "roi" && <motion.div key="roi" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><ROIDashboard /></motion.div>}
+        {activeTab === "compliance" && <motion.div key="compliance" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><ComplianceCenter /></motion.div>}
+        {activeTab === "data_tools" && <motion.div key="data_tools" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><SyntheticDataGenerator /></motion.div>}
+        {activeTab === "institutions" && <motion.div key="institutions" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><InstitutionManager /></motion.div>}
         {activeTab === "settings" && <motion.div key="settings" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><SettingsPanel /></motion.div>}
       </div>
     </motion.div>

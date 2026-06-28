@@ -146,9 +146,15 @@ async def get_all_assessments(
         assessment_list = []
         
         for assessment in assessments:
-            # Get creator name
-            creator = await db.users.find_one({"_id": ObjectId(assessment["created_by"])})
-            creator_name = creator.get("username", creator.get("email", "Unknown")) if creator else "Unknown"
+            # Get creator name safely
+            creator_name = "Unknown"
+            created_by = assessment.get("created_by")
+            if created_by:
+                try:
+                    creator = await db.users.find_one({"_id": ObjectId(str(created_by))})
+                    creator_name = creator.get("username", creator.get("email", "Unknown")) if creator else "Unknown"
+                except Exception:
+                    pass
             
             assessment_list.append({
                 "id": str(assessment["_id"]),
@@ -165,9 +171,15 @@ async def get_all_assessments(
             })
         
         for assessment in teacher_assessments:
-            # Get creator name
-            creator = await db.users.find_one({"_id": ObjectId(assessment["teacher_id"])})
-            creator_name = creator.get("username", creator.get("email", "Unknown")) if creator else "Unknown"
+            # Get creator name safely
+            creator_name = "Unknown"
+            teacher_id = assessment.get("teacher_id")
+            if teacher_id:
+                try:
+                    creator = await db.users.find_one({"_id": ObjectId(str(teacher_id))})
+                    creator_name = creator.get("username", creator.get("email", "Unknown")) if creator else "Unknown"
+                except Exception:
+                    pass
             
             assessment_list.append({
                 "id": str(assessment["_id"]),

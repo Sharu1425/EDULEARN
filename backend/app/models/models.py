@@ -309,4 +309,63 @@ class MasteryProgressModel(BaseModel):
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str}
     )
-
+
+# Advanced Analytics Models
+class CollusionNetworkModel(BaseModel):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    assessment_id: str
+    nodes: List[Dict[str, Any]]
+    links: List[Dict[str, Any]]
+    insights: List[str]
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
+
+class CurriculumMatrixModel(BaseModel):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    assessment_id: str
+    matrix: List[Dict[str, Any]]
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
+
+class ROIMetricsModel(BaseModel):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    institution_id: str
+    score_lift: str
+    learning_velocity: str
+    time_to_competency: str
+    engagement_hours: str
+    projected_scores: List[Dict[str, Any]]
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
+
+class AIAuditModel(BaseModel):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    overall_health: int
+    total_evaluations: int
+    flagged_outputs: int
+    hallucination_rate: float
+    grading_variance: float
+    recent_flags: List[Dict[str, Any]]
+    trends: List[Dict[str, Any]]
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
