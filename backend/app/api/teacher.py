@@ -127,13 +127,25 @@ async def get_batch_overview(current_user: UserModel = Depends(require_teacher_o
         print(f"[DEBUG] [TEACHER] Found {len(batches)} batches")
         
         batch_list = []
+        
+        # Pre-calculate student counts for all fetched batches to avoid N+1 queries
+        batch_ids = [str(b["_id"]) for b in batches]
+        student_counts = {}
+        if batch_ids:
+            pipeline = [
+                {"$match": {"role": "student", "batch_ids": {"$in": batch_ids}}},
+                {"$unwind": "$batch_ids"},
+                {"$match": {"batch_ids": {"$in": batch_ids}}},
+                {"$group": {"_id": "$batch_ids", "count": {"$sum": 1}}}
+            ]
+            counts_cursor = db.users.aggregate(pipeline)
+            counts_data = await counts_cursor.to_list(length=None)
+            for c in counts_data:
+                student_counts[c["_id"]] = c["count"]
+
         for batch in batches:
-            # Count students in this batch (using batch_ids array)
             batch_id_str = str(batch["_id"])
-            student_count = await db.users.count_documents({
-                "batch_ids": batch_id_str,
-                "role": "student"
-            })
+            student_count = student_counts.get(batch_id_str, 0)
             
             # Format created_at
             created_at = batch.get("created_at", datetime.utcnow())
@@ -189,14 +201,50 @@ async def get_students(
         students_cursor = db.users.find(filter_dict)
         students = await students_cursor.to_list(length=1000)
         
-        # Get student performance data
+        # --- Pre-fetch all necessary data to avoid N+1 queries ---
+        
+        student_ids = [s["_id"] for s in students]
+        all_batch_ids_set = set()
+        for s in students:
+            for bid in s.get("batch_ids", []):
+                all_batch_ids_set.add(bid)
+                
+        # 1. Pre-fetch all batch documents
+        batch_docs_map = {}
+        if all_batch_ids_set:
+            valid_batch_obj_ids = []
+            for bid in all_batch_ids_set:
+                if ObjectId.is_valid(bid):
+                    valid_batch_obj_ids.append(ObjectId(bid))
+                valid_batch_obj_ids.append(bid) # Support string IDs too
+                
+            batches_cursor = db.batches.find({"_id": {"$in": valid_batch_obj_ids}})
+            batches_data = await batches_cursor.to_list(length=1000)
+            for b in batches_data:
+                batch_docs_map[str(b["_id"])] = b.get("name", "Unknown")
+
+        # 2. Pre-fetch recent results for progress calculation
+        results_map = {}
+        if student_ids:
+            # We can fetch a lot, but sorting in db helps. Limit to 5000 max.
+            results_cursor = db.results.find({"user_id": {"$in": student_ids}}).sort("submitted_at", -1).limit(5000)
+            all_results = await results_cursor.to_list(length=5000)
+            
+            # Group in memory, max 10 per user
+            for r in all_results:
+                uid = str(r["user_id"])
+                if uid not in results_map:
+                    results_map[uid] = []
+                if len(results_map[uid]) < 10:
+                    results_map[uid].append(r)
+        
+        # --- Process students ---
         student_list = []
         for student in students:
-            # Get student's recent results for progress calculation
-            results_cursor = db.results.find({"user_id": student["_id"]}).sort("submitted_at", -1).limit(10)
-            results = await results_cursor.to_list(length=10)
+            uid_str = str(student["_id"])
             
-            # Calculate progress (average of last 10 scores)
+            # Calculate progress
+            results = results_map.get(uid_str, [])
             if results:
                 progress = sum(r.get("score", 0) for r in results) / len(results)
             else:
@@ -209,33 +257,25 @@ async def get_students(
             else:
                 last_activity = str(last_activity)
             
-            # Get batch info (multi-batch support)
+            # Get batch info
             batch_ids = student.get("batch_ids", [])
             batch_names_list = []
-            
             for bid in batch_ids:
-                # Try to get batch name from database
-                try:
-                    if ObjectId.is_valid(bid):
-                        batch_doc = await db.batches.find_one({"_id": ObjectId(bid)})
-                    else:
-                        batch_doc = await db.batches.find_one({"_id": bid})
-                    if batch_doc:
-                        batch_names_list.append(batch_doc.get("name", "Unknown"))
-                except:
-                    pass
+                if str(bid) in batch_docs_map:
+                    batch_names_list.append(batch_docs_map[str(bid)])
+                    
             batch_name = ", ".join(batch_names_list) if batch_names_list else "No Batch"
             
             student_list.append({
-                "id": str(student["_id"]),
+                "id": uid_str,
                 "name": student.get("full_name") or student.get("username") or student.get("email", "Unknown"),
                 "email": student.get("email", ""),
                 "progress": round(progress, 2) if progress else 0,
                 "lastActive": last_activity,
                 "batch": batch_name,
-                "batchId": batch_ids[0] if batch_ids else None,  # First batch for backward compatibility
-                "batchIds": batch_ids,  # All batches (multi-batch support)
-                "average_score": round(progress, 2) if progress else 0 # Alias for frontend compatibility
+                "batchId": batch_ids[0] if batch_ids else None,
+                "batchIds": batch_ids,
+                "average_score": round(progress, 2) if progress else 0
             })
         
         return {"success": True, "students": student_list}

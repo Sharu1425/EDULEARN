@@ -121,8 +121,8 @@ const TeacherDashboard: React.FC = () => {
     }
   }
 
-  if (!user || loading) {
-    return <div className="flex h-full items-center justify-center p-10"><LoadingSpinner size="lg" text="Loading dashboard…" /></div>
+  if (!user) {
+    return <div className="flex h-full items-center justify-center p-10"><LoadingSpinner size="lg" text="Loading user data…" /></div>
   }
 
   const name = user?.name || user?.username || (user?.email ? user.email.split("@")[0] : "Teacher")
@@ -163,7 +163,7 @@ const TeacherDashboard: React.FC = () => {
 
           <motion.div variants={staggerItem}>
             <Card className="flex h-full flex-col items-center justify-center p-6 text-center">
-              <ProgressRing progress={avgProgress} size={128} />
+              <ProgressRing progress={loading ? 0 : avgProgress} size={128} />
               <p className="mt-3 text-sm text-muted-foreground">Average class progress</p>
             </Card>
           </motion.div>
@@ -171,9 +171,19 @@ const TeacherDashboard: React.FC = () => {
 
         {/* Stat tiles */}
         <motion.div variants={staggerItem} className="grid grid-cols-3 gap-4">
-          <StatTile label="Students" value={students.length} icon={<Users className="h-4 w-4" />} accent="primary" />
-          <StatTile label="Batches" value={selectableBatches.length} icon={<BookOpen className="h-4 w-4" />} accent="secondary" />
-          <StatTile label="Assessments" value={assessmentsCount} icon={<BarChart3 className="h-4 w-4" />} accent="info" />
+          {loading ? (
+            <>
+              <div className="h-32 rounded-2xl bg-muted/60 animate-pulse" />
+              <div className="h-32 rounded-2xl bg-muted/60 animate-pulse" />
+              <div className="h-32 rounded-2xl bg-muted/60 animate-pulse" />
+            </>
+          ) : (
+            <>
+              <StatTile label="Students" value={students.length} icon={<Users className="h-4 w-4" />} accent="primary" />
+              <StatTile label="Batches" value={selectableBatches.length} icon={<BookOpen className="h-4 w-4" />} accent="secondary" />
+              <StatTile label="Assessments" value={assessmentsCount} icon={<BarChart3 className="h-4 w-4" />} accent="info" />
+            </>
+          )}
         </motion.div>
 
         {/* Action tiles */}

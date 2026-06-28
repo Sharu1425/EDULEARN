@@ -187,7 +187,7 @@ const TeacherProfile: React.FC = () => {
     setEditing(false)
   }
 
-  if (loading) {
+  if (!user) {
     return (
       <div className="flex h-full items-center justify-center p-6">
         <LoadingSpinner size="lg" text="Loading profile..." />
@@ -219,45 +219,56 @@ const TeacherProfile: React.FC = () => {
 
         {/* Stats Grid */}
         <motion.div variants={ANIMATION_VARIANTS.slideUp} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Total Students</p>
-                <h3 className="text-3xl font-bold text-foreground">{stats.totalStudents}</h3>
-              </div>
-              <Users className="h-12 w-12 text-primary opacity-30" />
-            </div>
-          </Card>
-
-          <Card className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total Batches</p>
-                  <h3 className="text-3xl font-bold text-foreground">{stats.totalBatches}</h3>
+          {loading ? (
+            <>
+              <div className="h-28 rounded-2xl bg-muted/60 animate-pulse" />
+              <div className="h-28 rounded-2xl bg-muted/60 animate-pulse" />
+              <div className="h-28 rounded-2xl bg-muted/60 animate-pulse" />
+              <div className="h-28 rounded-2xl bg-muted/60 animate-pulse" />
+            </>
+          ) : (
+            <>
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Total Students</p>
+                    <h3 className="text-3xl font-bold text-foreground">{stats.totalStudents}</h3>
+                  </div>
+                  <Users className="h-12 w-12 text-primary opacity-30" />
                 </div>
-                <BookOpen className="h-12 w-12 text-success opacity-30" />
-              </div>
-            </Card>
+              </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Assessments Created</p>
-                  <h3 className="text-3xl font-bold text-foreground">{stats.totalAssessments}</h3>
-              </div>
-              <Award className="h-12 w-12 text-emerald-500 opacity-20" />
-            </div>
-          </Card>
+              <Card className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Total Batches</p>
+                      <h3 className="text-3xl font-bold text-foreground">{stats.totalBatches}</h3>
+                    </div>
+                    <BookOpen className="h-12 w-12 text-success opacity-30" />
+                  </div>
+                </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Avg. Student Score</p>
-                <h3 className="text-3xl font-bold text-foreground">{stats.averageStudentPerformance}%</h3>
-              </div>
-              <TrendingUp className="h-12 w-12 text-accent opacity-30" />
-            </div>
-          </Card>
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Assessments Created</p>
+                      <h3 className="text-3xl font-bold text-foreground">{stats.totalAssessments}</h3>
+                  </div>
+                  <Award className="h-12 w-12 text-emerald-500 opacity-20" />
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Avg. Student Score</p>
+                    <h3 className="text-3xl font-bold text-foreground">{stats.averageStudentPerformance}%</h3>
+                  </div>
+                  <TrendingUp className="h-12 w-12 text-accent opacity-30" />
+                </div>
+              </Card>
+            </>
+          )}
         </motion.div>
 
         <motion.div variants={ANIMATION_VARIANTS.slideUp} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -289,45 +300,56 @@ const TeacherProfile: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Full Name</label>
-                  {editing ? (
-                    <Input
-                      type="text"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full"
-                    />
-                  ) : (
-                    <p className="text-muted-foreground">{fullName || "Not set"}</p>
-                  )}
-                </div>
+                {loading ? (
+                  <>
+                    <div className="h-16 rounded bg-muted/60 animate-pulse" />
+                    <div className="h-16 rounded bg-muted/60 animate-pulse" />
+                    <div className="h-16 rounded bg-muted/60 animate-pulse" />
+                    <div className="h-24 rounded bg-muted/60 animate-pulse" />
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Full Name</label>
+                      {editing ? (
+                        <Input
+                          type="text"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className="w-full"
+                        />
+                      ) : (
+                        <p className="text-muted-foreground">{fullName || "Not set"}</p>
+                      )}
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Email</label>
-                  <p className="text-muted-foreground">{email}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Email</label>
+                      <p className="text-muted-foreground">{email}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Role</label>
-                  <p className="text-muted-foreground capitalize">{user?.role || "Teacher"}</p>
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Role</label>
+                      <p className="text-muted-foreground capitalize">{user?.role || "Teacher"}</p>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Bio</label>
-                  {editing ? (
-                    <textarea
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      placeholder="Tell us about yourself..."
-                      className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
-                      rows={4}
-                    />
-                  ) : (
-                    <p className="text-muted-foreground">{bio || "No bio added yet"}</p>
-                  )}
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Bio</label>
+                      {editing ? (
+                        <textarea
+                          value={bio}
+                          onChange={(e) => setBio(e.target.value)}
+                          placeholder="Tell us about yourself..."
+                          className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
+                          rows={4}
+                        />
+                      ) : (
+                        <p className="text-muted-foreground">{bio || "No bio added yet"}</p>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </Card>
 
@@ -337,7 +359,12 @@ const TeacherProfile: React.FC = () => {
                 <BookOpen className="h-6 w-6" />
                 Recent Assessments
               </h2>
-              {assessments.length === 0 ? (
+              {loading ? (
+                <div className="space-y-3">
+                  <div className="h-20 rounded-lg bg-muted/60 animate-pulse" />
+                  <div className="h-20 rounded-lg bg-muted/60 animate-pulse" />
+                </div>
+              ) : assessments.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No assessments created yet</p>
               ) : (
                 <div className="space-y-3">
@@ -371,7 +398,12 @@ const TeacherProfile: React.FC = () => {
             {/* Managed Batches */}
             <Card className="p-6">
               <h2 className="text-xl font-bold text-foreground mb-4">Managed Batches</h2>
-              {batches.length === 0 ? (
+              {loading ? (
+                <div className="space-y-3">
+                  <div className="h-16 rounded-lg bg-muted/60 animate-pulse" />
+                  <div className="h-16 rounded-lg bg-muted/60 animate-pulse" />
+                </div>
+              ) : batches.length === 0 ? (
                 <p className="text-muted-foreground text-sm">No batches created yet</p>
               ) : (
                 <div className="space-y-3">
@@ -393,7 +425,12 @@ const TeacherProfile: React.FC = () => {
                 <Calendar className="h-5 w-5" />
                 Recent Activity
               </h2>
-              {recentActivity.length === 0 ? (
+              {loading ? (
+                <div className="space-y-3">
+                  <div className="h-14 rounded-lg bg-muted/60 animate-pulse" />
+                  <div className="h-14 rounded-lg bg-muted/60 animate-pulse" />
+                </div>
+              ) : recentActivity.length === 0 ? (
                 <p className="text-muted-foreground text-sm">No recent activity</p>
               ) : (
                 <div className="space-y-3">

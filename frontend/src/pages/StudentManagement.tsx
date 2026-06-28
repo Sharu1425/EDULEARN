@@ -296,17 +296,6 @@ const StudentManagement: React.FC = () => {
     setShowBulkUploadModal(true)
   }
 
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center p-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Loading...</h1>
-          <p className="text-muted-foreground">Please wait while we load your dashboard.</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <>
       <div className="px-4 py-6 sm:px-6">
@@ -329,37 +318,66 @@ const StudentManagement: React.FC = () => {
 
           {/* Statistics */}
           <div className="mb-8">
-            <StudentStats
-              students={students}
-              batches={batches}
-            />
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                 <div className="h-28 rounded-2xl bg-muted/60 animate-pulse" />
+                 <div className="h-28 rounded-2xl bg-muted/60 animate-pulse" />
+                 <div className="h-28 rounded-2xl bg-muted/60 animate-pulse" />
+                 <div className="h-28 rounded-2xl bg-muted/60 animate-pulse" />
+              </div>
+            ) : (
+              <StudentStats
+                students={students}
+                batches={batches}
+              />
+            )}
           </div>
 
           {/* Batches */}
           <div className="mb-8">
-            <BatchGrid
-              batches={batches}
-              onCreateBatch={() => setShowCreateBatch(true)}
-              onBatchClick={(batch) => console.log("Batch clicked:", batch)}
-              onDeleteBatch={handleDeleteBatch}
-              onAddStudentToBatch={(batchId) => setShowAddStudent(batchId)}
-              onBulkUploadToBatch={handleBulkUpload}
-            />
+            {loading ? (
+              <div className="space-y-4">
+                <div className="h-8 w-48 rounded bg-muted/60 animate-pulse" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="h-40 rounded-2xl bg-muted/60 animate-pulse" />
+                  <div className="h-40 rounded-2xl bg-muted/60 animate-pulse" />
+                  <div className="h-40 rounded-2xl bg-muted/60 animate-pulse" />
+                </div>
+              </div>
+            ) : (
+              <BatchGrid
+                batches={batches}
+                onCreateBatch={() => setShowCreateBatch(true)}
+                onBatchClick={(batch) => console.log("Batch clicked:", batch)}
+                onDeleteBatch={handleDeleteBatch}
+                onAddStudentToBatch={(batchId) => setShowAddStudent(batchId)}
+                onBulkUploadToBatch={handleBulkUpload}
+              />
+            )}
           </div>
 
           {/* Students */}
-          <StudentList
-            students={students}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            selectedBatch={selectedBatch}
-            onBatchChange={setSelectedBatch}
-            batches={batches}
-            onStudentClick={handleStudentClick}
-            onAddStudent={(batchId) => setShowAddStudent(batchId)}
-            onRemoveStudent={handleRemoveStudent}
-            onBulkUpload={handleBulkUpload}
-          />
+          <div>
+            {loading ? (
+              <div className="space-y-4">
+                <div className="h-8 w-48 rounded bg-muted/60 animate-pulse" />
+                <div className="h-96 rounded-2xl bg-muted/60 animate-pulse" />
+              </div>
+            ) : (
+              <StudentList
+                students={students}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                selectedBatch={selectedBatch}
+                onBatchChange={setSelectedBatch}
+                batches={batches}
+                onStudentClick={handleStudentClick}
+                onAddStudent={(batchId) => setShowAddStudent(batchId)}
+                onRemoveStudent={handleRemoveStudent}
+                onBulkUpload={handleBulkUpload}
+              />
+            )}
+          </div>
 
           {/* Create Batch Modal */}
           {showCreateBatch && (

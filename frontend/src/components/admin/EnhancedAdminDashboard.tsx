@@ -91,11 +91,11 @@ const EnhancedAdminDashboard: React.FC = () => {
 
   useEffect(() => { if (user) fetchStats() }, [user])
 
-  if (!user || loading) {
+  if (!user) {
     return <div className="flex h-full items-center justify-center p-10"><LoadingSpinner size="lg" text="Loading control center…" /></div>
   }
 
-  const health = Math.round(stats?.platform_health_score ?? 99.9)
+  const health = loading ? 0 : Math.round(stats?.platform_health_score ?? 99.9)
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="mx-auto max-w-7xl space-y-4 px-4 py-6 sm:px-6">
@@ -132,10 +132,21 @@ const EnhancedAdminDashboard: React.FC = () => {
 
       {/* Stat tiles */}
       <motion.div variants={staggerItem} className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile label="Active Today" value={stats?.active_users_today ?? 0} icon={<Activity className="h-4 w-4" />} accent="primary" />
-        <StatTile label="Total Users" value={stats?.total_users ?? 0} icon={<Users className="h-4 w-4" />} accent="secondary" />
-        <StatTile label="Assessments" value={stats?.total_assessments ?? 0} icon={<BrainCircuit className="h-4 w-4" />} accent="info" />
-        <StatTile label="System Alerts" value={stats?.system_alerts ?? 0} icon={<AlertTriangle className="h-4 w-4" />} accent={(stats?.system_alerts ?? 0) > 0 ? "destructive" : "success"} />
+        {loading ? (
+          <>
+            <div className="h-28 rounded-2xl bg-muted/60 animate-pulse" />
+            <div className="h-28 rounded-2xl bg-muted/60 animate-pulse" />
+            <div className="h-28 rounded-2xl bg-muted/60 animate-pulse" />
+            <div className="h-28 rounded-2xl bg-muted/60 animate-pulse" />
+          </>
+        ) : (
+          <>
+            <StatTile label="Active Today" value={stats?.active_users_today ?? 0} icon={<Activity className="h-4 w-4" />} accent="primary" />
+            <StatTile label="Total Users" value={stats?.total_users ?? 0} icon={<Users className="h-4 w-4" />} accent="secondary" />
+            <StatTile label="Assessments" value={stats?.total_assessments ?? 0} icon={<BrainCircuit className="h-4 w-4" />} accent="info" />
+            <StatTile label="System Alerts" value={stats?.system_alerts ?? 0} icon={<AlertTriangle className="h-4 w-4" />} accent={(stats?.system_alerts ?? 0) > 0 ? "destructive" : "success"} />
+          </>
+        )}
       </motion.div>
 
       {/* Tab navigation */}
