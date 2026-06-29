@@ -170,7 +170,7 @@ async def update_topic(
     
     try:
         oid = ObjectId(request.timeslot_id)
-    except:
+    except Exception:
         raise HTTPException(status_code=400, detail="Invalid ID format")
 
     result = await db.timeslots.update_one(

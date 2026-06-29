@@ -137,13 +137,14 @@ const NavItem: React.FC<NavItemProps> = ({ path, label, icon, collapsed, isDark,
 interface SidebarContentProps {
     collapsed: boolean
     isDark: boolean
+    user: UserType | null
     navItems: Array<{ path: string; label: string; icon: string; exact?: boolean }>
     isActive: (path: string, exact?: boolean) => boolean
     /** Present only for the mobile drawer (renders logo + close button). */
     onClose?: () => void
 }
 
-const SidebarContent: React.FC<SidebarContentProps> = ({ collapsed, isDark, navItems, isActive, onClose }) => (
+const SidebarContent: React.FC<SidebarContentProps> = ({ collapsed, isDark, user, navItems, isActive, onClose }) => (
     <>
         {/* Top bar — mobile drawer only (desktop brand + collapse live in the Header) */}
         {onClose && (
@@ -187,8 +188,36 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ collapsed, isDark, navI
             ))}
         </motion.nav>
 
-        {/* Bottom spacer */}
-        <div className="h-4" />
+        {/* Footer — user mini card */}
+        <div className="border-t border-border/40 p-3">
+            <Link
+                to="/profile"
+                onClick={onClose}
+                title={collapsed ? (user?.name || user?.username || "Profile") : undefined}
+                className={cn(
+                    "flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted/50",
+                    collapsed && "justify-center",
+                )}
+            >
+                <span
+                    className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold uppercase text-white"
+                    style={{ background: "linear-gradient(135deg,#10b981,#2dd4bf)" }}
+                >
+                    {(user?.name || user?.username || user?.email || "U")[0]}
+                    <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background bg-success" />
+                </span>
+                {!collapsed && (
+                    <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-foreground">
+                            {user?.name || user?.username || "User"}
+                        </span>
+                        <span className="block truncate text-[11px] capitalize text-muted-foreground">
+                            {user?.role || "student"}
+                        </span>
+                    </span>
+                )}
+            </Link>
+        </div>
     </>
 )
 
@@ -245,6 +274,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user, collapsed, className }) => {
                 <SidebarContent
                     collapsed={collapsed}
                     isDark={isDark}
+                    user={user}
                     navItems={navItems}
                     isActive={isActive}
                 />
@@ -280,6 +310,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user, collapsed, className }) => {
                             <SidebarContent
                                 collapsed={collapsed}
                                 isDark={isDark}
+                                user={user}
                                 navItems={navItems}
                                 isActive={isActive}
                                 onClose={() => setMobileOpen(false)}

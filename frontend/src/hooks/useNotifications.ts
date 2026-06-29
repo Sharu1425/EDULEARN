@@ -40,6 +40,19 @@ interface UseNotificationsReturn {
   refreshNotifications: () => Promise<void>
 }
 
+/** Normalize a backend notification doc (snake_case / varied fields) into the frontend shape. */
+const normalizeNotification = (n: any): Notification => ({
+  id: String(n.id ?? n._id ?? ""),
+  title: n.title ?? "Notification",
+  message: n.message ?? "",
+  type: (n.type ?? n.notification_type ?? "info") as Notification["type"],
+  isRead: Boolean(n.isRead ?? n.is_read ?? n.read ?? false),
+  createdAt: n.createdAt ?? n.created_at ?? n.timestamp ?? new Date().toISOString(),
+  userId: String(n.userId ?? n.user_id ?? ""),
+  assessmentId: n.assessmentId ?? n.assessment_id,
+  batchId: n.batchId ?? n.batch_id,
+})
+
 export const useNotifications = (): UseNotificationsReturn => {
   const { success, error: showError } = useToast()
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -53,13 +66,14 @@ export const useNotifications = (): UseNotificationsReturn => {
       setError(null)
       
       const response = await api.get("/api/notifications/")
-      if (response.data && Array.isArray(response.data)) {
-        setNotifications(response.data)
-        setUnreadCount(response.data.filter((n: Notification) => !n.isRead).length)
-      } else {
-        setNotifications([])
-        setUnreadCount(0)
-      }
+      const data = response.data
+      // Backend returns { notifications: [...], unread_count }; tolerate a bare array too
+      const rawList: any[] = Array.isArray(data) ? data : (data?.notifications ?? [])
+      const list = rawList.map(normalizeNotification)
+      setNotifications(list)
+      const serverUnread =
+        !Array.isArray(data) && typeof data?.unread_count === "number" ? data.unread_count : null
+      setUnreadCount(serverUnread ?? list.filter((n) => !n.isRead).length)
     } catch (err) {
       console.error("Failed to fetch notifications:", err)
       setError("Failed to fetch notifications")
@@ -135,7 +149,7 @@ export const useNotifications = (): UseNotificationsReturn => {
       setLoading(true)
       setError(null)
 
-      const response = await api.post("/api/notifications/read-all")
+      const response = await api.post("/api/notifications/mark-all-read")
       if (response.data) {
         setNotifications(prev => 
           prev.map(notification => ({ ...notification, isRead: true }))

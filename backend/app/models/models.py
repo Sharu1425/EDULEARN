@@ -4,7 +4,7 @@ Contains all MongoDB document models and Pydantic schemas
 """
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from bson import ObjectId
 from enum import Enum
 import bcrypt
@@ -63,7 +63,7 @@ class UserModel(BaseModel):
     role: UserRole = UserRole.student
     profile_picture: Optional[str] = None
     is_active: bool = True
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     last_login: Optional[datetime] = None
     settings: Optional[Dict[str, Any]] = None
     batch_ids: List[str] = Field(default_factory=list)
@@ -100,7 +100,7 @@ class AssessmentModel(BaseModel):
     time_limit: int
     questions: List[Dict[str, Any]]
     created_by: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     is_active: bool = True
     total_questions: int
 
@@ -119,7 +119,7 @@ class NotificationModel(BaseModel):
     message: str
     priority: NotificationPriority = NotificationPriority.normal
     is_read: bool = False
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     read_at: Optional[datetime] = None
 
     model_config = ConfigDict(
@@ -139,7 +139,7 @@ class CodingProblemModel(BaseModel):
     starter_code: str
     reference_solution: Optional[str] = None
     hints: Optional[List[str]] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     created_by: str
     is_active: bool = True
 
@@ -161,7 +161,7 @@ class CodingSolutionModel(BaseModel):
     test_results: List[Dict[str, Any]]
     score: int
     max_score: int
-    submitted_at: datetime = Field(default_factory=datetime.utcnow)
+    submitted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -176,8 +176,8 @@ class CodingSessionModel(BaseModel):
     language: str
     code: str
     cursor_position: int = 0
-    started_at: datetime = Field(default_factory=datetime.utcnow)
-    last_activity: datetime = Field(default_factory=datetime.utcnow)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    last_activity: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     is_active: bool = True
 
     model_config = ConfigDict(
@@ -196,7 +196,7 @@ class CodingAnalyticsModel(BaseModel):
     average_time: float = 0.0
     success_rate: float = 0.0
     language_stats: Dict[str, int] = {}
-    last_updated: datetime = Field(default_factory=datetime.utcnow)
+    last_updated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -232,7 +232,7 @@ class ThinkTraceSessionModel(BaseModel):
     improvement_suggestions: Optional[List[str]] = None
     teacher_notes: Optional[Dict[str, Any]] = None
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = None
 
     model_config = ConfigDict(
@@ -246,8 +246,8 @@ class ActiveSessionModel(BaseModel):
     assessment_id: str
     student_id: str
     session_token: str
-    started_at: datetime = Field(default_factory=datetime.utcnow)
-    last_heartbeat: datetime = Field(default_factory=datetime.utcnow)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    last_heartbeat: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     is_active: bool = True
 
     model_config = ConfigDict(
@@ -266,7 +266,7 @@ class TransactionModel(BaseModel):
     amount: int                             # Always positive
     reason: str                             # e.g. "signup_bonus", "quiz_attempt"
     balance_after: int                      # Snapshot of balance after this transaction
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -280,7 +280,7 @@ class MasteryRoadmapModel(BaseModel):
     user_id: str
     subject: str
     topics: List[Dict[str, Any]]
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -317,7 +317,7 @@ class CollusionNetworkModel(BaseModel):
     nodes: List[Dict[str, Any]]
     links: List[Dict[str, Any]]
     insights: List[str]
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -329,7 +329,7 @@ class CurriculumMatrixModel(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     assessment_id: str
     matrix: List[Dict[str, Any]]
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -345,7 +345,7 @@ class ROIMetricsModel(BaseModel):
     time_to_competency: str
     engagement_hours: str
     projected_scores: List[Dict[str, Any]]
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -362,10 +362,10 @@ class AIAuditModel(BaseModel):
     grading_variance: float
     recent_flags: List[Dict[str, Any]]
     trends: List[Dict[str, Any]]
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str}
-    )
+    )

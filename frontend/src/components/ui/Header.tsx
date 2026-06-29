@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Bell, Menu, LogOut, Settings, User as UserIcon, Moon, Sun, Coins, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react"
+import { Menu, LogOut, Settings, User as UserIcon, Moon, Sun, Coins, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
 import { useTheme } from "../../contexts/ThemeContext"
 import { useNavigate, useLocation, Link } from "react-router-dom"
@@ -11,6 +11,8 @@ import { useCountUp } from "../../hooks/useCountUp"
 import { getPageTitle } from "../../lib/pageTitles"
 import { useHeaderTitleOverride } from "../../contexts/HeaderTitleContext"
 import Lanyard from "./Lanyard"
+import NotificationsMenu from "./NotificationsMenu"
+import Tooltip from "./Tooltip"
 
 interface HeaderProps {
     onMenuClick?: () => void
@@ -134,25 +136,19 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, collapsed = false, onToggl
                         <Search className="h-4 w-4" />
                     </button>
 
-                    <motion.button
-                        whileHover={{ scale: 1.1, rotate: 15 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={toggleColorScheme}
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-primary"
-                        aria-label="Toggle theme"
-                    >
-                        {isDark ? <Sun className="h-4 w-4 text-yellow-400" /> : <Moon className="h-4 w-4 text-emerald-500" />}
-                    </motion.button>
+                    <Tooltip label={isDark ? "Light mode" : "Dark mode"}>
+                        <motion.button
+                            whileHover={{ scale: 1.1, rotate: 15 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={toggleColorScheme}
+                            className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-primary"
+                            aria-label="Toggle theme"
+                        >
+                            {isDark ? <Sun className="h-4 w-4 text-yellow-400" /> : <Moon className="h-4 w-4 text-emerald-500" />}
+                        </motion.button>
+                    </Tooltip>
 
-                    <motion.button
-                        whileHover={{ scale: 1.1, rotate: [0, -10, 8, -4, 0] }}
-                        whileTap={{ scale: 0.9 }}
-                        className="relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-primary"
-                        aria-label="Notifications"
-                    >
-                        <Bell className="h-4 w-4" />
-                        <span className="absolute right-1.5 top-1.5 h-2 w-2 animate-pulse rounded-full border-2 border-background bg-teal-400" />
-                    </motion.button>
+                    <NotificationsMenu />
 
                     {user?.role === "student" && (
                         <motion.div

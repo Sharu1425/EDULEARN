@@ -422,7 +422,7 @@ async def get_all_questions(
                         teacher_id = ObjectId(teacher_id)
                     teacher = await db.users.find_one({"_id": teacher_id})
                     teacher_name = teacher.get("username", teacher.get("email", "Unknown")) if teacher else "Unknown"
-                except:
+                except Exception:
                     teacher_name = "Unknown"
             
             question_list.append({
@@ -793,7 +793,7 @@ async def get_all_results(
                             student_id = ObjectId(student_id)
                         student = await db.users.find_one({"_id": student_id})
                         student_name = student.get("full_name", student.get("username", student.get("email", "Unknown"))) if student else "Unknown"
-                    except:
+                    except Exception:
                         student_name = "Unknown"
                 
                 # Get assessment info - handle ObjectId conversion safely
@@ -805,7 +805,7 @@ async def get_all_results(
                             assessment_id = ObjectId(assessment_id)
                         assessment = await db.assessments.find_one({"_id": assessment_id})
                         assessment_title = assessment.get("title", "Unknown") if assessment else "Unknown"
-                    except:
+                    except Exception:
                         assessment_title = "Unknown"
                 
                 # Handle submitted_at
@@ -843,7 +843,7 @@ async def get_all_results(
                             student_id = ObjectId(student_id)
                         student = await db.users.find_one({"_id": student_id})
                         student_name = student.get("full_name", student.get("username", student.get("email", "Unknown"))) if student else "Unknown"
-                    except:
+                    except Exception:
                         student_name = "Unknown"
                 
                 # Get assessment info - handle ObjectId conversion safely
@@ -855,7 +855,7 @@ async def get_all_results(
                             assessment_id = ObjectId(assessment_id)
                         assessment = await db.teacher_assessments.find_one({"_id": assessment_id})
                         assessment_title = assessment.get("title", "Unknown") if assessment else "Unknown"
-                    except:
+                    except Exception:
                         assessment_title = "Unknown"
                 
                 # Handle submitted_at

@@ -314,7 +314,7 @@ class CodingServiceMixin:
         # Parse input based on format
         try:
             input_data = json.loads(input_str)
-        except:
+        except Exception:
             input_data = input_str
 
         # Call your function

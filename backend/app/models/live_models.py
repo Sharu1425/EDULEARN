@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any, Union
-from datetime import datetime
+from datetime import datetime, timezone
 from bson import ObjectId
 from enum import Enum
 from .models import PyObjectId
@@ -72,7 +72,7 @@ class LiveSession(BaseModel):
     active_content_payload: Dict[str, Any] = {}
     session_code: str
     batch_id: str # Denormalized for easier lookup
-    started_at: datetime = Field(default_factory=datetime.utcnow)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     is_published: bool = False
     
     model_config = ConfigDict(

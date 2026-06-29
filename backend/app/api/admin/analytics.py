@@ -3,6 +3,7 @@ from datetime import timezone
 Admin Analytics and Statistics
 Handles platform analytics, system health, and performance metrics
 """
+import asyncio
 from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
@@ -37,39 +38,38 @@ async def get_platform_stats(current_user: UserModel = Depends(require_admin)):
     """Get comprehensive platform statistics"""
     try:
         db = await get_db()
-        
-        # Get user counts
-        total_users = await db.users.count_documents({})
-        total_students = await db.users.count_documents({"role": "student"})
-        total_teachers = await db.users.count_documents({"role": "teacher"})
-        
-        # Get assessment counts
-        total_assessments = await db.assessments.count_documents({})
-        teacher_assessments = await db.teacher_assessments.count_documents({})
-        total_assessments += teacher_assessments
-        
-        # Get submission counts
-        total_submissions = await db.assessment_submissions.count_documents({})
-        teacher_submissions = await db.teacher_assessment_results.count_documents({})
-        total_submissions += teacher_submissions
-        
-        # Get active users today
+
         today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-        active_users_today = await db.users.count_documents({
-            "last_login": {"$gte": today}
-        })
-        
-        # Calculate platform uptime (simplified)
-        platform_uptime = "99.9%"  # In production, calculate actual uptime
-        
+
+        # Run all independent counts concurrently instead of sequentially
+        (
+            total_users,
+            total_students,
+            total_teachers,
+            assessments_count,
+            teacher_assessments_count,
+            submissions_count,
+            teacher_submissions_count,
+            active_users_today,
+        ) = await asyncio.gather(
+            db.users.count_documents({}),
+            db.users.count_documents({"role": "student"}),
+            db.users.count_documents({"role": "teacher"}),
+            db.assessments.count_documents({}),
+            db.teacher_assessments.count_documents({}),
+            db.assessment_submissions.count_documents({}),
+            db.teacher_assessment_results.count_documents({}),
+            db.users.count_documents({"last_login": {"$gte": today}}),
+        )
+
         return PlatformStatsResponse(
             total_users=total_users,
             total_students=total_students,
             total_teachers=total_teachers,
-            total_assessments=total_assessments,
-            total_submissions=total_submissions,
+            total_assessments=assessments_count + teacher_assessments_count,
+            total_submissions=submissions_count + teacher_submissions_count,
             active_users_today=active_users_today,
-            platform_uptime=platform_uptime
+            platform_uptime="99.9%",  # In production, calculate actual uptime
         )
         
     except Exception as e:

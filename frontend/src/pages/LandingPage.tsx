@@ -3,146 +3,8 @@ import { useEffect, useState, useRef, useMemo } from "react"
 import { Link } from "react-router-dom"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { Sparkles as SparklesIcon, Brain, Code2, LineChart, Users, ChevronRight, Shield, Rocket, ArrowRight } from "lucide-react"
-import { Canvas, useFrame, useThree } from "@react-three/fiber"
-import { Environment, Float, MeshDistortMaterial, Stars, Icosahedron, Dodecahedron, Sphere, Torus } from "@react-three/drei"
-import * as THREE from "three"
-
-/* ─── 3D Scene Components ──────────────────────────────── */
-
-// Makes the camera slightly follow the mouse for a premium parallax effect
-const CameraRig = () => {
-  const { camera, mouse } = useThree()
-  useFrame(() => {
-    // Subtle movement based on mouse
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouse.x * 2, 0.05)
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, mouse.y * 2, 0.05)
-    camera.lookAt(0, 0, 0)
-  })
-  return null
-}
-
-const ElectronRing = ({ rotation, speed, color }: any) => {
-  const ref = useRef<THREE.Group>(null)
-  useFrame(({ clock }) => {
-    if (ref.current) {
-      ref.current.rotation.z = clock.getElapsedTime() * speed
-    }
-  })
-  return (
-    <group rotation={rotation}>
-      <Torus args={[2, 0.015, 16, 100]}>
-        <meshStandardMaterial color={color} opacity={0.2} transparent />
-      </Torus>
-      <group ref={ref}>
-        <Sphere args={[0.12, 16, 16]} position={[2, 0, 0]}>
-          <MeshDistortMaterial color={color} emissive={color} emissiveIntensity={2} clearcoat={1} roughness={0} distort={0.2} speed={5} />
-        </Sphere>
-      </group>
-    </group>
-  )
-}
-
-const ScienceAtom = () => {
-  return (
-    <group>
-      {/* Central Core */}
-      <Float speed={2} rotationIntensity={2} floatIntensity={1}>
-        <Sphere args={[0.6, 64, 64]}>
-          <MeshDistortMaterial color="#10b981" distort={0.3} speed={3} transmission={0.9} thickness={1} roughness={0.1} ior={1.5} emissive="#10b981" emissiveIntensity={0.2} />
-        </Sphere>
-      </Float>
-      {/* Orbital Rings */}
-      <ElectronRing rotation={[Math.PI / 2, 0, 0]} speed={1} color="#3b82f6" />
-      <ElectronRing rotation={[Math.PI / 2, Math.PI / 3, 0]} speed={1.5} color="#10b981" />
-      <ElectronRing rotation={[Math.PI / 2, -Math.PI / 3, 0]} speed={1.2} color="#14b8a6" />
-    </group>
-  )
-}
-
-const AbstractBook = () => {
-  const ref = useRef<THREE.Group>(null)
-  useFrame((state) => {
-    if (ref.current) {
-      // Gentle page breathing effect
-      const breathe = Math.sin(state.clock.elapsedTime * 2) * 0.05
-      const leftPage = ref.current.children[0]
-      const rightPage = ref.current.children[1]
-      leftPage.rotation.y = 0.2 + breathe
-      rightPage.rotation.y = -0.2 - breathe
-    }
-  })
-
-  return (
-    <group ref={ref} rotation={[0.4, 0.8, -0.2]}>
-      {/* Left Page */}
-      <mesh position={[-1, 0, 0]} rotation={[0, 0.2, 0]}>
-        <boxGeometry args={[2, 0.05, 2.5]} />
-        <MeshDistortMaterial color="#14b8a6" transmission={0.9} thickness={0.5} roughness={0.1} distort={0.1} speed={1} />
-      </mesh>
-      {/* Right Page */}
-      <mesh position={[1, 0, 0]} rotation={[0, -0.2, 0]}>
-        <boxGeometry args={[2, 0.05, 2.5]} />
-        <MeshDistortMaterial color="#3b82f6" transmission={0.9} thickness={0.5} roughness={0.1} distort={0.1} speed={1} />
-      </mesh>
-      {/* Spine / Binding */}
-      <mesh position={[0, -0.05, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.1, 0.1, 2.5, 16]} />
-        <meshStandardMaterial color="#ffffff" metalness={0.9} roughness={0.1} emissive="#ffffff" emissiveIntensity={0.1} />
-      </mesh>
-    </group>
-  )
-}
-
-const EducationalScene = () => {
-  const groupRef = useRef<THREE.Group>(null)
-
-  useFrame(() => {
-    if (groupRef.current) {
-      // Scroll interaction: vertical parallax and dynamic rotation
-      const scrollY = window.scrollY
-      groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, scrollY * 0.005, 0.1)
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, scrollY * 0.002, 0.1)
-    }
-  })
-
-  return (
-    <group ref={groupRef}>
-      {/* Pushed further out to prevent overlapping the centered text */}
-      
-      {/* The Atom (Science / Physics) */}
-      <group position={[6.5, 0.5, -5]}>
-        <Float speed={1.5} rotationIntensity={0.5} floatIntensity={1}>
-          <ScienceAtom />
-        </Float>
-      </group>
-
-      {/* The Book (Humanities / Literature) */}
-      <group position={[-6.5, -1, -5]}>
-        <Float speed={2} rotationIntensity={1} floatIntensity={2}>
-          <AbstractBook />
-        </Float>
-      </group>
-
-      {/* Dodecahedron (Mathematics / Geometry) */}
-      <group position={[-5, 3, -6]}>
-        <Float speed={2.5} rotationIntensity={2} floatIntensity={1.5}>
-          <Dodecahedron args={[1, 0]}>
-            <MeshDistortMaterial color="#10b981" transmission={0.9} thickness={1} roughness={0.1} distort={0.2} />
-          </Dodecahedron>
-        </Float>
-      </group>
-
-      {/* Icosahedron (Data / Logic) */}
-      <group position={[5, -3, -6]}>
-        <Float speed={2} rotationIntensity={1.5} floatIntensity={2}>
-          <Icosahedron args={[0.8, 0]}>
-            <MeshDistortMaterial color="#3b82f6" transmission={0.9} thickness={0.5} roughness={0.1} distort={0.3} />
-          </Icosahedron>
-        </Float>
-      </group>
-    </group>
-  )
-}
+import { Canvas } from "@react-three/fiber"
+import { Stars } from "@react-three/drei"
 
 /* ─── Shared Glow & Noise Effects ────────────────────────── */
 const NoiseBackground = () => (
@@ -225,17 +87,15 @@ const LandingPage = () => {
     <div className="min-h-screen bg-[#050505] selection:bg-emerald-500/30 text-white overflow-x-hidden font-sans relative">
       <NoiseBackground />
 
-      {/* ── Fixed 3D Background ── */}
+      {/* ── Fixed 3D Background (non-interactive star field) ── */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <Canvas camera={{ position: [0, 0, 8], fov: 45 }} dpr={[1, 2]}>
+        <Canvas camera={{ position: [0, 0, 8], fov: 45 }} dpr={[1, 1.5]} frameloop="always">
           <ambientLight intensity={0.5} />
-          <directionalLight position={[10, 10, 5]} intensity={2} color="#10b981" />
-          <directionalLight position={[-10, -10, -5]} intensity={1} color="#3b82f6" />
-          <Environment preset="city" />
-          <CameraRig />
-          <EducationalScene />
-          <Stars radius={100} depth={50} count={4000} factor={4} saturation={0} fade speed={1.5} />
+          <Stars radius={100} depth={50} count={3500} factor={4} saturation={0} fade speed={0.8} />
         </Canvas>
+        {/* Soft brand glow accents behind content */}
+        <div className="absolute top-[-10%] left-[-5%] h-[40rem] w-[40rem] rounded-full bg-emerald-500/10 blur-[140px]" />
+        <div className="absolute bottom-[-10%] right-[-5%] h-[36rem] w-[36rem] rounded-full bg-teal-500/10 blur-[140px]" />
       </div>
 
       {/* ── Navbar ───────────────────────────────────────── */}
@@ -249,9 +109,9 @@ const LandingPage = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/70">
+            <a href="#highlights" className="hover:text-emerald-400 transition-colors">Highlights</a>
             <a href="#features" className="hover:text-emerald-400 transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-emerald-400 transition-colors">How it Works</a>
-            <a href="#testimonials" className="hover:text-emerald-400 transition-colors">Testimonials</a>
           </div>
 
           <div className="flex items-center gap-3 pr-2">
@@ -322,20 +182,44 @@ const LandingPage = () => {
           </motion.div>
 
         </div>
+
+        {/* Scroll cue */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40 pointer-events-none"
+        >
+          <span className="text-[10px] uppercase tracking-[0.3em]">Scroll</span>
+          <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
+            <ChevronRight className="w-5 h-5 rotate-90" />
+          </motion.div>
+        </motion.div>
       </section>
 
-      {/* ── Logos Section ────────────────────────────────── */}
-      <section className="py-10 border-y border-white/5 bg-black/40 backdrop-blur-sm relative z-20">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col items-center">
-          <p className="text-sm font-semibold text-white/40 uppercase tracking-widest mb-6">Trusted by Forward-Thinking Institutions</p>
-          <div className="flex flex-wrap justify-center gap-12 sm:gap-24 opacity-50 grayscale transition-all hover:grayscale-0 hover:opacity-100">
-            {/* Mock Logos */}
-            {['MIT', 'Stanford', 'Harvard', 'Oxford', 'Cambridge'].map((uni) => (
-              <span key={uni} className="text-2xl font-bold tracking-tight text-white hover:text-emerald-400 transition-colors cursor-default drop-shadow-md">
-                {uni}
-              </span>
-            ))}
-          </div>
+      {/* ── Highlights Band ──────────────────────────────── */}
+      <section id="highlights" className="py-14 border-y border-white/5 bg-black/40 backdrop-blur-sm relative z-20">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
+          {[
+            { stat: "15+", label: "Languages supported" },
+            { stat: "Gemini", label: "AI-powered engine" },
+            { stat: "Real-time", label: "Code execution" },
+            { stat: "Adaptive", label: "Mastery paths" },
+          ].map((item, i) => (
+            <motion.div
+              key={item.label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="text-center"
+            >
+              <div className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 drop-shadow">
+                {item.stat}
+              </div>
+              <div className="mt-2 text-sm text-white/50 font-medium">{item.label}</div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
@@ -399,6 +283,59 @@ const LandingPage = () => {
               desc="Built on modern cloud architecture to handle thousands of concurrent test-takers without breaking a sweat."
               delay={0.5}
             />
+          </div>
+        </div>
+      </section>
+
+      {/* ── How It Works ─────────────────────────────────── */}
+      <section id="how-it-works" className="py-32 relative z-20 bg-[#050505]">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-4xl md:text-6xl font-black mb-6 drop-shadow-lg"
+            >
+              From sign-up to{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">mastery</span>.
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-lg text-white/60"
+            >
+              Three steps to a smarter way of learning.
+            </motion.p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { n: "01", icon: SparklesIcon, title: "Create your account", desc: "Sign up free in seconds and tell us what you want to learn." },
+              { n: "02", icon: Brain, title: "Practice & assess", desc: "Take AI-generated MCQs, solve coding challenges, and sit adaptive ThinkTrace interviews." },
+              { n: "03", icon: LineChart, title: "Track & master", desc: "Personalized analytics and topic-mastery paths guide every next step." },
+            ].map((step, i) => (
+              <motion.div
+                key={step.n}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.6, delay: i * 0.12 }}
+                className="group relative rounded-3xl border border-white/10 bg-[#09090b]/80 backdrop-blur-xl p-8 overflow-hidden"
+              >
+                <div className="absolute -inset-x-12 -top-12 h-32 w-32 bg-emerald-500/20 blur-[50px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-5xl font-black text-white/10">{step.n}</span>
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center border border-emerald-500/30 group-hover:scale-110 transition-transform duration-500">
+                    <step.icon className="h-6 w-6 text-emerald-400" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-emerald-400 transition-colors duration-300">{step.title}</h3>
+                <p className="text-white/60 text-sm leading-relaxed">{step.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>

@@ -92,7 +92,7 @@ class AssessmentAnalytics(BaseModel):
     average_time: float = 0.0
     difficulty_distribution: Dict[str, int] = {}
     question_analytics: Dict[str, Any] = {}
-    last_updated: datetime = Field(default_factory=datetime.utcnow)
+    last_updated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UnifiedAssessmentModel(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
@@ -124,8 +124,8 @@ class UnifiedAssessmentModel(BaseModel):
     
     # Metadata
     created_by: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     published_at: Optional[datetime] = None
     
     # Analytics
@@ -239,8 +239,8 @@ class BatchModel(BaseModel):
     name: str
     description: Optional[str] = None
     created_by: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     # Students
     student_ids: List[str] = []

@@ -254,7 +254,7 @@ class HealthCheckService:
             minutes = int((uptime_seconds % 3600) // 60)
             
             return f"{days}d {hours}h {minutes}m"
-        except:
+        except Exception:
             return "unknown"
 
 # Health check endpoints

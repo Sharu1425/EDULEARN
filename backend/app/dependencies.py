@@ -139,7 +139,7 @@ async def get_optional_current_user(credentials: Optional[HTTPAuthorizationCrede
         if not credentials:
             return None
         return await get_current_user(credentials)
-    except:
+    except Exception:
         return None
 
 # Role-based access control dependencies

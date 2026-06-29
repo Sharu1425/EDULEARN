@@ -24,6 +24,7 @@ from .thinktrace import router as thinktrace_router
 from .livesession import router as livesession_router
 from .credits import router as credits_router
 from .mastery import router as mastery_router
+from .health import router as health_router
 
 # Create main API router
 api_router = APIRouter(prefix="/api")
@@ -47,5 +48,6 @@ api_router.include_router(thinktrace_router, prefix="/thinktrace", tags=["ThinkT
 api_router.include_router(livesession_router, prefix="/livesession", tags=["LiveSession"])
 api_router.include_router(credits_router, prefix="/credits", tags=["Credits"])
 api_router.include_router(mastery_router, prefix="/mastery", tags=["Mastery"])
+api_router.include_router(health_router, tags=["Health Checks"])
 
 __all__ = ["api_router"]

@@ -79,7 +79,7 @@ async def start_session(
                 timeslot = await db.timeslots.find_one({"_id": ObjectId(request.timeslot_id)})
                 if timeslot:
                     topic_name = timeslot.get("topic", "Live Session")
-            except:
+            except Exception:
                 pass
                 
         # Find students in batch
@@ -165,7 +165,7 @@ async def publish_session(
                 timeslot = await db.timeslots.find_one({"_id": ObjectId(session.get("timeslot_id"))})
                 if timeslot:
                     topic_name = timeslot.get("topic", "Live Session")
-            except:
+            except Exception:
                 pass
                 
         # Find students in batch

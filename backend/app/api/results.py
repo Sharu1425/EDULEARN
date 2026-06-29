@@ -114,18 +114,29 @@ async def get_user_results(
             ))
         
         # Get from db.assessment_submissions collection (current regular assessments)
-        submission_results_cursor = db.assessment_submissions.find({"student_id": user_id}).sort("submitted_at", -1)
-        submission_results = await submission_results_cursor.to_list(length=None)
-        
+        submission_results = await db.assessment_submissions.find(
+            {"student_id": user_id}
+        ).sort("submitted_at", -1).to_list(length=None)
+
+        # Batch-fetch referenced assessments once (avoids an N+1 find_one per submission)
+        sub_assessment_oids = [
+            ObjectId(str(r["assessment_id"]))
+            for r in submission_results
+            if r.get("assessment_id") and ObjectId.is_valid(str(r["assessment_id"]))
+        ]
+        assessments_map: dict = {}
+        if sub_assessment_oids:
+            for a in await db.assessments.find({"_id": {"$in": sub_assessment_oids}}).to_list(length=None):
+                assessments_map[str(a["_id"])] = a
+
         for result in submission_results:
-            # Get assessment details
-            assessment = await db.assessments.find_one({"_id": ObjectId(result["assessment_id"])})
+            assessment = assessments_map.get(str(result.get("assessment_id")))
             assessment_title = assessment.get("title", "Assessment") if assessment else "Assessment"
-            
+
             score = result.get("score", 0)
             total_questions = result.get("total_questions", 0)
             percentage = (score / total_questions * 100) if total_questions > 0 else 0
-            
+
             results.append(TestResult(
                 id=str(result["_id"]),
                 test_name=assessment_title,
@@ -140,36 +151,40 @@ async def get_user_results(
                 time_taken=result.get("time_taken", 0),
                 date=result.get("submitted_at", datetime.now(timezone.utc))
             ))
-        
+
         # Get from db.teacher_assessment_results collection (teacher-assigned assessments)
         try:
-            teacher_results_cursor = db.teacher_assessment_results.find({"student_id": user_id}).sort("submitted_at", -1)
-            teacher_results = await teacher_results_cursor.to_list(length=None)
+            teacher_results = await db.teacher_assessment_results.find(
+                {"student_id": user_id}
+            ).sort("submitted_at", -1).to_list(length=None)
         except Exception:
             teacher_results = []
+
+        # Batch-fetch referenced assessments from both collections once (avoids up to 2 find_one per result)
+        t_assessment_oids = [
+            ObjectId(str(r["assessment_id"]))
+            for r in teacher_results
+            if r.get("assessment_id") and ObjectId.is_valid(str(r["assessment_id"]))
+        ]
+        t_assessments_map: dict = {}
+        if t_assessment_oids:
+            for a in await db.teacher_assessments.find({"_id": {"$in": t_assessment_oids}}).to_list(length=None):
+                t_assessments_map[str(a["_id"])] = a
+            missing = [oid for oid in t_assessment_oids if str(oid) not in t_assessments_map]
+            if missing:
+                for a in await db.assessments.find({"_id": {"$in": missing}}).to_list(length=None):
+                    t_assessments_map[str(a["_id"])] = a
+
         for t_result in teacher_results:
             score = t_result.get("score", 0)
             total_questions = t_result.get("total_questions", 0)
             percentage = (score / total_questions * 100) if total_questions > 0 else 0
-            # Try to enrich with assessment info
-            title = "Assessment"
-            topic = ""
-            difficulty = "medium"
-            assessment_id = t_result.get("assessment_id")
-            if assessment_id:
-                try:
-                    assessment = await db.teacher_assessments.find_one({"_id": ObjectId(assessment_id)})
-                except Exception:
-                    assessment = None
-                if not assessment:
-                    try:
-                        assessment = await db.assessments.find_one({"_id": ObjectId(assessment_id)})
-                    except Exception:
-                        assessment = None
-                if assessment:
-                    title = assessment.get("title", title)
-                    topic = assessment.get("topic", assessment.get("subject", topic))
-                    difficulty = assessment.get("difficulty", difficulty)
+
+            assessment = t_assessments_map.get(str(t_result.get("assessment_id")))
+            title = assessment.get("title", "Assessment") if assessment else "Assessment"
+            topic = assessment.get("topic", assessment.get("subject", "")) if assessment else ""
+            difficulty = assessment.get("difficulty", "medium") if assessment else "medium"
+
             results.append(TestResult(
                 id=str(t_result["_id"]),
                 test_name=title,

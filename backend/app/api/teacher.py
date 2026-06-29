@@ -1313,15 +1313,25 @@ async def get_teacher_assessment_results(
         }).sort("submitted_at", -1)
         
         raw_results = await results_cursor.to_list(length=None)
-        
+
+        # Batch-fetch student info once (avoids an N+1 find_one per result)
+        student_oids = [
+            ObjectId(str(r["student_id"]))
+            for r in raw_results
+            if r.get("student_id") and ObjectId.is_valid(str(r["student_id"]))
+        ]
+        students_map: dict = {}
+        if student_oids:
+            for s in await db.users.find({"_id": {"$in": student_oids}}).to_list(length=None):
+                students_map[str(s["_id"])] = s
+
         # Format results with student information
         results = []
         for result in raw_results:
-            # Get student info
-            student = await db.users.find_one({"_id": ObjectId(result["student_id"])})
+            student = students_map.get(str(result.get("student_id")))
             student_name = "Unknown Student"
             student_email = ""
-            
+
             if student:
                 student_name = student.get("full_name") or student.get("username") or student.get("email", "Unknown Student")
                 student_email = student.get("email", "")
@@ -1333,7 +1343,7 @@ async def get_teacher_assessment_results(
                 problem_idx = int(result["problem_id"]) - 1
                 if 0 <= problem_idx < len(questions):
                     problem_title = questions[problem_idx].get("title", f"Problem {result['problem_id']}")
-            except:
+            except Exception:
                 problem_title = f"Problem {result['problem_id']}"
             
             formatted_result = {
@@ -1757,7 +1767,7 @@ async def get_single_batch_analytics(batch_id: str, current_user: UserModel = De
                     student = await db.users.find_one({"_id": student_id})
                     if student:
                         student_name = student.get("full_name") or student.get("username") or student.get("email", "Unknown")
-                except:
+                except Exception:
                     pass
             
             # Handle submitted_at

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends
+import logging
+from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional, Dict, Any
 import jwt
@@ -10,6 +11,9 @@ from ..schemas.schemas import UserCreate, UserLogin, UserResponse
 from ..models.models import UserModel
 from ..utils.auth_utils import create_access_token, verify_token
 from ..core.config import settings
+from ..core.limiter import limiter
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 security = HTTPBearer()
@@ -26,7 +30,7 @@ async def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depend
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid token")
         return str(user_id)
-    except (jwt.InvalidTokenError, ValueError) as e:
+    except (jwt.InvalidTokenError, ValueError):
         raise HTTPException(status_code=401, detail="Invalid token")
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -49,43 +53,41 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="Invalid token")
 
 @router.post("/register")
-async def register_user(user_data: UserCreate):
+@limiter.limit("5/minute")
+async def register_user(request: Request, user_data: UserCreate):
     """Register a new user"""
     try:
-        print(f"[SECURE] [REGISTER] Starting registration for email: {user_data.email}")
-        
+        logger.info("[REGISTER] Starting registration")
+
         # Get database connection
         try:
             db = await get_db()
-            print(f"[SUCCESS] [REGISTER] Database connection successful")
         except Exception as db_error:
-            print(f"[ERROR] [REGISTER] Database connection failed: {str(db_error)}")
+            logger.error("[REGISTER] Database connection failed: %s", db_error)
             raise HTTPException(
-                status_code=500, 
+                status_code=500,
                 detail="Unable to connect to the database. Please try again later."
             )
-        
+
         # Check if user already exists
         existing_user = await db.users.find_one({"email": user_data.email})
         if existing_user:
-            print(f"[ERROR] [REGISTER] User already exists: {user_data.email}")
+            logger.info("[REGISTER] Registration attempted with existing email")
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail="User already exists. Please login instead."
             )
-        print(f"[SUCCESS] [REGISTER] No existing user found")
-        
+
         # Hash password
         try:
             hashed_password = UserModel.hash_password(user_data.password)
-            print(f"[SUCCESS] [REGISTER] Password hashed successfully")
         except Exception as hash_error:
-            print(f"[ERROR] [REGISTER] Password hashing failed: {str(hash_error)}")
+            logger.error("[REGISTER] Password hashing failed: %s", hash_error)
             raise HTTPException(
-                status_code=500, 
+                status_code=500,
                 detail="Unable to process your password. Please try again."
             )
-        
+
         # Create user document
         user_doc = {
             "username": user_data.username,
@@ -98,14 +100,13 @@ async def register_user(user_data: UserCreate):
             "profile_picture": user_data.profile_picture,
             "face_descriptor": None
         }
-        
+
         # Insert user into database
         try:
             result = await db.users.insert_one(user_doc)
             user_doc["_id"] = result.inserted_id
-            print(f"[SUCCESS] [REGISTER] User inserted with ID: {result.inserted_id}")
         except Exception as insert_error:
-            print(f"[ERROR] [REGISTER] Database insert failed: {str(insert_error)}")
+            logger.error("[REGISTER] Database insert failed: %s", insert_error)
             raise HTTPException(
                 status_code=500,
                 detail="Unable to save your account. Please try again."
@@ -116,7 +117,7 @@ async def register_user(user_data: UserCreate):
             from ..services import credits_service
             await credits_service.add_credits(str(result.inserted_id), 200, "signup_bonus")
         except Exception as credits_error:
-            print(f"[WARNING] [REGISTER] Signup bonus failed (non-fatal): {str(credits_error)}")
+            logger.warning("[REGISTER] Signup bonus failed (non-fatal): %s", credits_error)
 
         # Create access token with role information
         try:
@@ -127,15 +128,14 @@ async def register_user(user_data: UserCreate):
                     "role": user_data.role or "student"
                 }
             )
-            print(f"[SUCCESS] [REGISTER] Access token created successfully")
         except Exception as token_error:
-            print(f"[ERROR] [REGISTER] Token creation failed: {str(token_error)}")
+            logger.error("[REGISTER] Token creation failed: %s", token_error)
             raise HTTPException(
                 status_code=500,
                 detail="Account created but unable to log you in. Please try logging in."
             )
 
-        print(f"[SUCCESS] [REGISTER] Registration successful for user: {user_data.email}")
+        logger.info("[REGISTER] Registration successful for user %s", result.inserted_id)
 
         return {
             "success": True,
@@ -155,43 +155,41 @@ async def register_user(user_data: UserCreate):
         # Re-raise HTTP exceptions as-is
         raise
     except Exception as e:
-        print(f"[ERROR] [REGISTER] Unexpected error: {str(e)}")
-        print(f"[ERROR] [REGISTER] Error type: {type(e).__name__}")
-        import traceback
-        print(f"[ERROR] [REGISTER] Traceback: {traceback.format_exc()}")
+        logger.exception("[REGISTER] Unexpected error: %s", e)
         raise HTTPException(
-            status_code=500, 
+            status_code=500,
             detail="Registration failed. Please try again later."
         )
 
 @router.post("/login")
-async def login_user(user_data: UserLogin):
+@limiter.limit("10/minute")
+async def login_user(request: Request, user_data: UserLogin):
     """Login with email and password"""
     try:
         db = await get_db()
-        
+
         # Find user by email
         user = await db.users.find_one({"email": user_data.email})
         if not user:
-            print(f"[ERROR] [LOGIN] Failed login attempt for email: {user_data.email}")
+            logger.info("[LOGIN] Failed login attempt (unknown email)")
             raise HTTPException(status_code=401, detail="Invalid email or password")
-        
+
         # Verify password
         if not UserModel.verify_password(user_data.password, user["password_hash"]):
-            print(f"[ERROR] [LOGIN] Invalid password for user: {user_data.email}")
+            logger.info("[LOGIN] Failed login attempt (bad password)")
             raise HTTPException(status_code=401, detail="Invalid email or password")
-        
+
         # Create access token with role information
         access_token = create_access_token(
             data={
-                "sub": str(user["_id"]), 
+                "sub": str(user["_id"]),
                 "email": user["email"],
                 "role": user.get("role", "student")
             }
         )
-        
-        print(f"[SUCCESS] [LOGIN] User logged in successfully: {user_data.email}")
-        
+
+        logger.info("[LOGIN] User %s logged in successfully", user["_id"])
+
         return {
             "success": True,
             "message": "Login successful",
@@ -210,15 +208,11 @@ async def login_user(user_data: UserLogin):
         # Re-raise HTTP exceptions as-is
         raise
     except Exception as e:
-        print(f"[ERROR] [LOGIN] Error during login: {str(e)}")
+        logger.exception("[LOGIN] Error during login: %s", e)
         raise HTTPException(
-            status_code=500, 
+            status_code=500,
             detail="Login failed. Please try again later."
         )
-
-
-
-
 
 
 @router.post("/logout")
@@ -232,28 +226,24 @@ async def logout():
 @router.get("/status")
 async def auth_status(user_id: Optional[str] = Depends(get_current_user_id)):
     """Check authentication status"""
-    print(f"[DEBUG] Auth status check for user_id: {user_id}")
-    
     if not user_id:
-        print("[ERROR] No user_id provided")
         return {
             "isAuthenticated": False,
             "user": None
         }
-    
+
     try:
         db = await get_db()
         from bson import ObjectId
         user = await db.users.find_one({"_id": ObjectId(user_id)})
-        
+
         if not user:
-            print(f"[ERROR] User not found in database: {user_id}")
+            logger.info("[STATUS] Authenticated token for non-existent user %s", user_id)
             return {
                 "isAuthenticated": False,
                 "user": None
             }
-        
-        print(f"[SUCCESS] User authenticated: {user.get('email', 'Unknown')}")
+
         return {
             "isAuthenticated": True,
             "user": {
@@ -267,6 +257,5 @@ async def auth_status(user_id: Optional[str] = Depends(get_current_user_id)):
             }
         }
     except Exception as e:
-        print(f"[ERROR] Error in auth status: {e}")
-        import traceback; traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e)) 
+        logger.exception("[STATUS] Error in auth status: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to check authentication status")
