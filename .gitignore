@@ -82,7 +82,9 @@ dist
 
 # Gatsby files
 .cache/
-public
+# NOTE: intentionally NOT ignoring a bare "public" here — this repo's frontend
+# is a Vite app where `frontend/public/` holds source static assets (favicons,
+# robots.txt, sitemap.xml, OG images), not a build output directory.
 
 # Storybook build outputs
 .out

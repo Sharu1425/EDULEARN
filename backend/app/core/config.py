@@ -59,12 +59,21 @@ class Settings(BaseSettings):
             "http://localhost:5001",
         ]
 
-        # Add FRONTEND_URL from .env if set
+        # Add FRONTEND_URL from .env if set (single canonical prod URL)
         frontend_url = os.getenv("FRONTEND_URL")
         if frontend_url:
             frontend_url = frontend_url.rstrip("/")
             if frontend_url not in origins:
                 origins.append(frontend_url)
+
+        # Add FRONTEND_URLS from .env if set (comma-separated list — lets us
+        # whitelist Vercel preview URLs without a code change/redeploy)
+        frontend_urls = os.getenv("FRONTEND_URLS")
+        if frontend_urls:
+            for url in frontend_urls.split(","):
+                url = url.strip().rstrip("/")
+                if url and url not in origins:
+                    origins.append(url)
 
         return origins
 

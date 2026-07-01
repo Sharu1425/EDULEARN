@@ -1,0 +1,25 @@
+# EduLearn — only the public marketing/auth pages are meant to be indexed.
+# Everything else requires a logged-in session and adds no SEO value.
+
+User-agent: *
+Allow: /$
+Allow: /login$
+Allow: /signup$
+
+Disallow: /admin-dashboard
+Disallow: /assessconfig
+Disallow: /assessment
+Disallow: /coding
+Disallow: /dashboard
+Disallow: /mastery
+Disallow: /my-results
+Disallow: /profile
+Disallow: /results
+Disallow: /settings
+Disallow: /student
+Disallow: /teacher
+Disallow: /test
+Disallow: /thinktrace
+Disallow: /unified-assessment
+
+Sitemap: https://edulearn-web.vercel.app/sitemap.xml

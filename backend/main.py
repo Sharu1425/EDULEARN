@@ -36,7 +36,7 @@ if __name__ == "__main__":
     
     uvicorn.run(
         "app.main:app",
-        host="127.0.0.1",
+        host=os.environ.get("HOST", "0.0.0.0"),
         port=port,
         reload=not is_prod,
         log_level="info"
