@@ -1,7 +1,7 @@
-import type React from "react"
-import { useEffect, useState, useRef, useMemo } from "react"
+
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Sparkles as SparklesIcon, Brain, Code2, LineChart, Users, ChevronRight, Shield, Rocket, ArrowRight } from "lucide-react"
 import { Canvas } from "@react-three/fiber"
 import { Stars } from "@react-three/drei"
@@ -382,23 +382,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ── Footer ───────────────────────────────────────── */}
-      <footer className="border-t border-white/10 py-12 bg-[#050505] relative z-20">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <Brain className="w-6 h-6 text-emerald-500" />
-            <span className="font-bold text-xl text-white">EduLearn</span>
-          </div>
-          <p className="text-white/40 text-sm font-medium">
-            © {new Date().getFullYear()} EduLearn Inc. All rights reserved. Built with ❤️ and Gemini AI.
-          </p>
-          <div className="flex gap-6 text-sm font-medium text-white/50">
-            <a href="#" className="hover:text-emerald-400 transition-colors">Privacy</a>
-            <a href="#" className="hover:text-emerald-400 transition-colors">Terms</a>
-            <a href="#" className="hover:text-emerald-400 transition-colors">Contact</a>
-          </div>
-        </div>
-      </footer>
+
     </div>
   )
 }

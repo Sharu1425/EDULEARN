@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # Database — loaded from .env: MONGO_URI, DB_NAME
     mongo_uri: str = "mongodb://127.0.0.1:27017/edulearn"
     db_name: str = "edulearn"
+    
+    # Redis for Pub/Sub
+    redis_url: str = "redis://localhost:6379"
 
     # Security — loaded from .env: SECRET_KEY
     secret_key: str = ""

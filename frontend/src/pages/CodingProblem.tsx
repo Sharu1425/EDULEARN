@@ -441,41 +441,7 @@ int main() {
     setSubmitting(true)
 
     try {
-      // Use the same test cases that were used in execution for consistency
-      const testCasesToUse =
-        problem.test_cases ||
-        problem.examples.map((example, index) => ({
-          input: parseInput(example.input),
-          output: parseOutput(example.output),
-          description: `Example ${index + 1}`,
-        }))
-
-      console.log("📤 [SUBMISSION] Using test cases:", testCasesToUse.length)
-      console.log("📤 [SUBMISSION] Test cases:", testCasesToUse)
-
-      const testResponse = await api.post("/api/coding/execute", {
-        code: codeToExecute,
-        language,
-        test_cases: testCasesToUse,
-        timeout: 10,
-      })
-
-      const exec = testResponse.data.execution_result || testResponse.data
-      if (!testResponse.data.success || !exec) {
-        showError("Code failed test cases. Please fix your solution.")
-        setTestResults(exec?.results || [])
-        setSubmitting(false)
-        return
-      }
-
-      const initialPassedTests = (exec.results || []).filter((r: any) => r.passed).length
-      const initialTotalTests = (exec.results || []).length
-
-      if (initialPassedTests < initialTotalTests) {
-        info(`Submitted with ${initialPassedTests}/${initialTotalTests} test cases passed.`)
-      }
-
-      // Submit to coding platform
+      // Submit directly to coding platform - backend handles execution and hidden cases
       console.log("📤 [SUBMISSION] Submitting to backend...")
       const response = await api.post("/api/coding/submit", {
         problem_id: problemId,

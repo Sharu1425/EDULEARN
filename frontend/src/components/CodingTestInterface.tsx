@@ -212,38 +212,7 @@ const CodingTestInterface: React.FC<CodingTestInterfaceProps> = ({ assessmentId,
 
       console.log("📤 [CODING_TEST] Submitting solution...")
 
-      // First, execute the code to validate
-      const testCases = question.test_cases.map((testCase) => ({
-        input: parseInput(testCase.input),
-        output: parseOutput(testCase.expected_output || testCase.output || ""),
-      }))
-
-      const execResponse = await api.post("/api/coding/execute", {
-        code,
-        language,
-        test_cases: testCases,
-        timeout: 10,
-      })
-
-      const exec = execResponse.data.execution_result || execResponse.data
-      if (!execResponse.data.success || !exec) {
-        showError("Code failed test cases. Please fix your solution.")
-        setTestResults(exec?.results || [])
-        return
-      }
-
-      // We now allow submission even if some test cases fail
-      const results = exec.results || []
-      const passedCount = results.filter((r: any) => r.passed).length
-      const totalCount = results.length
-      
-      setTestResults(results)
-      
-      if (passedCount < totalCount) {
-        info(`Submitted with ${passedCount}/${totalCount} test cases passed.`)
-      }
-
-      // Now submit to teacher assessment
+      // Submit directly to teacher assessment (backend evaluates code)
       const response = await api.post(`/api/teacher/assessments/${assessmentId}/submit-coding-student`, {
         problem_id: question.id,
         code: code,

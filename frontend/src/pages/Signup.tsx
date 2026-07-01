@@ -81,12 +81,13 @@ const Signup: React.FC<SignupProps> = ({ setUser }) => {
       {/* ── Left Panel — Branding ─────────────────────────────────────────── */}
       <div className="hidden lg:flex lg:w-[45%] relative flex-col items-center justify-center px-16 overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] rounded-full opacity-15"
+          <div className="absolute top-0 left-0 w-[500px] h-[500px] rounded-full opacity-20"
+            style={{ background: "radial-gradient(circle, #10b981, transparent 70%)", filter: "blur(80px)",
+              animation: "orb-drift 14s ease-in-out infinite alternate" }} />
+          <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full opacity-15"
             style={{ background: "radial-gradient(circle, #14b8a6, transparent 70%)", filter: "blur(80px)",
-              animation: "orb-drift 16s ease-in-out infinite alternate" }} />
-          <div className="absolute bottom-1/4 right-0 w-[300px] h-[300px] rounded-full opacity-12"
-            style={{ background: "radial-gradient(circle, #2dd4bf, transparent 70%)", filter: "blur(60px)",
-              animation: "orb-drift 12s ease-in-out infinite alternate-reverse" }} />
+              animation: "orb-drift 18s ease-in-out infinite alternate-reverse" }} />
+          {/* Grid lines */}
           <div className="absolute inset-0 opacity-[0.04]"
             style={{
               backgroundImage: "linear-gradient(rgba(16,185,129,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.5) 1px, transparent 1px)",
@@ -147,35 +148,14 @@ const Signup: React.FC<SignupProps> = ({ setUser }) => {
             ))}
           </motion.div>
 
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9 }}
-            className="mt-10 grid grid-cols-3 gap-4"
-          >
-            {[
-              { val: "10K+", label: "Students" },
-              { val: "500+", label: "Teachers" },
-              { val: "40%", label: "Improvement" },
-            ].map(({ val, label }) => (
-              <div key={label} className="rounded-xl border p-3 text-center"
-                style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.06)" }}>
-                <div className="text-xl font-black bg-clip-text text-transparent"
-                  style={{ backgroundImage: "linear-gradient(135deg, #10b981, #14b8a6)" }}>
-                  {val}
-                </div>
-                <div className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>{label}</div>
-              </div>
-            ))}
-          </motion.div>
+
         </div>
       </div>
 
       {/* ── Right Panel — Form ────────────────────────────────────────────── */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 relative overflow-y-auto">
+      <div className="flex-1 flex items-center justify-center px-6 py-12 relative">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(20,184,166,0.06), transparent 70%)", filter: "blur(60px)" }} />
+          style={{ background: "radial-gradient(circle, rgba(20,184,166,0.08), transparent 70%)", filter: "blur(60px)" }} />
 
         <motion.div
           initial={{ opacity: 0, x: 40 }}

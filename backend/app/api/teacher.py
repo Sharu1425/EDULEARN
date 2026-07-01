@@ -1183,7 +1183,7 @@ async def submit_teacher_assessment_coding_solution(
         if not all_test_cases:
             raise HTTPException(status_code=400, detail="No test cases available for this problem")
 
-        judge_results = service.run_tests(
+        judge_results = await service.run_tests(
             language=submission.language,
             code=submission.code,
             test_cases=all_test_cases

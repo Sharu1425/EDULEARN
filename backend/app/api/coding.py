@@ -277,7 +277,7 @@ async def execute_code(
             service = hackerearth_execution_service
             
         # Use HackerEarth for deterministic execution against provided test cases
-        judge_results = service.run_tests(
+        judge_results = await service.run_tests(
             language=request.language,
             code=request.code,
             test_cases=request.test_cases or []
@@ -376,7 +376,7 @@ async def test_code_against_problem(
         else:
             service = hackerearth_execution_service
             
-        judge_results = service.run_tests(
+        judge_results = await service.run_tests(
             language=language,
             code=code,
             test_cases=all_test_cases
@@ -486,7 +486,8 @@ async def submit_solution(
         else:
             service = hackerearth_execution_service
             
-        judge_results = service.run_tests(
+        # Execute using HackerEarth service
+        judge_results = await service.run_tests(
             language=solution.language,
             code=solution.code,
             test_cases=all_test_cases

@@ -39,6 +39,12 @@ const UnifiedAssessment: React.FC = () => {
     { value: "Very Hard", label: "Very Hard", color: "from-red-500 to-red-700" },
   ]
 
+  const ttDifficultyOptions = [
+    { value: "easy", label: "Easy", color: "from-emerald-400 to-teal-600" },
+    { value: "medium", label: "Medium", color: "from-yellow-400 to-orange-500" },
+    { value: "hard", label: "Hard", color: "from-orange-500 to-red-500" },
+  ]
+
   const handleMcqInputChange = (field: keyof AssessmentConfig, value: string | number) =>
     setMcqConfig((prev) => ({ ...prev, [field]: value }))
 
@@ -241,19 +247,19 @@ const UnifiedAssessment: React.FC = () => {
               <div>
                 <label className="mb-2 block text-sm font-medium text-muted-foreground">Difficulty</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {(["easy", "medium", "hard"] as const).map((d) => (
+                  {ttDifficultyOptions.map((opt) => (
                     <button
-                      key={d}
+                      key={opt.value}
                       type="button"
-                      onClick={() => setTtDifficulty(d)}
+                      onClick={() => setTtDifficulty(opt.value)}
                       disabled={ttSubmitting}
-                      className={`rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition-all ${
-                        ttDifficulty === d
-                          ? "border-transparent bg-gradient-to-r from-primary to-accent text-white shadow-e2"
+                      className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-all ${
+                        ttDifficulty === opt.value
+                          ? `border-transparent bg-gradient-to-r ${opt.color} text-white shadow-e2`
                           : "border-border bg-muted/30 text-foreground hover:border-primary/40 hover:bg-muted/60"
                       }`}
                     >
-                      {d}
+                      {opt.label}
                     </button>
                   ))}
                 </div>

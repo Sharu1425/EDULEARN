@@ -70,16 +70,24 @@ async def get_user_results(
             db_results = await db.results.find({"user_id": user_id}).sort("submitted_at", -1).to_list(length=None)
         
         for result in db_results:
-            score = result.get("score", 0)
+            raw_score = result.get("score", 0)
             total_questions = result.get("total_questions", 0)
-            percentage = (score / total_questions * 100) if total_questions > 0 else 0
+            correct_answers = result.get("correct_answers")
+            
+            if correct_answers is not None:
+                display_score = correct_answers
+                percentage = raw_score if raw_score > 0 else (correct_answers / total_questions * 100 if total_questions > 0 else 0)
+            else:
+                display_score = raw_score
+                percentage = (raw_score / total_questions * 100) if total_questions > 0 else 0
+                correct_answers = raw_score
             
             results.append(TestResult(
                 id=str(result["_id"]),
                 test_name=result.get("test_name", "Unknown Test"),
-                score=score,
+                score=display_score,
                 total_questions=total_questions,
-                correct_answers=result.get("correct_answers", 0),
+                correct_answers=correct_answers,
                 completed_at=result.get("submitted_at", datetime.now(timezone.utc)),
                 duration=result.get("time_spent", 0),
                 topic=result.get("topic", ""),
@@ -133,16 +141,24 @@ async def get_user_results(
             assessment = assessments_map.get(str(result.get("assessment_id")))
             assessment_title = assessment.get("title", "Assessment") if assessment else "Assessment"
 
-            score = result.get("score", 0)
+            raw_score = result.get("score", 0)
             total_questions = result.get("total_questions", 0)
-            percentage = (score / total_questions * 100) if total_questions > 0 else 0
+            correct_answers = result.get("correct_answers")
+            
+            if correct_answers is not None:
+                display_score = correct_answers
+                percentage = raw_score if raw_score > 0 else (correct_answers / total_questions * 100 if total_questions > 0 else 0)
+            else:
+                display_score = raw_score
+                percentage = result.get("percentage", (raw_score / total_questions * 100) if total_questions > 0 else 0)
+                correct_answers = raw_score
 
             results.append(TestResult(
                 id=str(result["_id"]),
                 test_name=assessment_title,
-                score=score,
+                score=display_score,
                 total_questions=total_questions,
-                correct_answers=result.get("score", 0),
+                correct_answers=correct_answers,
                 completed_at=result.get("submitted_at", datetime.now(timezone.utc)),
                 duration=result.get("time_taken", 0),
                 topic=assessment.get("subject", "") if assessment else "",
@@ -176,9 +192,17 @@ async def get_user_results(
                     t_assessments_map[str(a["_id"])] = a
 
         for t_result in teacher_results:
-            score = t_result.get("score", 0)
+            raw_score = t_result.get("score", 0)
             total_questions = t_result.get("total_questions", 0)
-            percentage = (score / total_questions * 100) if total_questions > 0 else 0
+            correct_answers = t_result.get("correct_answers")
+            
+            if correct_answers is not None:
+                display_score = correct_answers
+                percentage = raw_score if raw_score > 0 else (correct_answers / total_questions * 100 if total_questions > 0 else 0)
+            else:
+                display_score = raw_score
+                percentage = t_result.get("percentage", (raw_score / total_questions * 100) if total_questions > 0 else 0)
+                correct_answers = raw_score
 
             assessment = t_assessments_map.get(str(t_result.get("assessment_id")))
             title = assessment.get("title", "Assessment") if assessment else "Assessment"
@@ -188,9 +212,9 @@ async def get_user_results(
             results.append(TestResult(
                 id=str(t_result["_id"]),
                 test_name=title,
-                score=score,
+                score=display_score,
                 total_questions=total_questions,
-                correct_answers=score,
+                correct_answers=correct_answers,
                 completed_at=t_result.get("submitted_at", datetime.now(timezone.utc)),
                 duration=t_result.get("time_taken", 0),
                 topic=topic,
@@ -518,8 +542,17 @@ async def get_detailed_result(
             # ensure user_answers array exists
             user_answers = result.get("answers", user_answers)
         
-        score = result.get("score", 0)
-        correct_answers = result.get("correct_answers", score)  # for teacher results, score equals correct count
+        raw_score = result.get("score", 0)
+        correct_answers = result.get("correct_answers")
+        
+        if correct_answers is not None:
+            display_score = correct_answers
+            percentage = raw_score if raw_score > 0 else (correct_answers / (total_questions or 1) * 100 if total_questions > 0 else 0)
+        else:
+            display_score = raw_score
+            percentage = result.get("percentage", (raw_score / (total_questions or 1)) * 100)
+            correct_answers = display_score
+
         submitted_at = result.get("submitted_at", datetime.now(timezone.utc))
         if hasattr(submitted_at, "isoformat"):
             submitted_iso = submitted_at.isoformat()
@@ -529,7 +562,7 @@ async def get_detailed_result(
         real_result = {
             "id": str(result["_id"]),
             "user_id": str(result_user_id),
-            "score": score,
+            "score": display_score,
             "total_questions": total_questions,
             "questions": questions,
             "user_answers": user_answers,
@@ -537,7 +570,7 @@ async def get_detailed_result(
             "difficulty": difficulty,
             "time_taken": time_taken,
             "date": submitted_iso,
-            "percentage": (score / (total_questions or 1)) * 100,
+            "percentage": percentage,
             "correct_answers": correct_answers,
             "incorrect_answers": (total_questions or 0) - correct_answers,
             "ai_feedback": result.get("ai_feedback")

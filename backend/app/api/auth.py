@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, HTTPException, Depends, Request, Response, Cookie
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional, Dict, Any
 import jwt
@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from ..db import get_db
 from ..schemas.schemas import UserCreate, UserLogin, UserResponse
 from ..models.models import UserModel
-from ..utils.auth_utils import create_access_token, verify_token
+from ..utils.auth_utils import create_access_token, verify_token, create_refresh_token, verify_refresh_token
 from ..core.config import settings
 from ..core.limiter import limiter
 
@@ -54,7 +54,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 @router.post("/register")
 @limiter.limit("5/minute")
-async def register_user(request: Request, user_data: UserCreate):
+async def register_user(request: Request, response: Response, user_data: UserCreate):
     """Register a new user"""
     try:
         logger.info("[REGISTER] Starting registration")
@@ -119,14 +119,24 @@ async def register_user(request: Request, user_data: UserCreate):
         except Exception as credits_error:
             logger.warning("[REGISTER] Signup bonus failed (non-fatal): %s", credits_error)
 
-        # Create access token with role information
+        # Create access token and refresh token with role information
         try:
-            access_token = create_access_token(
-                data={
-                    "sub": str(result.inserted_id),
-                    "email": user_data.email,
-                    "role": user_data.role or "student"
-                }
+            token_data = {
+                "sub": str(result.inserted_id),
+                "email": user_data.email,
+                "role": user_data.role or "student"
+            }
+            access_token = create_access_token(data=token_data)
+            refresh_token = create_refresh_token(data=token_data)
+            
+            # Set refresh token in HTTP-only cookie
+            response.set_cookie(
+                key="refresh_token",
+                value=refresh_token,
+                httponly=True,
+                secure=True, # Should be True in production (HTTPS)
+                samesite="lax",
+                max_age=7 * 24 * 60 * 60 # 7 days
             )
         except Exception as token_error:
             logger.error("[REGISTER] Token creation failed: %s", token_error)
@@ -163,7 +173,7 @@ async def register_user(request: Request, user_data: UserCreate):
 
 @router.post("/login")
 @limiter.limit("10/minute")
-async def login_user(request: Request, user_data: UserLogin):
+async def login_user(request: Request, response: Response, user_data: UserLogin):
     """Login with email and password"""
     try:
         db = await get_db()
@@ -179,13 +189,23 @@ async def login_user(request: Request, user_data: UserLogin):
             logger.info("[LOGIN] Failed login attempt (bad password)")
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
-        # Create access token with role information
-        access_token = create_access_token(
-            data={
-                "sub": str(user["_id"]),
-                "email": user["email"],
-                "role": user.get("role", "student")
-            }
+        # Create access token and refresh token with role information
+        token_data = {
+            "sub": str(user["_id"]),
+            "email": user["email"],
+            "role": user.get("role", "student")
+        }
+        access_token = create_access_token(data=token_data)
+        refresh_token = create_refresh_token(data=token_data)
+        
+        # Set refresh token in HTTP-only cookie
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            secure=True, 
+            samesite="lax",
+            max_age=7 * 24 * 60 * 60 # 7 days
         )
 
         logger.info("[LOGIN] User %s logged in successfully", user["_id"])
@@ -216,12 +236,56 @@ async def login_user(request: Request, user_data: UserLogin):
 
 
 @router.post("/logout")
-async def logout():
+async def logout(response: Response):
     """Logout user"""
+    response.delete_cookie(key="refresh_token", httponly=True, secure=True, samesite="lax")
     return {
         "success": True,
         "message": "Logged out successfully"
     }
+
+@router.post("/refresh")
+async def refresh_token(request: Request, response: Response, refresh_token: Optional[str] = Cookie(None)):
+    """Refresh access token using refresh token cookie"""
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Refresh token missing")
+    
+    try:
+        payload = verify_refresh_token(refresh_token)
+        user_id = payload.get("sub")
+        email = payload.get("email")
+        role = payload.get("role", "student")
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+            
+        db = await get_db()
+        from bson import ObjectId
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        
+        if not user or user.get("is_active") is False:
+            raise HTTPException(status_code=401, detail="User not found or inactive")
+            
+        token_data = {
+            "sub": str(user["_id"]),
+            "email": user["email"],
+            "role": user.get("role", "student")
+        }
+        
+        new_access_token = create_access_token(data=token_data)
+        # Optionally, we could rotate the refresh token here too, but for now we keep the same valid one
+        
+        return {
+            "success": True,
+            "access_token": new_access_token
+        }
+    except ValueError as e:
+        # Token expired or invalid, clear cookie
+        response.delete_cookie(key="refresh_token", httponly=True, secure=True, samesite="lax")
+        raise HTTPException(status_code=401, detail=str(e))
+    except Exception as e:
+        logger.error("[REFRESH] Token refresh failed: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to refresh token")
 
 @router.get("/status")
 async def auth_status(user_id: Optional[str] = Depends(get_current_user_id)):

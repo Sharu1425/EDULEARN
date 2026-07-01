@@ -146,7 +146,7 @@ async def test_code_against_problem(
         
         # Execute all test cases in batch using run_tests
         try:
-            all_results = execution_service.run_tests(
+            all_results = await execution_service.run_tests(
                 code=code,
                 language=language,
                 test_cases=problem["test_cases"]
@@ -255,7 +255,7 @@ async def validate_syntax(
         
         # Execute with empty input to check syntax
         test_case = {"input": "", "output": ""}
-        results = execution_service.run_tests(
+        results = await execution_service.run_tests(
             code=code,
             language=language,
             test_cases=[test_case]

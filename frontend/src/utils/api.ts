@@ -56,21 +56,85 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor to handle auth errors
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
+};
+
+// Response interceptor to handle auth errors and token refresh
 api.interceptors.response.use(
     (response: AxiosResponse) => {
         return response;
     },
-    (error) => {
-        if (error.response?.status === 401) {
-            // Clear invalid token
+    async (error) => {
+        const originalRequest = error.config;
+
+        if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/login' && originalRequest.url !== '/auth/refresh') {
+            
+            if (isRefreshing) {
+                return new Promise(function(resolve, reject) {
+                    failedQueue.push({resolve, reject});
+                }).then(token => {
+                    originalRequest.headers.Authorization = 'Bearer ' + token;
+                    return api(originalRequest);
+                }).catch(err => {
+                    return Promise.reject(err);
+                });
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                // Call refresh endpoint. Cookies are included automatically due to withCredentials
+                const res = await axios.post(getApiBaseUrl() + '/auth/refresh', {}, {
+                    withCredentials: true
+                });
+
+                if (res.data.success) {
+                    const newToken = res.data.access_token;
+                    localStorage.setItem('access_token', newToken);
+
+                    api.defaults.headers.common['Authorization'] = 'Bearer ' + newToken;
+                    originalRequest.headers.Authorization = 'Bearer ' + newToken;
+
+                    processQueue(null, newToken);
+
+                    return api(originalRequest);
+                }
+            } catch (refreshError) {
+                processQueue(refreshError, null);
+                
+                // Refresh failed, clear session and redirect to login
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login';
+                }
+                return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
+            }
+        }
+
+        // Handle normal 401s (e.g. login failed)
+        if (error.response?.status === 401 && originalRequest.url !== '/auth/refresh' && !originalRequest._retry) {
             localStorage.removeItem('access_token');
             localStorage.removeItem('user');
-            // Redirect to login only if not already on login page
             if (window.location.pathname !== '/login') {
                 window.location.href = '/login';
             }
         }
+        
         return Promise.reject(error);
     }
 );

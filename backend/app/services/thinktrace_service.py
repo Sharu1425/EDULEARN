@@ -67,21 +67,17 @@ class ThinkTraceService:
             say: "Got it — please choose A or B to continue." Then wait.
 
         SESSION START
-        When you receive the trigger message "BEGIN_SESSION", respond with exactly:
+        When you receive the trigger message "BEGIN_SESSION", respond with exactly ONE valid JSON object representing the first question.
+        For the first question, use this as the transition text: "Hi {student_name}! I'm going to ask you {session.question_count} questions about {session.topic}. There are no trick questions — just pick the option that best matches your thinking. Let's begin."
         
-        ---
-        ThinkTrace  ·  {session.topic}  ·  {session.difficulty}  ·  {session.question_count} Questions
-        ---
-
-        Hi {student_name}! I'm going to ask you {session.question_count} questions about
-        {session.topic}. There are no trick questions — just pick the option that best
-        matches your thinking. Let's begin.
-
-        Question 1 of {session.question_count}  [Conceptual Understanding]
-        [your question text here]
-
-        A) [plausible option — one of these is stronger, but both require thought]
-        B) [plausible option]
+        Example:
+        {{
+            "transition": "Hi {student_name}! I'm going to ask you {session.question_count} questions about {session.topic}. There are no trick questions — just pick the option that best matches your thinking. Let's begin.",
+            "dimension": "Conceptual Understanding",
+            "question_text": "[your question text here]",
+            "option_a": "[plausible option A]",
+            "option_b": "[plausible option B]"
+        }}
 
         QUESTION RULES
         RULE 1 — EXACTLY {session.question_count} QUESTIONS
@@ -108,15 +104,17 @@ class ThinkTraceService:
         medium → nuanced tradeoffs
         hard → edge cases, system-level thinking
 
-        RULE 6 — BETWEEN-QUESTION FORMAT
-        For questions 2 through {session.question_count}:
-        [One sentence transition based on their answer]
-
-        Question [N] of {session.question_count}  [[Dimension]]
-        [question text]
-
-        A) [option]
-        B) [option]
+        RULE 6 — OUTPUT FORMAT
+        For questions 2 through {session.question_count}, you MUST output your response as a SINGLE valid JSON object.
+        Do NOT wrap it in markdown block quotes (no ```json). Output exactly and only the JSON object.
+        The JSON must follow this exact structure:
+        {{
+            "transition": "[One sentence transition based on their answer]",
+            "dimension": "[Dimension]",
+            "question_text": "[question text]",
+            "option_a": "[option]",
+            "option_b": "[option]"
+        }}
 
         RULE 7 — SESSION CLOSE TRIGGER
         After question {session.question_count} is answered, say exactly:
@@ -221,10 +219,21 @@ class ThinkTraceService:
         """
 
     def _get_chat_history(self, session: ThinkTraceSessionModel) -> list:
+        import json
         history = []
         for q in session.questions:
             trans = q.get('transition', '')
-            content = f"{trans}\n\nQuestion {q['q_number']} of {session.question_count}  [{q['dimension']}]\n{q['question_text']}\n\nA) {q['option_a']}\nB) {q['option_b']}"
+            content_dict = {
+                "transition": trans,
+                "dimension": q['dimension'],
+                "question_text": q['question_text'],
+                "option_a": q['option_a'],
+                "option_b": q['option_b']
+            }
+            if q['q_number'] == 1:
+                # Question 1 uses the BEGIN_SESSION format which is text, but we can just use JSON for consistency
+                pass
+            content = json.dumps(content_dict)
             history.append({"role": "model", "parts": [content]})
             
             # Find the user's answer to this question
@@ -296,7 +305,19 @@ class ThinkTraceService:
                 timeout=30.0
             )
             
-            return self._parse_question_from_text(response.text, next_q_num)
+            # Clean and parse JSON
+            import json
+            cleaned = self._clean_json_response(response.text)
+            data = json.loads(cleaned)
+            
+            return {
+                "q_number": next_q_num,
+                "dimension": data.get("dimension", "Conceptual"),
+                "question_text": data.get("question_text", "Failed to generate question."),
+                "option_a": data.get("option_a", "Option A"),
+                "option_b": data.get("option_b", "Option B"),
+                "transition": data.get("transition", "")
+            }
             
         except Exception as e:
             logger.error(f"[THINKTRACE] Next question generation failed: {str(e)}")
