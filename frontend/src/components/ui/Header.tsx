@@ -13,6 +13,7 @@ import { useHeaderTitleOverride } from "../../contexts/HeaderTitleContext"
 import Lanyard from "./Lanyard"
 import NotificationsMenu from "./NotificationsMenu"
 import Tooltip from "./Tooltip"
+import BackendStatusIndicator from "../BackendStatusIndicator"
 
 interface HeaderProps {
     onMenuClick?: () => void
@@ -59,8 +60,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, collapsed = false, onToggl
                     style={{ background: "conic-gradient(from 0deg, transparent, rgba(255,255,255,0.3), transparent)" }} />
             </div>
             {withText && (
-                <span className={cn("hidden truncate font-heading text-lg font-bold tracking-tight sm:block", isDark ? "gradient-text" : "gradient-text-light")}>
-                    EduLearn
+                <span className="hidden min-w-0 items-center gap-1.5 sm:flex">
+                    <span className={cn("truncate font-heading text-lg font-bold tracking-tight", isDark ? "gradient-text" : "gradient-text-light")}>
+                        EduLearn
+                    </span>
+                    <BackendStatusIndicator />
                 </span>
             )}
         </Link>

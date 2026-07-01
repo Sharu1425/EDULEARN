@@ -30,7 +30,7 @@ export function useCredits(): CreditsState {
     setError(null)
     try {
       const token = localStorage.getItem("access_token")
-      const res = await fetch(`${API_BASE}/api/credits/balance`, {
+      const res = await fetch(`${API_BASE}/credits/balance`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) throw new Error("Failed to fetch credits")

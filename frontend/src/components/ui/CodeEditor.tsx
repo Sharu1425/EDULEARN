@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useToast } from '../../contexts/ToastContext';
+import { API_BASE_URL } from '../../utils/constants';
 import Button from './Button';
 
 interface CodeEditorProps {
@@ -139,7 +140,7 @@ func main() {
       if (onExecute) {
         await onExecute(code);
       } else {
-        const response = await fetch('/api/coding/execute', {
+        const response = await fetch(`${API_BASE_URL}/coding/execute`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -201,7 +202,7 @@ func main() {
       if (onTest) {
         await onTest(code, testCases);
       } else {
-        const response = await fetch('/api/coding/execute', {
+        const response = await fetch(`${API_BASE_URL}/coding/execute`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -254,7 +255,7 @@ func main() {
     setSelectedTab('debug');
 
     try {
-      const response = await fetch('/api/coding/execute', {
+      const response = await fetch(`${API_BASE_URL}/coding/execute`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -299,7 +300,7 @@ func main() {
 
   const formatCode = async () => {
     try {
-      const response = await fetch('/api/execute/format-code', {
+      const response = await fetch(`${API_BASE_URL}/execute/format-code`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
