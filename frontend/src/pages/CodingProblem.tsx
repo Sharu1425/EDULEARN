@@ -411,21 +411,7 @@ int main() {
   }
 
   const submitSolution = async (codeToSubmit?: string) => {
-    const codeToExecute = codeToSubmit || code
-
-    if (!problem || !codeToExecute.trim()) {
-      showError("Please write some code first")
-      return
-    }
-
-    // Validate code before submission
-    const validation = validateCode(codeToExecute)
-    if (!validation.isValid) {
-      showError(`Code validation failed: ${validation.errors.join(", ")}`)
-      return
-    }
-
-    // Show confirmation dialog
+    // Show confirmation dialog regardless of code validity, allowing users to end/submit the test
     setShowSubmitConfirm(true)
   }
 
@@ -433,14 +419,47 @@ int main() {
     setShowSubmitConfirm(false)
     const codeToExecute = code
 
-    if (!problem || !codeToExecute.trim()) {
-      showError("Please write some code first")
-      return
-    }
-
     setSubmitting(true)
 
     try {
+      const isCodeValid = codeToExecute.trim() && validateCode(codeToExecute).isValid
+
+      if (!isCodeValid) {
+        // Just end session and go to results if code is empty or invalid
+        if (sessionId) {
+          try {
+            await api.post(`/api/coding/sessions/${sessionId}/end`, {
+              final_status: "failed",
+              solution_code: codeToExecute,
+              completion_time: Date.now() - startTime,
+            })
+          } catch (sessionError) {
+            console.error("Failed to end session:", sessionError)
+          }
+        }
+        
+        const resultState = {
+          problemId: problemId,
+          problemTitle: problem?.title || "Unknown",
+          problem: problem,
+          code: codeToExecute,
+          language: language,
+          testResults: [],
+          executionTime: 0,
+          memoryUsed: 0,
+          passedTests: 0,
+          totalTests: problem?.test_cases?.length || 0,
+          score: 0,
+          timeTaken: Math.floor((Date.now() - startTime) / 1000),
+          submissionStatus: "wrong_answer",
+          submissionId: null,
+        }
+        
+        sessionStorage.setItem("codingResultsState", JSON.stringify(resultState))
+        navigate("/coding-results", { state: resultState, replace: true })
+        return
+      }
+
       // Submit directly to coding platform - backend handles execution and hidden cases
       console.log("📤 [SUBMISSION] Submitting to backend...")
       const response = await api.post("/api/coding/submit", {
@@ -479,7 +498,7 @@ int main() {
       }
 
       // Get test results from execution or submission
-      const finalTestResults = submission?.test_results || exec.results || []
+      const finalTestResults = submission?.test_results || []
       const passedTests = finalTestResults.filter((r: any) => r.passed).length
       const totalTests = finalTestResults.length
 
@@ -491,8 +510,8 @@ int main() {
         code: codeToExecute,
         language: language,
         testResults: finalTestResults,
-        executionTime: exec.execution_time || submission?.execution_time || 0,
-        memoryUsed: exec.memory_used || submission?.memory_used || 0,
+        executionTime: submission?.execution_time || 0,
+        memoryUsed: submission?.memory_used || 0,
         passedTests: passedTests,
         totalTests: totalTests,
         score: submissionStatus === "accepted" ? 1 : 0,
@@ -514,7 +533,7 @@ int main() {
       // Always navigate to CodingResults page, regardless of success status
       console.log("📤 [SUBMISSION] Attempting navigation...")
       try {
-        navigate("/coding-results", { state: resultState, replace: false })
+        navigate("/coding-results", { state: resultState, replace: true })
         console.log("✅ [SUBMISSION] Navigation called - should redirect now")
       } catch (navError) {
         console.error("❌ [SUBMISSION] Navigation error:", navError)

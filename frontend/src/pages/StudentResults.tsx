@@ -211,8 +211,8 @@ const StudentResults: React.FC = () => {
                     return (
                       <Link key={test.id} to={`/test-result/${test.id}`} className="block">
                         <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
                           transition={{ delay: index * 0.04 }}
                           className="p-5 rounded-xl bg-card border border-border/50 hover:bg-muted/30 hover:shadow-md transition-all duration-300 group flex items-center justify-between"
                         >
@@ -272,8 +272,8 @@ const StudentResults: React.FC = () => {
                     return (
                       <Link key={session.id} to={`/thinktrace-result/${session.id}`} className="block">
                         <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
                           transition={{ delay: index * 0.04 }}
                           className="p-5 rounded-xl bg-card border border-border/50 hover:bg-muted/30 hover:shadow-md transition-all duration-300 flex items-center justify-between"
                         >
@@ -342,8 +342,8 @@ const StudentResults: React.FC = () => {
                     return (
                       <Link key={sol.id} to={`/coding-results`} state={{ ...sol, isHistory: true }} className="block">
                         <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
                           transition={{ delay: index * 0.04 }}
                           className="p-5 rounded-xl bg-card border border-border/50 hover:bg-muted/30 hover:shadow-md transition-all duration-300 flex items-center justify-between"
                         >

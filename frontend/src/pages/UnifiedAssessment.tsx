@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { CheckCircle2, Sparkles, BookOpen, AlertCircle } from "lucide-react"
 import type { AssessmentConfig } from "../types"
@@ -20,7 +20,12 @@ const UnifiedAssessment: React.FC = () => {
   const { success, error: showError } = useToast()
   const navigate = useNavigate()
 
-  const [activeTab, setActiveTab] = useState<TabType>("mcq")
+  const location = useLocation()
+  
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const params = new URLSearchParams(location.search)
+    return params.get("tab") === "thinktrace" ? "thinktrace" : "mcq"
+  })
 
   const [mcqConfig, setMcqConfig] = useState<AssessmentConfig>({ topic: "Science", qnCount: 5, difficulty: "Easy" })
   const [mcqSubmitting, setMcqSubmitting] = useState(false)

@@ -194,9 +194,9 @@ const Results: React.FC<ResultsProps> = ({ }) => {
                                     return (
                                         <motion.div
                                             key={index}
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: index * 0.06 }}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: index * 0.06, duration: 0.3 }}
                                             className={`rounded-xl border p-6 transition-colors ${isCorrect
                                                 ? 'border-success/40 bg-success/5'
                                                 : 'border-destructive/40 bg-destructive/5'

@@ -23,9 +23,13 @@ const STATUS_LABEL: Record<string, string> = {
   checking: "Checking backend…",
 }
 
+// Global state to persist across unmounts/remounts during navigation
+let lastKnownStatus: "online" | "offline" | "checking" = "checking"
+let failureCount = 0
+
 /** Small pulsing dot next to the brand mark showing live backend reachability. */
 const BackendStatusIndicator: React.FC<BackendStatusIndicatorProps> = ({ className = "" }) => {
-  const [backendStatus, setBackendStatus] = useState<"online" | "offline" | "checking">("checking")
+  const [backendStatus, setBackendStatus] = useState<"online" | "offline" | "checking">(lastKnownStatus)
 
   const checkBackendStatus = useCallback(async () => {
     try {
@@ -34,9 +38,24 @@ const BackendStatusIndicator: React.FC<BackendStatusIndicatorProps> = ({ classNa
         headers: { "Content-Type": "application/json" },
         signal: AbortSignal.timeout(3000),
       })
-      setBackendStatus(response.ok ? "online" : "offline")
-    } catch {
-      setBackendStatus("offline")
+
+      if (response.ok) {
+        failureCount = 0
+        lastKnownStatus = "online"
+        setBackendStatus("online")
+      } else {
+        failureCount++
+        if (failureCount >= 2) {
+          lastKnownStatus = "offline"
+          setBackendStatus("offline")
+        }
+      }
+    } catch (error) {
+      failureCount++
+      if (failureCount >= 2) {
+        lastKnownStatus = "offline"
+        setBackendStatus("offline")
+      }
     }
   }, [])
 

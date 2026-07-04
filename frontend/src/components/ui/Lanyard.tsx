@@ -17,7 +17,7 @@ const Lanyard: React.FC<LanyardProps> = ({ user, isAdmin }) => {
   useEffect(() => {
     if (!containerRef.current || !pathRef.current || !badgeRef.current) return;
 
-    const points = 10;
+    const points = 15;
     const stringLength = 150; // Shorter string for better profile layout
     const segmentLength = stringLength / points;
 
@@ -70,7 +70,7 @@ const Lanyard: React.FC<LanyardProps> = ({ user, isAdmin }) => {
       }
 
       // Constrain
-      for (let iter = 0; iter < 5; iter++) {
+      for (let iter = 0; iter < 8; iter++) {
         for (let i = 0; i < points - 1; i++) {
           let p1 = pts[i];
           let p2 = pts[i + 1];
@@ -120,11 +120,13 @@ const Lanyard: React.FC<LanyardProps> = ({ user, isAdmin }) => {
 
     updatePhysics();
 
+    let cachedRect: DOMRect | null = null;
+    
     // Mouse handlers
     const handlePointerDown = (e: PointerEvent) => {
-      const rect = containerRef.current!.getBoundingClientRect();
-      const bx = e.clientX - rect.left;
-      const by = e.clientY - rect.top;
+      cachedRect = containerRef.current!.getBoundingClientRect();
+      const bx = e.clientX - cachedRect.left;
+      const by = e.clientY - cachedRect.top;
       
       // check if clicking near the badge
       const last = pts[points-1];
@@ -139,10 +141,9 @@ const Lanyard: React.FC<LanyardProps> = ({ user, isAdmin }) => {
     };
 
     const handlePointerMove = (e: PointerEvent) => {
-      if (!isDragging) return;
-      const rect = containerRef.current!.getBoundingClientRect();
-      dragPos.x = e.clientX - rect.left;
-      dragPos.y = e.clientY - rect.top;
+      if (!isDragging || !cachedRect) return;
+      dragPos.x = e.clientX - cachedRect.left;
+      dragPos.y = e.clientY - cachedRect.top;
     };
 
     const handlePointerUp = () => {

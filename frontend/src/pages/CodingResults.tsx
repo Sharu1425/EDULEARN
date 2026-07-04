@@ -558,7 +558,7 @@ const CodingResults: React.FC = () => {
         <Link to="/dashboard">
           <Button variant="primary" size="lg">Back to Dashboard</Button>
         </Link>
-        <Button variant="secondary" size="lg" onClick={() => navigate(-1)}>
+        <Button variant="secondary" size="lg" onClick={() => navigate('/coding')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Go Back
         </Button>

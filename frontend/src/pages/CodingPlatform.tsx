@@ -147,6 +147,44 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
     }
   }
 
+  const quickGenerateProblem = async () => {
+    if (!user) {
+      showError("Please log in to generate problems")
+      return
+    }
+
+    setLoading(true)
+    try {
+      // Pick a random topic (prefer weak topics if available)
+      const topicToUse = analytics?.weak_topics?.length 
+        ? analytics.weak_topics[Math.floor(Math.random() * analytics.weak_topics.length)]
+        : allTopics[Math.floor(Math.random() * allTopics.length)]
+
+      const response = await api.post("/api/coding/problems/generate", {
+        topic: topicToUse,
+        difficulty: "medium", // Default to medium for quick generate
+        user_skill_level: analytics?.skill_level || "intermediate",
+        focus_areas: [topicToUse],
+        avoid_topics: analytics?.weak_topics || [],
+        timestamp: Date.now(),
+        user_id: user?.id,
+        session_id: Math.random().toString(36).substring(7),
+      })
+
+      if (response.data.success) {
+        success("🎉 Quick generated a new problem successfully!")
+        window.location.href = `/coding/problem/${response.data.problem.id}`
+      }
+    } catch (error: any) {
+      console.error("Error generating problem:", error)
+      const errorMessage =
+        error.response?.data?.detail || error.message || "Failed to generate problem. Please try again."
+      showError(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const getDifficultyColor = (difficulty: string) => {
     const colors = {
       easy: "text-success bg-success/10 border-success/20",
@@ -200,99 +238,121 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
       animate="animate"
       className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6"
     >
-      {/* Hero */}
-      <motion.div variants={ANIMATION_VARIANTS.slideUp}>
-        <Card appearance="glass" hover={false} className="relative overflow-hidden p-7 sm:p-9">
-          <div className="aurora-mesh" />
-          <div className="relative z-10">
-            <span className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              <Code2 className="h-3.5 w-3.5" /> Coding Lab
-            </span>
-            <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Sharpen your skills, one problem at a time
-            </h1>
-            <p className="mt-2 max-w-lg text-muted-foreground">
-              Generate AI-tailored challenges, solve them in the editor, and get instant neural feedback.
-            </p>
+      {/* Header */}
+      <motion.div variants={ANIMATION_VARIANTS.slideUp} className="mb-8">
+        <Card className="relative overflow-hidden border-border/50 bg-card p-8 shadow-sm">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="max-w-2xl">
+              <h1 className="mb-4 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                Coding <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Platform</span>
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                Master algorithms and data structures through interactive, AI-generated coding challenges.
+              </p>
+            </div>
+            
+            <div className="flex shrink-0 items-center lg:border-l lg:border-border/50 lg:pl-8">
+              <Button
+                size="lg"
+                className="group relative w-full overflow-hidden rounded-2xl lg:w-auto min-w-[200px]"
+                onClick={quickGenerateProblem}
+                disabled={loading}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-0 transition-opacity group-hover:opacity-100" />
+                <span className="relative flex items-center justify-center gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  Quick Generate
+                </span>
+              </Button>
+            </div>
           </div>
         </Card>
       </motion.div>
 
       {/* Problem Generation */}
       <motion.div variants={ANIMATION_VARIANTS.slideUp}>
-        <Card className="p-6">
-          <h3 className="mb-4 flex items-center gap-2 font-heading text-lg font-bold text-foreground">
-            <Sparkles className="h-5 w-5 text-primary" /> Generate AI-Powered Problem
-          </h3>
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-            <div className="flex flex-col">
-              <label className="mb-2 block text-sm font-medium text-muted-foreground">Select Topic</label>
-              <select
-                value={selectedTopic}
-                onChange={(e) => setSelectedTopic(e.target.value)}
-                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">Select Topic</option>
-                <optgroup label="Popular Topics">
-                  {popularTopics.map((topic) => (
-                    <option key={topic} value={topic}>
-                      {topic}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="All Topics">
-                  {allTopics
-                    .filter((topic) => !popularTopics.includes(topic))
-                    .map((topic) => (
-                      <option key={topic} value={topic}>
-                        {topic}
-                      </option>
-                    ))}
-                </optgroup>
-              </select>
-              {selectedTopic && (
-                <div className="mt-2 text-sm text-muted-foreground">
-                  Selected: <span className="font-semibold text-foreground">{selectedTopic}</span>
+        <Card className="relative overflow-hidden p-0 border-0 shadow-xl shadow-primary/5">
+          <div className="absolute inset-0 bg-gradient-to-br from-card to-card/50 z-0"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+          
+          <div className="relative z-10 p-6 md:p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-heading text-xl font-bold text-foreground">AI Problem Generator</h3>
+                <p className="text-sm text-muted-foreground">Customize your next coding challenge</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 items-end">
+              <div className="flex flex-col lg:col-span-5">
+                <label className="mb-2 block text-sm font-medium text-foreground/80">Select Topic</label>
+                <div className="relative group">
+                  <select
+                    value={selectedTopic}
+                    onChange={(e) => setSelectedTopic(e.target.value)}
+                    className="w-full appearance-none rounded-xl border-2 border-border/50 bg-background/50 px-4 py-3.5 text-foreground transition-all focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 group-hover:border-border"
+                  >
+                    <option value="">Select a programming topic...</option>
+                    <optgroup label="Popular Topics">
+                      {popularTopics.map((topic) => (
+                        <option key={topic} value={topic}>{topic}</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="All Topics">
+                      {allTopics
+                        .filter((topic) => !popularTopics.includes(topic))
+                        .map((topic) => (
+                          <option key={topic} value={topic}>{topic}</option>
+                        ))}
+                    </optgroup>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground group-hover:text-foreground">
+                    <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+                  </div>
                 </div>
-              )}
-            </div>
+              </div>
 
-            <div className="flex flex-col">
-              <label className="mb-2 block text-sm font-medium text-muted-foreground">Difficulty</label>
-              <select
-                value={selectedDifficulty}
-                onChange={(e) => setSelectedDifficulty(e.target.value)}
-                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">Select Difficulty</option>
-                {difficulties.map((diff) => (
-                  <option key={diff} value={diff} className="capitalize">
-                    {diff}
-                  </option>
-                ))}
-              </select>
-            </div>
+              <div className="flex flex-col lg:col-span-4">
+                <label className="mb-2 block text-sm font-medium text-foreground/80">Difficulty Level</label>
+                <div className="relative group">
+                  <select
+                    value={selectedDifficulty}
+                    onChange={(e) => setSelectedDifficulty(e.target.value)}
+                    className="w-full appearance-none rounded-xl border-2 border-border/50 bg-background/50 px-4 py-3.5 text-foreground transition-all focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 group-hover:border-border capitalize"
+                  >
+                    <option value="">Select difficulty...</option>
+                    {difficulties.map((level) => (
+                      <option key={level} value={level}>{level}</option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground group-hover:text-foreground">
+                    <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+                  </div>
+                </div>
+              </div>
 
-            <div className="flex items-end">
-              <div className="flex w-full gap-3">
+              <div className="flex flex-col gap-3 lg:col-span-3">
                 <Button
                   onClick={generateProblem}
                   disabled={loading || !selectedTopic || !selectedDifficulty}
-                  className="flex-1"
-                  variant="primary"
+                  className="w-full py-3.5 rounded-xl font-bold text-base bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {loading ? (
                     <>
-                      <LoadingSpinner size="sm" />
-                      <span className="ml-2">Generating...</span>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                      Generating...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="h-4 w-4" /> Generate
+                      Generate Challenge <ArrowRight className="ml-2 h-4 w-4" />
                     </>
                   )}
                 </Button>
-
+                
                 <Button
                   onClick={() => {
                     const randomTopic = popularTopics[Math.floor(Math.random() * popularTopics.length)]
@@ -301,10 +361,10 @@ const CodingPlatform: React.FC<CodingPlatformProps> = ({ user: propUser }) => {
                     setSelectedDifficulty(randomDifficulty)
                   }}
                   disabled={loading}
-                  className="flex-1"
                   variant="outline"
+                  className="w-full py-3.5 rounded-xl border-2 border-border/50 text-foreground transition-all hover:bg-background/80 hover:border-primary/30"
                 >
-                  <Shuffle className="h-4 w-4" /> Quick Pick
+                  <Shuffle className="mr-2 h-4 w-4" /> Quick Pick
                 </Button>
               </div>
             </div>

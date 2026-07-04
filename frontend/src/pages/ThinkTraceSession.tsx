@@ -81,14 +81,17 @@ export default function ThinkTraceSession() {
     }
   };
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const handleAnswer = async (choice: 'A' | 'B') => {
     if (!sessionId || !currentQuestion || isAnswering) return;
     setIsAnswering(true);
+    setErrorMsg(null);
 
     try {
       const res = await api.post(`/api/thinktrace/${sessionId}/answer`, {
         chosen_option: choice
-      });
+      }, { timeout: 60000 }); // extended timeout for AI generation
 
       if (res.data.status === 'completed') {
         setReview(res.data);
@@ -97,9 +100,9 @@ export default function ThinkTraceSession() {
         const nextQ = res.data.questions[res.data.questions.length - 1];
         setCurrentQuestion(nextQ);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to submit answer:', error);
-      alert("Error submitting answer.");
+      setErrorMsg(error?.response?.data?.detail || "Network error or AI engine timeout. Please try again.");
     } finally {
       setIsAnswering(false);
     }
@@ -230,7 +233,7 @@ export default function ThinkTraceSession() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
+        <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 overflow-y-auto">
           {isLoading ? (
             <div className="flex flex-col items-center space-y-4">
               <div className="relative w-16 h-16">
@@ -242,20 +245,38 @@ export default function ThinkTraceSession() {
               <p className="text-muted-foreground font-medium animate-pulse">Initializing dynamic assessment...</p>
             </div>
           ) : currentQuestion ? (
-            <div className="w-full max-w-4xl max-h-[85vh] flex flex-col">
+            <div className="w-full max-w-4xl flex flex-col h-full md:h-auto">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="bg-card border border-border rounded-2xl shadow-xl shadow-e2 dark:shadow-none overflow-hidden flex flex-col"
+                className="bg-card/80 backdrop-blur-md border border-border/50 rounded-3xl shadow-2xl overflow-hidden flex flex-col relative"
               >
+                {/* Error Banner */}
+                {errorMsg && (
+                  <div className="bg-destructive/10 border-b border-destructive/20 p-4 flex flex-col items-center justify-center text-center">
+                    <div className="flex items-center gap-2 text-destructive font-medium">
+                      <AlertCircle className="w-5 h-5" />
+                      <span>{errorMsg}</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Loading Overlay when answering */}
+                {isAnswering && !errorMsg && (
+                  <div className="absolute inset-0 z-20 bg-background/60 backdrop-blur-sm flex flex-col items-center justify-center rounded-3xl">
+                    <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mb-4"></div>
+                    <p className="text-emerald-600 dark:text-emerald-400 font-semibold animate-pulse">Analyzing response & adapting...</p>
+                  </div>
+                )}
+
                 {/* Question Text */}
-                <div className="p-6 md:p-10 border-b border-border">
+                <div className="p-6 md:p-10 border-b border-border/50">
                   {currentQuestion.transition && (
                     <div className="mb-6 inline-block">
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
+                      <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 shadow-sm">
                         {currentQuestion.transition.includes('glitch') ? 'System Event' : 'Insight'}
                       </span>
-                      <p className="mt-3 text-sm text-muted-foreground italic">
+                      <p className="mt-3 text-sm text-muted-foreground italic border-l-2 border-emerald-500/30 pl-3">
                         {currentQuestion.transition}
                       </p>
                     </div>
@@ -266,26 +287,26 @@ export default function ThinkTraceSession() {
                 </div>
 
                 {/* Options Layout */}
-                <div className="p-6 md:p-10 bg-muted/30 flex-1">
+                <div className="p-6 md:p-10 bg-muted/20 flex-1">
                   <div className="grid gap-4 md:grid-cols-2">
                     {/* Option A */}
                     <button
                       disabled={isAnswering}
                       onClick={() => handleAnswer('A')}
                       className={cn(
-                        "group relative flex flex-col items-start p-6 rounded-xl border-2 transition-all duration-300 text-left h-full",
+                        "group relative flex flex-col items-start p-6 rounded-2xl border-2 transition-all duration-300 text-left h-full",
                         isAnswering 
                           ? "opacity-50 cursor-not-allowed border-border bg-muted/40" 
-                          : "border-border bg-card hover:border-emerald-500 dark:hover:border-emerald-500 hover:shadow-md hover:bg-emerald-50/30 dark:hover:bg-emerald-900/10"
+                          : "border-transparent bg-background shadow-sm hover:border-emerald-500/50 dark:hover:border-emerald-500/50 hover:shadow-lg hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 ring-1 ring-border"
                       )}
                     >
                       <div className="flex items-center gap-3 w-full mb-4">
-                        <span className="flex items-center justify-center w-8 h-8 rounded bg-muted text-foreground/80 font-bold group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-muted text-foreground/80 font-bold group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors shadow-sm">
                           A
                         </span>
-                        <div className="h-px flex-1 bg-muted group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-colors"></div>
+                        <div className="h-px flex-1 bg-border group-hover:bg-emerald-200 dark:group-hover:bg-emerald-800/50 transition-colors"></div>
                       </div>
-                      <p className="text-base text-foreground/80 font-medium flex-1">
+                      <p className="text-base text-foreground/90 font-medium flex-1">
                         {currentQuestion.option_a}
                       </p>
                     </button>
@@ -295,19 +316,19 @@ export default function ThinkTraceSession() {
                       disabled={isAnswering}
                       onClick={() => handleAnswer('B')}
                       className={cn(
-                        "group relative flex flex-col items-start p-6 rounded-xl border-2 transition-all duration-300 text-left h-full",
+                        "group relative flex flex-col items-start p-6 rounded-2xl border-2 transition-all duration-300 text-left h-full",
                         isAnswering 
                           ? "opacity-50 cursor-not-allowed border-border bg-muted/40" 
-                          : "border-border bg-card hover:border-emerald-500 dark:hover:border-emerald-500 hover:shadow-md hover:bg-emerald-50/30 dark:hover:bg-emerald-900/10"
+                          : "border-transparent bg-background shadow-sm hover:border-emerald-500/50 dark:hover:border-emerald-500/50 hover:shadow-lg hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 ring-1 ring-border"
                       )}
                     >
                       <div className="flex items-center gap-3 w-full mb-4">
-                        <span className="flex items-center justify-center w-8 h-8 rounded bg-muted text-foreground/80 font-bold group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-muted text-foreground/80 font-bold group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors shadow-sm">
                           B
                         </span>
-                        <div className="h-px flex-1 bg-muted group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-colors"></div>
+                        <div className="h-px flex-1 bg-border group-hover:bg-emerald-200 dark:group-hover:bg-emerald-800/50 transition-colors"></div>
                       </div>
-                      <p className="text-base text-foreground/80 font-medium flex-1">
+                      <p className="text-base text-foreground/90 font-medium flex-1">
                         {currentQuestion.option_b}
                       </p>
                     </button>

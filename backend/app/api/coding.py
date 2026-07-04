@@ -879,7 +879,11 @@ async def end_coding_session(
         
         # Calculate total time
         end_time = datetime.now(timezone.utc)
-        total_time = int((end_time - session["start_time"]).total_seconds())
+        start_time = session.get("start_time")
+        if start_time and start_time.tzinfo is None:
+            start_time = start_time.replace(tzinfo=timezone.utc)
+            
+        total_time = int((end_time - start_time).total_seconds()) if start_time else 0
         
         # Build update document
         update_doc = {

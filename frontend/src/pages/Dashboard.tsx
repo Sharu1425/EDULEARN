@@ -23,7 +23,7 @@ const scoreToken = (p: number) => (p >= 80 ? "success" : p >= 60 ? "warning" : "
 
 const QUICK_ACTIONS = [
   { label: "Start Assessment", desc: "MCQ or coding, AI-generated", to: "/assessment-choice", Icon: ClipboardList, accent: "primary" },
-  { label: "ThinkTrace", desc: "Adaptive AI interview", to: "/thinktrace", Icon: Sparkles, accent: "secondary" },
+  { label: "ThinkTrace", desc: "Adaptive AI interview", to: "/unified-assessment?tab=thinktrace", Icon: Sparkles, accent: "secondary" },
   { label: "Coding Lab", desc: "Practice with feedback", to: "/coding", Icon: Code2, accent: "info" },
   { label: "Topic Mastery", desc: "Your learning paths", to: "/mastery", Icon: MapIcon, accent: "accent" },
 ]

@@ -79,6 +79,7 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
     }, [step, currentIndex])
 
     const fetchSummary = async () => {
+        if (!topic) return
         try {
             const res = await api.post("/api/mastery/summary", {
                 subtopic_id: topic.id,
@@ -95,6 +96,7 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
     }
 
     const handleStartQuiz = async () => {
+        if (!topic) return
         setStep("generating_quiz")
         try {
             const res = await api.post("/api/mastery/generate-quiz", {
@@ -147,6 +149,8 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
 
         setScore({ correct: correctCount, total: questions.length })
         const passed = correctCount >= questions.length * 0.8
+
+        if (!topic) return
 
         try {
             setSubmitting(true)
@@ -238,7 +242,7 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({ isOpen, onClose, to
                 </div>
 
                 <div className="flex shrink-0 justify-end gap-3 border-t border-border bg-muted/30 p-6">
-                    {topic.status === "completed"
+                    {topic?.status === "completed"
                         ? <Button variant="outline" onClick={onClose}>Close</Button>
                         : <Button variant="primary" onClick={handleStartQuiz}><Check className="h-5 w-5" /> Take the Quiz</Button>}
                 </div>

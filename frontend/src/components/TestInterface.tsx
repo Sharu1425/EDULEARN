@@ -7,6 +7,7 @@ import api from '../utils/api';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
+import { cn } from '../lib/utils';
 import Button from './ui/Button';
 import LoadingSpinner from './ui/LoadingSpinner';
 import Card from './ui/Card';
@@ -1431,38 +1432,76 @@ const TestInterface: React.FC<TestInterfaceProps> = ({ assessmentId, onComplete 
             </motion.div>
           </div>
         ) : (
-          // MCQ Question Display - Full Width
+          // MCQ Question Display - Premium UI
           <motion.div
             key={`question-${currentQuestionIndex}`}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            style={{ backgroundColor: 'rgb(31, 41, 55)' }}
-            className="rounded-lg p-8 mb-6 border border-gray-700"
+            initial={{ opacity: 0, scale: 0.98, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.98, y: -15 }}
+            className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-3xl shadow-2xl overflow-hidden mb-6"
           >
-            <h2 className="text-xl font-bold text-white mb-6">
-              {currentQuestion.question}
-            </h2>
+            {/* Question Header */}
+            <div className="p-8 md:p-12 border-b border-border/40">
+              <div className="mb-4 inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20 shadow-sm">
+                Question {currentQuestionIndex + 1}
+              </div>
+              <h2 className="text-2xl md:text-3xl font-heading font-semibold text-foreground leading-relaxed">
+                {currentQuestion.question}
+              </h2>
+            </div>
 
-            <div className="space-y-3">
-              {(currentQuestion.options || []).map((option, index) => (
-                <label
-                  key={index}
-                  className={`flex items-center p-4 rounded-lg bg-gray-800 border cursor-pointer transition-all hover:bg-gray-700 ${answers[currentQuestionIndex] === index
-                    ? 'border-blue-500 bg-gray-700'
-                    : 'border-gray-700'
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name={`question-${currentQuestionIndex}`}
-                    checked={answers[currentQuestionIndex] === index}
-                    onChange={() => handleAnswerChange(currentQuestionIndex, index)}
-                    className="mr-4 w-5 h-5 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-gray-200">{String.fromCharCode(65 + index)}. {option}</span>
-                </label>
-              ))}
+            {/* Options */}
+            <div className="p-8 md:p-12 bg-muted/10">
+              <div className="grid gap-4 md:grid-cols-2">
+                {(currentQuestion.options || []).map((option, index) => {
+                  const isSelected = answers[currentQuestionIndex] === index;
+                  return (
+                    <label
+                      key={index}
+                      className={cn(
+                        "group relative flex items-center p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 h-full",
+                        isSelected
+                          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+                          : "border-transparent bg-background shadow-sm hover:border-primary/40 hover:shadow-md hover:bg-muted/30 ring-1 ring-border"
+                      )}
+                    >
+                      <div className="flex-1 flex items-center gap-4">
+                        <div className={cn(
+                          "flex items-center justify-center w-10 h-10 rounded-xl font-bold transition-colors shadow-sm",
+                          isSelected
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-foreground/70 group-hover:bg-primary/20 group-hover:text-primary"
+                        )}>
+                          {String.fromCharCode(65 + index)}
+                        </div>
+                        <span className={cn(
+                          "text-base md:text-lg font-medium",
+                          isSelected ? "text-foreground" : "text-foreground/80"
+                        )}>
+                          {option}
+                        </span>
+                      </div>
+                      
+                      {/* Radio button hidden visually but accessible */}
+                      <input
+                        type="radio"
+                        name={`question-${currentQuestionIndex}`}
+                        checked={isSelected}
+                        onChange={() => handleAnswerChange(currentQuestionIndex, index)}
+                        className="opacity-0 absolute w-full h-full cursor-pointer inset-0 z-10"
+                      />
+                      
+                      {/* Selection indicator */}
+                      <div className={cn(
+                        "w-6 h-6 rounded-full border-2 flex items-center justify-center ml-4 transition-colors",
+                        isSelected ? "border-primary bg-primary" : "border-muted-foreground/30 group-hover:border-primary/50"
+                      )}>
+                        {isSelected && <CheckCircle className="w-4 h-4 text-primary-foreground" />}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           </motion.div>
         )}
